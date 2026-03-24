@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Pre-Admission top-level menu
+         Positioned after the main CRM menu.
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_pre_admission_root"
+              name="Pre-Admission"
+              sequence="40"
+              groups="group_pre_admission_viewer,group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
+
+    <!-- ── Main Operational Items ──────────────────────────────────────── -->
+    <menuitem id="menu_pre_admission_main"
+              name="Pre-Admission"
+              parent="menu_pre_admission_root"
+              sequence="10"/>
+
+    <menuitem id="menu_crm_leads_pre_admission"
+              name="Inquiries &amp; Leads"
+              parent="menu_pre_admission_main"
+              action="crm.crm_lead_all_leads"
+              sequence="10"/>
+
+    <menuitem id="menu_applicant_profiles"
+              name="Applicant Profiles"
+              parent="menu_pre_admission_main"
+              action="action_edu_applicant_profile"
+              sequence="20"/>
+
+    <menuitem id="menu_guardians"
+              name="Guardians"
+              parent="menu_pre_admission_main"
+              sequence="30"
+              action="action_edu_guardian"/>
+
+    <!-- ── Configuration ───────────────────────────────────────────────── -->
+    <menuitem id="menu_pre_admission_config"
+              name="Configuration"
+              parent="menu_pre_admission_root"
+              sequence="90"
+              groups="edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_relationship_types"
+              name="Relationship Types"
+              parent="menu_pre_admission_config"
+              action="action_edu_relationship_type"
+              sequence="10"/>
+</odoo>

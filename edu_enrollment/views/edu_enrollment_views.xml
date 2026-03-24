@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_enrollment_search" model="ir.ui.view">
+        <field name="name">edu.enrollment.search</field>
+        <field name="model">edu.enrollment</field>
+        <field name="arch" type="xml">
+            <search string="Enrollments">
+                <field name="enrollment_no"/>
+                <field name="applicant_profile_id"/>
+                <field name="partner_id"/>
+                <field name="program_id"/>
+                <field name="batch_id"/>
+                <field name="application_id"/>
+                <separator/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Active" name="active_state"
+                        domain="[('state', '=', 'active')]"/>
+                <filter string="Completed" name="completed"
+                        domain="[('state', '=', 'completed')]"/>
+                <filter string="Cancelled" name="cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="Regular" name="type_regular"
+                        domain="[('enrollment_type', '=', 'regular')]"/>
+                <filter string="Transfer" name="type_transfer"
+                        domain="[('enrollment_type', '=', 'transfer')]"/>
+                <filter string="Provisional" name="type_provisional"
+                        domain="[('enrollment_type', '=', 'provisional')]"/>
+                <separator/>
+                <filter string="Fee Confirmed" name="fee_confirmed"
+                        domain="[('fee_confirmed', '=', True)]"/>
+                <filter string="Has Scholarship" name="has_scholarship"
+                        domain="[('total_scholarship_discount_amount', '&gt;', 0)]"/>
+                <filter string="Checklist Pending" name="checklist_pending"
+                        domain="[('checklist_complete', '=', False)]"/>
+                <separator/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Program" name="group_program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter string="Batch" name="group_batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter string="Academic Year" name="group_year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Type" name="group_type"
+                            context="{'group_by': 'enrollment_type'}"/>
+                    <filter string="Scholarship Status" name="group_scholarship"
+                            context="{'group_by': 'scholarship_status'}"/>
+                    <filter string="Enrollment Date" name="group_date"
+                            context="{'group_by': 'enrollment_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_enrollment_list" model="ir.ui.view">
+        <field name="name">edu.enrollment.list</field>
+        <field name="model">edu.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Enrollments" default_order="enrollment_date desc">
+                <field name="enrollment_no" decoration-bf="1"/>
+                <field name="applicant_profile_id"/>
+                <field name="program_id"/>
+                <field name="batch_id" optional="show"/>
+                <field name="academic_year_id" optional="show"/>
+                <field name="current_program_term_id" optional="show"/>
+                <field name="enrollment_date"/>
+                <field name="enrollment_type" optional="show"/>
+                <field name="scholarship_status" optional="show"
+                       widget="badge"/>
+                <field name="net_fee_after_scholarship" optional="show"
+                       string="Net Fee"/>
+                <field name="checklist_complete" optional="show"
+                       widget="boolean"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'confirmed'"
+                       decoration-muted="state in ('cancelled', 'completed')"
+                       decoration-warning="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_enrollment_form" model="ir.ui.view">
+        <field name="name">edu.enrollment.form</field>
+        <field name="model">edu.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Enrollment">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"
+                            invisible="state != 'draft' or not can_confirm"/>
+                    <button name="action_activate" type="object"
+                            string="Activate" class="btn-primary"
+                            invisible="state != 'confirmed' or not can_activate"
+                            confirm="Activate this enrollment? The record will become mostly locked."/>
+                    <button name="action_complete" type="object"
+                            string="Complete" class="btn-secondary"
+                            invisible="state != 'active'"
+                            confirm="Mark this enrollment as completed?"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state not in ['draft', 'confirmed']"/>
+                    <button name="action_force_cancel" type="object"
+                            string="Administrative Cancel"
+                            invisible="state not in ['active']"
+                            groups="edu_enrollment.group_enrollment_admin"
+                            confirm="Force-cancel this active enrollment? This is an administrative action."/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,active"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_application"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Application</span>
+                            </div>
+                        </button>
+                        <button name="action_view_applicant_profile"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-user-circle">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Applicant</span>
+                            </div>
+                        </button>
+                        <button name="action_view_guardians"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users"
+                                invisible="guardian_count == 0">
+                            <field name="guardian_count"
+                                   string="Guardians" widget="statinfo"/>
+                        </button>
+                        <button name="action_create_student"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-graduation-cap"
+                                invisible="state != 'active' or student_created">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Create Student</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <label for="enrollment_no" string="Enrollment"/>
+                        <h1>
+                            <field name="enrollment_no" readonly="1"
+                                   placeholder="Auto-generated"/>
+                        </h1>
+                    </div>
+
+                    <!-- Locked state indicator -->
+                    <div class="alert alert-info mb-3"
+                         invisible="state not in ['confirmed', 'active', 'completed']">
+                        <i class="fa fa-lock me-2"/>
+                        Academic and financial fields are locked in this state.
+                    </div>
+
+                    <!-- Block reason banner -->
+                    <div class="alert alert-warning mb-3"
+                         invisible="not enrollment_block_reason or state != 'draft'">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <strong>Confirmation Blocks:</strong>
+                        <field name="enrollment_block_reason" readonly="1"
+                               nolabel="1" class="d-inline" widget="text"/>
+                    </div>
+
+                    <!-- ── Source &amp; Applicant ── -->
+                    <group>
+                        <group string="Applicant">
+                            <field name="applicant_profile_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="application_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="crm_lead_id" readonly="1"
+                                   invisible="not crm_lead_id"/>
+                        </group>
+                        <group string="Enrollment Context">
+                            <field name="enrollment_date"
+                                   readonly="state not in ['draft']"/>
+                            <field name="enrollment_type"
+                                   readonly="state not in ['draft', 'confirmed']"/>
+                            <field name="enrolled_by_user_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ── Academic Placement ── -->
+                    <group>
+                        <group string="Academic Placement">
+                            <field name="program_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="batch_id"
+                                   readonly="state != 'draft'"
+                                   domain="[('program_id', '=', program_id), ('academic_year_id', '=', academic_year_id)]"/>
+                            <field name="academic_year_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="current_program_term_id"
+                                   readonly="state != 'draft'"
+                                   domain="[('program_id', '=', program_id)]"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                        <group string="Readiness">
+                            <field name="can_confirm" readonly="1"
+                                   invisible="state != 'draft'"/>
+                            <field name="can_activate" readonly="1"
+                                   invisible="state != 'confirmed'"/>
+                            <field name="checklist_complete" readonly="1"/>
+                            <field name="checklist_pending_count" readonly="1"
+                                   invisible="checklist_complete"/>
+                            <field name="student_created" readonly="1"
+                                   invisible="state != 'active'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Financial Snapshot ── -->
+                        <page string="Financial Snapshot" name="financial">
+                            <group>
+                                <group string="Fee Structure">
+                                    <field name="fee_structure_id" readonly="1"/>
+                                    <field name="payment_plan_id" readonly="1"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="fee_confirmed" readonly="1"/>
+                                    <field name="fee_confirmation_date" readonly="1"/>
+                                </group>
+                                <group string="Fee Amounts">
+                                    <field name="base_total_fee" readonly="1"/>
+                                    <field name="scholarship_eligible_total" readonly="1"/>
+                                    <field name="total_scholarship_discount_amount" readonly="1"/>
+                                    <field name="net_fee_after_scholarship" readonly="1"
+                                           decoration-bf="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Scholarship Summary">
+                                    <field name="scholarship_status" readonly="1"/>
+                                    <field name="scholarship_cap_applied" readonly="1"/>
+                                </group>
+                                <group string="Admission Outcome">
+                                    <field name="offer_status" readonly="1"/>
+                                    <field name="offer_acceptance_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <div class="text-muted mt-3">
+                                <i class="fa fa-info-circle me-1"/>
+                                These values are snapshots from the admission application at enrollment time.
+                                They remain stable regardless of subsequent changes to the source application.
+                            </div>
+                        </page>
+
+                        <!-- ── Checklist ── -->
+                        <page string="Checklist" name="checklist">
+                            <field name="checklist_line_ids"
+                                   readonly="state in ['cancelled', 'completed']">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="is_required"/>
+                                    <field name="is_complete"/>
+                                    <field name="completed_date" readonly="1"/>
+                                    <field name="completed_by_user_id" readonly="1"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Audit ── -->
+                        <page string="Audit" name="audit">
+                            <group>
+                                <group string="Enrollment">
+                                    <field name="enrolled_by_user_id" readonly="1"/>
+                                    <field name="admission_register_id" readonly="1"/>
+                                </group>
+                                <group string="Confirmation">
+                                    <field name="confirmed_by_user_id" readonly="1"/>
+                                    <field name="confirmed_on" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Activation">
+                                    <field name="activated_by_user_id" readonly="1"/>
+                                    <field name="activated_on" readonly="1"/>
+                                </group>
+                                <group string="System">
+                                    <field name="active" invisible="1"/>
+                                    <field name="company_id" groups="base.group_multi_company"
+                                           readonly="1"/>
+                                    <field name="student_id" readonly="1"
+                                           invisible="not student_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ── Notes ── -->
+                        <page string="Notes" name="notes">
+                            <group string="Internal Notes">
+                                <field name="internal_note" nolabel="1"/>
+                            </group>
+                            <group string="General Notes">
+                                <field name="note" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrollments</field>
+        <field name="res_model">edu.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_enrollment_search"/>
+        <field name="context">{'search_default_active_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No enrollment records yet</p>
+            <p>Enrollment records are created from admission applications
+            that have completed the offer acceptance and readiness workflow.</p>
+        </field>
+    </record>
+</odoo>

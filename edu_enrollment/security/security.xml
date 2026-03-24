@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════
+         Enrollment Access Privilege
+    ══════════════════════════════════════════════════════════ -->
+    <record id="privilege_enrollment_access" model="res.groups.privilege">
+        <field name="name">Enrollment Access</field>
+        <field name="description">
+            Controls access levels for official enrollment records,
+            checklist management, and enrollment lifecycle operations.
+        </field>
+        <field name="placeholder">No enrollment access</field>
+        <field name="sequence">45</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- Enrollment Viewer: read-only access -->
+    <record id="group_enrollment_viewer" model="res.groups">
+        <field name="name">Enrollment Viewer</field>
+        <field name="privilege_id" ref="privilege_enrollment_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">
+            Read-only access to enrollment records and checklists.
+        </field>
+    </record>
+
+    <!-- Enrollment Officer: operational CRUD -->
+    <record id="group_enrollment_officer" model="res.groups">
+        <field name="name">Enrollment Officer</field>
+        <field name="privilege_id" ref="privilege_enrollment_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_enrollment_viewer'))
+        ]"/>
+        <field name="comment">
+            Can create, confirm, and manage enrollment records.
+            Can manage checklist items. Cannot delete enrollments
+            or perform administrative cancellations.
+        </field>
+    </record>
+
+    <!-- Enrollment Admin: full CRUD + administrative actions -->
+    <record id="group_enrollment_admin" model="res.groups">
+        <field name="name">Enrollment Administrator</field>
+        <field name="privilege_id" ref="privilege_enrollment_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_enrollment_officer'))
+        ]"/>
+        <field name="comment">
+            Full access to all enrollment records including
+            administrative cancellation, deletion, and configuration.
+        </field>
+    </record>
+</odoo>

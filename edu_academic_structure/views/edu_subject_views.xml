@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Subject — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_subject_search" model="ir.ui.view">
+        <field name="name">edu.subject.search</field>
+        <field name="model">edu.subject</field>
+        <field name="arch" type="xml">
+            <search string="Subjects">
+                <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="department_id"/>
+                <filter string="Theory"      name="theory"     domain="[('subject_type', '=', 'theory')]"/>
+                <filter string="Practical"   name="practical"  domain="[('subject_type', '=', 'practical')]"/>
+                <filter string="Theory+Prac" name="both"       domain="[('subject_type', '=', 'both')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Department"   name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Subject Type" name="group_type" context="{'group_by': 'subject_type'}"/>
+                    <!-- <filter string="Company"      name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/> -->
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Subject — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_subject_list" model="ir.ui.view">
+        <field name="name">edu.subject.list</field>
+        <field name="model">edu.subject</field>
+        <field name="arch" type="xml">
+            <list string="Subjects">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <field name="subject_type"/>
+                <field name="credit_hours"/>
+                <field name="full_marks"/>
+                <field name="pass_marks"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Subject — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_subject_form" model="ir.ui.view">
+        <field name="name">edu.subject.form</field>
+        <field name="model">edu.subject</field>
+        <field name="arch" type="xml">
+            <form string="Subject">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Introduction to Programming"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="department_id"/>
+                            <field name="subject_type"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Academic Weight">
+                            <field name="credit_hours"/>
+                            <field name="full_marks"/>
+                            <field name="pass_marks"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional notes..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Subject — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_subject" model="ir.actions.act_window">
+        <field name="name">Subjects</field>
+        <field name="res_model">edu.subject</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_subject_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add subjects to the master catalogue</p>
+            <p>Subjects are reusable; assign them to programs via the Curriculum.</p>
+        </field>
+    </record>
+</odoo>

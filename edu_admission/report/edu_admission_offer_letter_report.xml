@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Offer Letter — Report Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_offer_letter" model="ir.actions.report">
+        <field name="name">Offer Letter</field>
+        <field name="model">edu.admission.application</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_admission.report_offer_letter</field>
+        <field name="report_file">edu_admission.report_offer_letter</field>
+        <field name="print_report_name">'Offer Letter - %s' % object.application_no</field>
+        <field name="binding_model_id" ref="model_edu_admission_application"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

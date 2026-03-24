@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Curriculum Line — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_curriculum_line_search" model="ir.ui.view">
+        <field name="name">edu.curriculum.line.search</field>
+        <field name="model">edu.curriculum.line</field>
+        <field name="arch" type="xml">
+            <search string="Curriculum">
+                <field name="subject_id"/>
+                <field name="program_term_id"/>
+                <field name="program_id"/>
+                <filter string="Compulsory" name="compulsory" domain="[('subject_category', '=', 'compulsory')]"/>
+                <filter string="Elective"   name="elective"   domain="[('subject_category', '=', 'elective')]"/>
+                <filter string="Optional"   name="optional"   domain="[('subject_category', '=', 'optional')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Program"      name="group_program"  context="{'group_by': 'program_id'}"/>
+                    <filter string="Program Term"  name="group_pt"      context="{'group_by': 'program_term_id'}"/>
+                    <filter string="Category"      name="group_cat"     context="{'group_by': 'subject_category'}"/>
+                    <filter string="Company"       name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Curriculum Line — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_curriculum_line_list" model="ir.ui.view">
+        <field name="name">edu.curriculum.line.list</field>
+        <field name="model">edu.curriculum.line</field>
+        <field name="arch" type="xml">
+            <list string="Curriculum Lines" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="program_term_id"/>
+                <field name="program_id" optional="hide"/>
+                <field name="progression_no" optional="show"/>
+                <field name="subject_id"/>
+                <field name="subject_type"/>
+                <field name="subject_category"/>
+                <field name="credit_hours"/>
+                <field name="full_marks"/>
+                <field name="pass_marks"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Curriculum Line — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_curriculum_line_form" model="ir.ui.view">
+        <field name="name">edu.curriculum.line.form</field>
+        <field name="model">edu.curriculum.line</field>
+        <field name="arch" type="xml">
+            <form string="Curriculum Line">
+                <sheet>
+                    <group>
+                        <group string="Mapping">
+                            <field name="program_term_id"/>
+                            <field name="program_id" readonly="1"/>
+                            <field name="progression_no" readonly="1"/>
+                            <field name="subject_id"/>
+                            <field name="subject_type" readonly="1"/>
+                            <field name="subject_category"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Marks &amp; Credits">
+                            <field name="credit_hours"/>
+                            <field name="full_marks"/>
+                            <field name="pass_marks"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" placeholder="Optional notes..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Curriculum Line — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_curriculum_line" model="ir.actions.act_window">
+        <field name="name">Curriculum</field>
+        <field name="res_model">edu.curriculum.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_curriculum_line_search"/>
+        <field name="context">{'search_default_group_program': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Map subjects to program terms</p>
+            <p>Each curriculum line assigns a subject to a program term with marks and credit hours.</p>
+        </field>
+    </record>
+</odoo>

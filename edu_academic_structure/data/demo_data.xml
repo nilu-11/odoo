@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Demo data for edu_academic_structure.
+    Loaded only in demo databases (modules with 'demo' key in manifest).
+    Provides a complete working hierarchy for manual testing.
+
+    Scenario:
+      - BCS = 4-year / 8-semester undergraduate program
+      - MBA = 2-year / 4-semester postgraduate program
+      - Academic Year 2024-2025 with 2 semesters
+      - Program Terms map progression stages to calendar terms
+-->
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Departments
+    ══════════════════════════════════════════════════════ -->
+    <record id="dept_cs" model="edu.department">
+        <field name="name">Computer Science</field>
+        <field name="code">CS</field>
+        <field name="description">Faculty of Computing and Information Technology</field>
+    </record>
+
+    <record id="dept_biz" model="edu.department">
+        <field name="name">Business Administration</field>
+        <field name="code">BIZ</field>
+        <field name="description">Faculty of Business and Management</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Programs
+    ══════════════════════════════════════════════════════ -->
+    <record id="prog_bcs" model="edu.program">
+        <field name="name">Bachelor of Computer Science</field>
+        <field name="code">BCS</field>
+        <field name="department_id" ref="dept_cs"/>
+        <field name="program_type">undergraduate</field>
+        <field name="level">level_6</field>
+        <field name="duration_value">4</field>
+        <field name="duration_unit">years</field>
+        <field name="total_terms">8</field>
+        <field name="term_system">semester</field>
+    </record>
+
+    <record id="prog_mba" model="edu.program">
+        <field name="name">Master of Business Administration</field>
+        <field name="code">MBA</field>
+        <field name="department_id" ref="dept_biz"/>
+        <field name="program_type">postgraduate</field>
+        <field name="level">level_7</field>
+        <field name="duration_value">2</field>
+        <field name="duration_unit">years</field>
+        <field name="total_terms">4</field>
+        <field name="term_system">semester</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Academic Year
+    ══════════════════════════════════════════════════════ -->
+    <record id="ay_2425" model="edu.academic.year">
+        <field name="name">2024-2025</field>
+        <field name="code">AY2425</field>
+        <field name="date_start">2024-09-01</field>
+        <field name="date_end">2025-08-31</field>
+        <field name="state">open</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Terms (flexible — 2 semesters for this year)
+    ══════════════════════════════════════════════════════ -->
+    <record id="term_sem1_2425" model="edu.term">
+        <field name="name">Semester 1</field>
+        <field name="code">SEM1-2425</field>
+        <field name="academic_year_id" ref="ay_2425"/>
+        <field name="sequence">10</field>
+        <field name="term_type">semester</field>
+        <field name="date_start">2024-09-01</field>
+        <field name="date_end">2025-01-31</field>
+    </record>
+
+    <record id="term_sem2_2425" model="edu.term">
+        <field name="name">Semester 2</field>
+        <field name="code">SEM2-2425</field>
+        <field name="academic_year_id" ref="ay_2425"/>
+        <field name="sequence">20</field>
+        <field name="term_type">semester</field>
+        <field name="date_start">2025-02-01</field>
+        <field name="date_end">2025-08-31</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Subjects
+    ══════════════════════════════════════════════════════ -->
+    <record id="subj_prog101" model="edu.subject">
+        <field name="name">Introduction to Programming</field>
+        <field name="code">CS101</field>
+        <field name="department_id" ref="dept_cs"/>
+        <field name="subject_type">both</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+    </record>
+
+    <record id="subj_ds201" model="edu.subject">
+        <field name="name">Data Structures and Algorithms</field>
+        <field name="code">CS201</field>
+        <field name="department_id" ref="dept_cs"/>
+        <field name="subject_type">theory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+    </record>
+
+    <record id="subj_mgmt101" model="edu.subject">
+        <field name="name">Principles of Management</field>
+        <field name="code">MGT101</field>
+        <field name="department_id" ref="dept_biz"/>
+        <field name="subject_type">theory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+    </record>
+
+    <record id="subj_fin201" model="edu.subject">
+        <field name="name">Financial Accounting</field>
+        <field name="code">FIN201</field>
+        <field name="department_id" ref="dept_biz"/>
+        <field name="subject_type">theory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Program Terms — BCS reusable progression stages
+         BCS has 8 total semesters; demo creates first 2
+    ══════════════════════════════════════════════════════ -->
+    <record id="pt_bcs_sem1" model="edu.program.term">
+        <field name="program_id" ref="prog_bcs"/>
+        <field name="progression_no">1</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="pt_bcs_sem2" model="edu.program.term">
+        <field name="program_id" ref="prog_bcs"/>
+        <field name="progression_no">2</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Program Terms — MBA reusable progression stages
+         MBA has 4 total semesters; demo creates first 2
+    ══════════════════════════════════════════════════════ -->
+    <record id="pt_mba_sem1" model="edu.program.term">
+        <field name="program_id" ref="prog_mba"/>
+        <field name="progression_no">1</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="pt_mba_sem2" model="edu.program.term">
+        <field name="program_id" ref="prog_mba"/>
+        <field name="progression_no">2</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Curriculum Lines — via program_term_id
+    ══════════════════════════════════════════════════════ -->
+    <!-- BCS Progression 1 (Semester 1) -->
+    <record id="cl_bcs_p1_cs101" model="edu.curriculum.line">
+        <field name="program_term_id" ref="pt_bcs_sem1"/>
+        <field name="subject_id" ref="subj_prog101"/>
+        <field name="subject_category">compulsory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <!-- BCS Progression 2 (Semester 2) -->
+    <record id="cl_bcs_p2_cs201" model="edu.curriculum.line">
+        <field name="program_term_id" ref="pt_bcs_sem2"/>
+        <field name="subject_id" ref="subj_ds201"/>
+        <field name="subject_category">compulsory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <!-- MBA Progression 1 (Semester 1) -->
+    <record id="cl_mba_p1_mgt101" model="edu.curriculum.line">
+        <field name="program_term_id" ref="pt_mba_sem1"/>
+        <field name="subject_id" ref="subj_mgmt101"/>
+        <field name="subject_category">compulsory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="cl_mba_p1_fin201" model="edu.curriculum.line">
+        <field name="program_term_id" ref="pt_mba_sem1"/>
+        <field name="subject_id" ref="subj_fin201"/>
+        <field name="subject_category">compulsory</field>
+        <field name="credit_hours">3.0</field>
+        <field name="full_marks">100</field>
+        <field name="pass_marks">40</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Batches
+    ══════════════════════════════════════════════════════ -->
+    <record id="batch_bcs_2425_fall" model="edu.batch">
+        <field name="program_id"      ref="prog_bcs"/>
+        <field name="academic_year_id" ref="ay_2425"/>
+        <field name="intake_name">Fall</field>
+        <field name="capacity">60</field>
+        <field name="start_date">2024-09-01</field>
+        <field name="end_date">2028-08-31</field>
+        <field name="state">active</field>
+    </record>
+
+    <record id="batch_mba_2425" model="edu.batch">
+        <field name="program_id"      ref="prog_mba"/>
+        <field name="academic_year_id" ref="ay_2425"/>
+        <field name="capacity">40</field>
+        <field name="start_date">2024-09-01</field>
+        <field name="end_date">2026-08-31</field>
+        <field name="state">active</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Sections
+    ══════════════════════════════════════════════════════ -->
+    <record id="section_bcs_fall_a" model="edu.section">
+        <field name="batch_id" ref="batch_bcs_2425_fall"/>
+        <field name="name">A</field>
+        <field name="code">SEC-A</field>
+        <field name="capacity">30</field>
+    </record>
+
+    <record id="section_bcs_fall_b" model="edu.section">
+        <field name="batch_id" ref="batch_bcs_2425_fall"/>
+        <field name="name">B</field>
+        <field name="code">SEC-B</field>
+        <field name="capacity">30</field>
+    </record>
+
+    <record id="section_mba_morning" model="edu.section">
+        <field name="batch_id" ref="batch_mba_2425"/>
+        <field name="name">Morning</field>
+        <field name="code">SEC-M</field>
+        <field name="capacity">40</field>
+    </record>
+</odoo>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Term — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_term_search" model="ir.ui.view">
+        <field name="name">edu.term.search</field>
+        <field name="model">edu.term</field>
+        <field name="arch" type="xml">
+            <search string="Terms">
+                <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="academic_year_id"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Academic Year" name="group_year" context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Term Type"     name="group_type" context="{'group_by': 'term_type'}"/>
+                    <filter string="Company"       name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Term — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_term_list" model="ir.ui.view">
+        <field name="name">edu.term.list</field>
+        <field name="model">edu.term</field>
+        <field name="arch" type="xml">
+            <list string="Terms">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="academic_year_id"/>
+                <field name="term_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Term — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_term_form" model="ir.ui.view">
+        <field name="name">edu.term.form</field>
+        <field name="model">edu.term</field>
+        <field name="arch" type="xml">
+            <form string="Term">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Semester 1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="academic_year_id"/>
+                            <field name="term_type"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Duration">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional notes..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Term — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_term" model="ir.actions.act_window">
+        <field name="name">Terms</field>
+        <field name="res_model">edu.term</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_term_search"/>
+        <field name="context">{'search_default_group_year': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add academic terms</p>
+            <p>Terms subdivide an academic year — semesters, trimesters, quarters, or custom periods.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Admission Application — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_application_search" model="ir.ui.view">
+        <field name="name">edu.admission.application.search</field>
+        <field name="model">edu.admission.application</field>
+        <field name="arch" type="xml">
+            <search string="Admission Applications">
+                <field name="application_no"/>
+                <field name="applicant_profile_id"/>
+                <field name="program_id"/>
+                <field name="admission_register_id"/>
+                <field name="assigned_user_id"/>
+                <separator/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="submitted"
+                        domain="[('state', '=', 'submitted')]"/>
+                <filter string="Under Review" name="under_review"
+                        domain="[('state', '=', 'under_review')]"/>
+                <filter string="Scholarship Review" name="scholarship_review"
+                        domain="[('state', '=', 'scholarship_review')]"/>
+                <filter string="Offered" name="offered"
+                        domain="[('state', '=', 'offered')]"/>
+                <filter string="Offer Accepted" name="offer_accepted"
+                        domain="[('state', '=', 'offer_accepted')]"/>
+                <filter string="Ready for Enrollment" name="ready_enrollment"
+                        domain="[('state', '=', 'ready_for_enrollment')]"/>
+                <separator/>
+                <filter string="Scholarship Pending" name="scholarship_pending"
+                        domain="[('scholarship_status', '=', 'pending')]"/>
+                <filter string="Has Scholarship" name="has_scholarship"
+                        domain="[('total_scholarship_discount_amount', '>', 0)]"/>
+                <filter string="Fee Confirmed" name="fee_confirmed"
+                        domain="[('fee_confirmed', '=', True)]"/>
+                <separator/>
+                <filter string="My Applications" name="my_apps"
+                        domain="[('assigned_user_id', '=', uid)]"/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Program" name="group_program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter string="Register" name="group_register"
+                            context="{'group_by': 'admission_register_id'}"/>
+                    <filter string="Academic Year" name="group_year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Scholarship Status" name="group_scholarship"
+                            context="{'group_by': 'scholarship_status'}"/>
+                    <filter string="Assigned To" name="group_assigned"
+                            context="{'group_by': 'assigned_user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Application — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_application_list" model="ir.ui.view">
+        <field name="name">edu.admission.application.list</field>
+        <field name="model">edu.admission.application</field>
+        <field name="arch" type="xml">
+            <list string="Admission Applications">
+                <field name="application_no"/>
+                <field name="applicant_profile_id"/>
+                <field name="program_id"/>
+                <field name="academic_year_id" optional="show"/>
+                <field name="batch_id" optional="show"/>
+                <field name="admission_register_id" optional="show"/>
+                <field name="scholarship_status" optional="show"
+                       widget="badge"/>
+                <field name="net_fee_after_scholarship" optional="show"
+                       string="Net Fee"/>
+                <field name="offer_status" optional="show" widget="badge"/>
+                <field name="assigned_user_id" optional="show"
+                       widget="many2one_avatar_user"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Application — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_application_form" model="ir.ui.view">
+        <field name="name">edu.admission.application.form</field>
+        <field name="model">edu.admission.application</field>
+        <field name="arch" type="xml">
+            <form string="Admission Application">
+                <header>
+                    <!-- State transition buttons -->
+                    <button name="action_submit" type="object"
+                            string="Submit" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start_review" type="object"
+                            string="Start Review" class="btn-secondary"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_mark_review_complete" type="object"
+                            string="Mark Review Complete" class="btn-secondary"
+                            invisible="state not in ['under_review', 'scholarship_review'] or review_complete"/>
+                    <button name="action_start_scholarship_review" type="object"
+                            string="Scholarship Review" class="btn-secondary"
+                            invisible="state != 'under_review'"/>
+                    <button name="action_generate_offer" type="object"
+                            string="Generate Offer" class="btn-primary"
+                            invisible="not can_generate_offer"/>
+                    <button name="action_accept_offer" type="object"
+                            string="Accept Offer" class="btn-primary"
+                            invisible="not can_accept_offer"
+                            confirm="Accept the offer? This confirms the fee outcome and freezes financial fields."/>
+                    <button name="action_reject_offer" type="object"
+                            string="Reject Offer" class="btn-secondary"
+                            invisible="state != 'offered'"/>
+                    <button name="action_mark_ready_for_enrollment" type="object"
+                            string="Ready for Enrollment" class="btn-primary"
+                            invisible="not can_mark_ready_for_enrollment"/>
+                    <button name="action_enroll" type="object"
+                            string="Enroll" class="btn-primary"
+                            invisible="not can_enroll"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state in ['enrolled', 'cancelled']"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state not in ['cancelled', 'submitted']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,under_review,offered,offer_accepted,ready_for_enrollment,enrolled"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_applicant_profile"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-user-circle">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Applicant</span>
+                            </div>
+                        </button>
+                        <button name="action_view_scholarship_reviews"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-graduation-cap"
+                                invisible="scholarship_review_count == 0">
+                            <field name="scholarship_review_count"
+                                   string="Scholarships" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <label for="application_no" string="Application"/>
+                        <h1>
+                            <field name="application_no" readonly="1"
+                                   placeholder="Auto-generated"/>
+                        </h1>
+                    </div>
+
+                    <!-- Frozen state indicator -->
+                    <div class="alert alert-info mb-3"
+                         invisible="state not in ['offer_accepted', 'ready_for_enrollment', 'enrolled']">
+                        <i class="fa fa-lock me-2"/>
+                        Academic and financial fields are frozen after offer acceptance.
+                    </div>
+
+                    <!-- ── Applicant &amp; Academic Context ── -->
+                    <group>
+                        <group string="Applicant">
+                            <field name="applicant_profile_id"
+                                   readonly="state not in ['draft']"
+                                   options="{'no_create': False}"
+                                   context="{'default_partner_id': partner_id}"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="crm_lead_id" readonly="1"/>
+                            <field name="assigned_user_id"/>
+                        </group>
+                        <group string="Academic Context">
+                            <field name="admission_register_id"
+                                   readonly="state not in ['draft']"/>
+                            <field name="program_id"
+                                   readonly="state not in ['draft']"/>
+                            <field name="academic_year_id"
+                                   readonly="state not in ['draft']"/>
+                            <field name="batch_id"
+                                   readonly="state not in ['draft']"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Fee Tab ── -->
+                        <page string="Fee &amp; Payment" name="fee">
+                            <group>
+                                <group string="Fee Structure">
+                                    <field name="fee_structure_id"
+                                           readonly="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="base_total_fee" readonly="1"/>
+                                    <field name="scholarship_eligible_total" readonly="1"/>
+                                </group>
+                                <group string="Payment Plan">
+                                    <field name="available_payment_plan_ids"
+                                           widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="selected_payment_plan_id"
+                                           domain="[('id', 'in', available_payment_plan_ids)]"
+                                           readonly="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Scholarship Impact">
+                                    <field name="total_scholarship_discount_amount" readonly="1"/>
+                                    <field name="net_fee_after_scholarship" readonly="1"/>
+                                    <field name="scholarship_cap_applied" readonly="1"/>
+                                </group>
+                                <group string="Confirmation">
+                                    <field name="fee_confirmed" readonly="1"/>
+                                    <field name="fee_confirmation_date" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <div class="o_horizontal_separator mt-4 mb-3">Fee Breakdown</div>
+                            <field name="fee_summary_display" readonly="1"
+                                   widget="text" nolabel="1"/>
+                        </page>
+
+                        <!-- ── Scholarship Tab ── -->
+                        <page string="Scholarship" name="scholarship">
+                            <div class="o_row mb-3">
+                                <button name="action_recompute_scholarship"
+                                        type="object"
+                                        string="Recalculate Scholarship"
+                                        class="btn-secondary btn-sm"
+                                        invisible="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']"/>
+                            </div>
+                            <group>
+                                <group>
+                                    <field name="scholarship_status" readonly="1"/>
+                                    <field name="approved_scholarship_count" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_scholarship_discount_amount" readonly="1"/>
+                                    <field name="scholarship_cap_applied" readonly="1"/>
+                                </group>
+                            </group>
+                            <field name="scholarship_note_summary" readonly="1"
+                                   invisible="not scholarship_note_summary"/>
+
+                            <div class="o_horizontal_separator mt-4 mb-3">Scholarship Reviews</div>
+                            <field name="scholarship_review_ids"
+                                   readonly="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="scholarship_scheme_id"/>
+                                    <field name="approved_type"/>
+                                    <field name="approved_percent"/>
+                                    <field name="approved_amount"/>
+                                    <field name="calculated_discount_amount" string="Discount"/>
+                                    <field name="cap_applied"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Offer Tab ── -->
+                        <page string="Offer" name="offer">
+                            <group>
+                                <group string="Offer Details">
+                                    <field name="offer_status" readonly="1"/>
+                                    <field name="offer_letter_generated" readonly="1"/>
+                                    <field name="offer_letter_date" readonly="1"/>
+                                    <field name="offer_letter_ref"/>
+                                    <field name="offer_expiry_date"/>
+                                </group>
+                                <group string="Outcome">
+                                    <field name="offer_acceptance_date" readonly="1"/>
+                                    <field name="offer_rejection_reason"
+                                           invisible="offer_status != 'rejected'"/>
+                                </group>
+                            </group>
+
+                            <div class="alert alert-warning mb-3"
+                                 invisible="not enrollment_block_reason or state != 'offer_accepted'">
+                                <i class="fa fa-exclamation-triangle me-2"/>
+                                <strong>Enrollment Blocks:</strong>
+                                <field name="enrollment_block_reason" readonly="1"
+                                       nolabel="1" class="d-inline"/>
+                            </div>
+                        </page>
+
+                        <!-- ── Applicant Details (via profile) ── -->
+                        <page string="Applicant Details" name="applicant_details">
+                            <group string="Demographics (from Applicant Profile)">
+                                <group>
+                                    <field name="applicant_profile_id" invisible="1"/>
+                                    <!-- Related fields shown read-only for convenience -->
+                                </group>
+                            </group>
+                            <p class="text-muted">
+                                Full applicant details, guardians, and academic history
+                                are maintained in the Applicant Profile. Click the
+                                "Applicant" smart button above to view the complete profile.
+                            </p>
+                        </page>
+
+                        <!-- ── Process ── -->
+                        <page string="Process" name="process">
+                            <group>
+                                <group string="Review Status">
+                                    <field name="review_complete"/>
+                                    <field name="documents_complete"/>
+                                </group>
+                                <group string="Readiness Flags">
+                                    <field name="can_generate_offer" readonly="1"/>
+                                    <field name="can_accept_offer" readonly="1"/>
+                                    <field name="can_mark_ready_for_enrollment" readonly="1"/>
+                                    <field name="can_enroll" readonly="1"/>
+                                    <field name="enrollment_ready" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ── Notes ── -->
+                        <page string="Notes" name="notes">
+                            <group string="Internal Notes">
+                                <field name="internal_note" nolabel="1"/>
+                            </group>
+                            <group string="General Notes">
+                                <field name="note" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+
+                    <field name="active" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Application — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_admission_application" model="ir.actions.act_window">
+        <field name="name">Admission Applications</field>
+        <field name="res_model">edu.admission.application</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_admission_application_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an Admission Application</p>
+            <p>Applications are typically created through CRM lead conversion or manual entry. Each application tracks an applicant through the admission lifecycle from submission to enrollment.</p>
+        </field>
+    </record>
+</odoo>

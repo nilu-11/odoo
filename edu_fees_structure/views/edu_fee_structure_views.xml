@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_structure_search" model="ir.ui.view">
+        <field name="name">edu.fee.structure.search</field>
+        <field name="model">edu.fee.structure</field>
+        <field name="arch" type="xml">
+            <search string="Fee Structures">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="batch_id"/>
+                <separator/>
+                <filter string="Draft"              name="state_draft"    domain="[('state','=','draft')]"/>
+                <filter string="Active"             name="state_active"   domain="[('state','=','active')]"/>
+                <filter string="Closed"             name="state_closed"   domain="[('state','=','closed')]"/>
+                <separator/>
+                <filter string="General (No Batch)" name="no_batch"       domain="[('batch_id','=',False)]"/>
+                <filter string="Batch-Specific"     name="has_batch"      domain="[('batch_id','!=',False)]"/>
+                <separator/>
+                <filter string="Archived"           name="archived"       domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter string="Intake Year"    name="group_year"     context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Program"        name="group_program"  context="{'group_by': 'program_id'}"/>
+                    <filter string="Status"         name="group_state"    context="{'group_by': 'state'}"/>
+                    <filter string="Department"     name="group_dept"     context="{'group_by': 'department_id'}"/>
+                    <filter string="Company"        name="group_company"  context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_structure_list" model="ir.ui.view">
+        <field name="name">edu.fee.structure.list</field>
+        <field name="model">edu.fee.structure</field>
+        <field name="arch" type="xml">
+            <list string="Fee Structures"
+                  decoration-success="state == 'active'"
+                  decoration-it="state == 'closed'">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="academic_year_id" string="Intake Year"/>
+                <field name="program_id"/>
+                <field name="batch_id" optional="show"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="line_count" string="Fee Lines"/>
+                <field name="payment_plan_count" string="Plans"/>
+                <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'draft'"
+                       decoration-danger="state == 'closed'"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_structure_form" model="ir.ui.view">
+        <field name="name">edu.fee.structure.form</field>
+        <field name="model">edu.fee.structure</field>
+        <field name="arch" type="xml">
+            <form string="Fee Structure">
+                <header>
+                    <button name="action_activate"
+                            string="Activate"
+                            type="object"
+                            invisible="state != 'draft'"
+                            class="btn-primary"/>
+                    <button name="action_close"
+                            string="Close"
+                            type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_reset_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state == 'draft'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,active,closed"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-list-ul">
+                            <field name="line_count" string="Fee Lines" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_payment_plans"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar-check-o">
+                            <field name="payment_plan_count" string="Plans" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <!-- Structure identity -->
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="state == 'closed'"/></h1>
+                        <div class="o_row">
+                            <span class="o_form_label">Code:</span>
+                            <field name="code" readonly="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Scope">
+                            <field name="academic_year_id"
+                                   string="Intake Year"
+                                   readonly="state != 'draft'"/>
+                            <field name="program_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="batch_id"
+                                   readonly="state != 'draft'"
+                                   domain="[('program_id','=',program_id),('academic_year_id','=',academic_year_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                        <group string="Financial">
+                            <field name="currency_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="total_amount"
+                                   widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   readonly="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Fee Lines — what is owed per progression stage ──────────
+                             Each row = one fee component for one semester/stage.
+                             Payment scheduling (how/when to collect) is configured
+                             separately in the Payment Plans tab.
+                        ─────────────────────────────────────────────────────────── -->
+                        <page string="Fee Lines" name="fee_lines">
+                            <field name="line_ids"
+                                   readonly="state == 'closed'"
+                                   context="{'default_fee_structure_id': id}">
+                                <list editable="bottom"
+                                      decoration-it="not mandatory">
+                                    <field name="program_term_id"
+                                           readonly="parent.state == 'active'"
+                                           domain="[('program_id','=',parent.program_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="fee_head_id"
+                                           readonly="parent.state == 'active'"/>
+                                    <field name="fee_type"
+                                           readonly="1"
+                                           optional="show"/>
+                                    <field name="amount"
+                                           widget="monetary"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                    <field name="mandatory"/>
+                                    <field name="scholarship_allowed"/>
+                                    <field name="payment_trigger" optional="show"/>
+                                    <field name="refundable" optional="hide"/>
+                                    <field name="note"        optional="hide"/>
+                                    <!-- Hidden system fields -->
+                                    <field name="progression_no" column_invisible="True"/>
+                                    <field name="currency_id"    column_invisible="True"/>
+                                </list>
+                            </field>
+
+                            <!-- Totals footer -->
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_amount"
+                                       string="Total"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+
+                        <!-- ── Payment Plans — how fees are collected ────────────────
+                             Each plan is either:
+                             • Installment-Based: fee heads assigned to named slots
+                               (e.g. Inst 1 → Tuition, Inst 2 → Lab, Inst 3 → Uni Reg)
+                             • Monthly: fixed monthly amount over N months,
+                               with configurable excluded fee heads
+                               (e.g. exclude Admission Fee and University Exam Fee)
+                             Multiple plans can coexist — students choose one at enrollment.
+                        ─────────────────────────────────────────────────────────── -->
+                        <page string="Payment Plans" name="payment_plans">
+                            <field name="payment_plan_ids"
+                                   readonly="state == 'closed'"
+                                   context="{'default_fee_structure_id': id}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="plan_type"/>
+                                    <field name="months_count" string="Months"/>
+                                    <field name="excluded_fee_head_ids"
+                                           widget="many2many_tags"
+                                           string="Excluded Heads"
+                                           options="{'no_create': True}"
+                                           optional="show"/>
+                                </list>
+                            </field>
+                            <p class="text-muted fst-italic"
+                               invisible="payment_plan_count != 0">
+                                No payment plans defined yet. Add an Installment-Based or Monthly plan above.
+                                Open each plan to configure installment slots or monthly settings.
+                            </p>
+                        </page>
+
+                        <!-- ── Notes ──────────────────────────────────────────── -->
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   nolabel="1"
+                                   placeholder="Additional notes, special conditions, or remarks..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure Line — List (standalone, from smart button)
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_structure_line_list" model="ir.ui.view">
+        <field name="name">edu.fee.structure.line.list</field>
+        <field name="model">edu.fee.structure.line</field>
+        <field name="arch" type="xml">
+            <list string="Fee Structure Lines">
+                <field name="progression_no" string="No."/>
+                <field name="program_term_id"/>
+                <field name="fee_head_id"/>
+                <field name="fee_type" optional="show"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="mandatory"/>
+                <field name="scholarship_allowed"/>
+                <field name="payment_trigger" optional="show"/>
+                <field name="refundable" optional="show"/>
+                <field name="fee_structure_id" optional="hide"/>
+                <field name="academic_year_id" optional="hide"/>
+                <field name="program_id" optional="hide"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure Line — Form (standalone)
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_structure_line_form" model="ir.ui.view">
+        <field name="name">edu.fee.structure.line.form</field>
+        <field name="model">edu.fee.structure.line</field>
+        <field name="arch" type="xml">
+            <form string="Fee Structure Line">
+                <sheet>
+                    <group>
+                        <group string="Structure">
+                            <field name="fee_structure_id"/>
+                            <field name="program_id" readonly="1"/>
+                            <field name="academic_year_id" string="Intake Year" readonly="1"/>
+                            <field name="batch_id" readonly="1"/>
+                        </group>
+                        <group string="Progression &amp; Fee">
+                            <field name="program_term_id"
+                                   domain="[('program_id','=',program_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="fee_head_id"/>
+                            <field name="fee_type" readonly="1"/>
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="sequence"/>
+                        </group>
+                    </group>
+                    <group string="Billing">
+                        <field name="payment_trigger"/>
+                    </group>
+                    <group string="Flags">
+                        <field name="mandatory"/>
+                        <field name="scholarship_allowed"/>
+                        <field name="refundable"/>
+                    </group>
+                    <group string="Note">
+                        <field name="note" nolabel="1" placeholder="Optional note..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Structure — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_fee_structure" model="ir.actions.act_window">
+        <field name="name">Fee Structures</field>
+        <field name="res_model">edu.fee.structure</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_fee_structure_search"/>
+        <field name="context">{'search_default_group_year': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first fee structure</p>
+            <p>Fee structures define the complete fee amounts for a program's full duration. Add payment plans to configure how fees are collected — installment slots or monthly billing.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Review — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_scholarship_review_search" model="ir.ui.view">
+        <field name="name">edu.admission.scholarship.review.search</field>
+        <field name="model">edu.admission.scholarship.review</field>
+        <field name="arch" type="xml">
+            <search string="Scholarship Reviews">
+                <field name="application_id"/>
+                <field name="scholarship_scheme_id"/>
+                <separator/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Under Review" name="under_review"
+                        domain="[('state', '=', 'under_review')]"/>
+                <filter string="Approved" name="approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <filter string="Rejected" name="rejected"
+                        domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter string="Cap Applied" name="capped"
+                        domain="[('cap_applied', '=', True)]"/>
+                <group name="group_by">
+                    <filter string="Application" name="group_app"
+                            context="{'group_by': 'application_id'}"/>
+                    <filter string="Scheme" name="group_scheme"
+                            context="{'group_by': 'scholarship_scheme_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Review — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_scholarship_review_list" model="ir.ui.view">
+        <field name="name">edu.admission.scholarship.review.list</field>
+        <field name="model">edu.admission.scholarship.review</field>
+        <field name="arch" type="xml">
+            <list string="Scholarship Reviews">
+                <field name="sequence" widget="handle"/>
+                <field name="application_id"/>
+                <field name="scholarship_scheme_id"/>
+                <field name="recommendation_type" optional="show"/>
+                <field name="recommended_percent" optional="show"/>
+                <field name="recommended_amount" optional="show"/>
+                <field name="approved_type"/>
+                <field name="approved_percent"/>
+                <field name="approved_amount"/>
+                <field name="calculated_discount_amount" string="Discount"/>
+                <field name="cap_applied"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Review — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_scholarship_review_form" model="ir.ui.view">
+        <field name="name">edu.admission.scholarship.review.form</field>
+        <field name="model">edu.admission.scholarship.review</field>
+        <field name="arch" type="xml">
+            <form string="Scholarship Review">
+                <header>
+                    <button name="action_start_review" type="object"
+                            string="Start Review" class="btn-secondary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object"
+                            string="Approve" class="btn-primary"
+                            invisible="state not in ['draft', 'under_review']"
+                            confirm="Approve this scholarship review? Scheme rules will be frozen."/>
+                    <button name="action_reject" type="object"
+                            string="Reject" class="btn-secondary"
+                            invisible="state not in ['draft', 'under_review']"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state in ['cancelled', 'approved']"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state not in ['rejected', 'cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,under_review,approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Scholarship">
+                            <field name="application_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="scholarship_scheme_id"
+                                   readonly="state == 'approved'"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Recommendation">
+                            <field name="recommendation_type"/>
+                            <field name="recommended_percent"
+                                   invisible="recommendation_type != 'percentage'"/>
+                            <field name="recommended_amount"
+                                   invisible="recommendation_type != 'fixed'"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Approved Values">
+                            <field name="approved_type"/>
+                            <field name="approved_percent"
+                                   invisible="approved_type not in ['percentage', 'full']"/>
+                            <field name="approved_amount"
+                                   invisible="approved_type != 'fixed'"/>
+                        </group>
+                        <group string="Outcome">
+                            <field name="calculated_discount_amount" readonly="1"/>
+                            <field name="cap_applied" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="approved_by" readonly="1"/>
+                            <field name="approval_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Scheme Snapshots" invisible="state != 'approved'">
+                        <group>
+                            <field name="priority_snapshot" readonly="1"/>
+                            <field name="exclusive_snapshot" readonly="1"/>
+                            <field name="stacking_allowed_snapshot" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="eligibility_basis_snapshot" readonly="1"/>
+                            <field name="applies_on_snapshot" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Remarks" name="remarks">
+                            <field name="remarks" nolabel="1"
+                                   placeholder="Justification, notes, observations..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Review — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_admission_scholarship_review" model="ir.actions.act_window">
+        <field name="name">Scholarship Reviews</field>
+        <field name="res_model">edu.admission.scholarship.review</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_admission_scholarship_review_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a Scholarship Review</p>
+            <p>Scholarship reviews evaluate and approve scholarship awards per application. Each line references a scheme and captures recommended vs. approved values.</p>
+        </field>
+    </record>
+</odoo>

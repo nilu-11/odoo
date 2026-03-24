@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_search" model="ir.ui.view">
+        <field name="name">edu.fee.head.search</field>
+        <field name="model">edu.fee.head</field>
+        <field name="arch" type="xml">
+            <search string="Fee Heads">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="Admission"         name="type_admission"   domain="[('fee_type','=','admission')]"/>
+                <filter string="Tuition"           name="type_tuition"     domain="[('fee_type','=','tuition')]"/>
+                <filter string="Exam"              name="type_exam"        domain="[('fee_type','=','exam')]"/>
+                <filter string="Lab"               name="type_lab"         domain="[('fee_type','=','lab')]"/>
+                <filter string="University Reg."   name="type_unireg"      domain="[('fee_type','=','university_registration')]"/>
+                <filter string="Hostel"            name="type_hostel"      domain="[('fee_type','=','hostel')]"/>
+                <filter string="Transport"         name="type_transport"   domain="[('fee_type','=','transport')]"/>
+                <separator/>
+                <filter string="One-Time"     name="one_time"         domain="[('is_one_time','=',True)]"/>
+                <filter string="Refundable"   name="refundable"       domain="[('is_refundable','=',True)]"/>
+                <separator/>
+                <filter string="Archived"     name="archived"         domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter string="Fee Type" name="group_type" context="{'group_by': 'fee_type'}"/>
+                    <filter string="Company"  name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_list" model="ir.ui.view">
+        <field name="name">edu.fee.head.list</field>
+        <field name="model">edu.fee.head</field>
+        <field name="arch" type="xml">
+            <list string="Fee Heads">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="fee_type"/>
+                <field name="is_one_time"/>
+                <field name="is_refundable"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_form" model="ir.ui.view">
+        <field name="name">edu.fee.head.form</field>
+        <field name="model">edu.fee.head</field>
+        <field name="arch" type="xml">
+            <form string="Fee Head">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Identity">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="fee_type"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Properties">
+                            <field name="is_one_time"/>
+                            <field name="is_refundable"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional description..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_fee_head" model="ir.actions.act_window">
+        <field name="name">Fee Heads</field>
+        <field name="res_model">edu.fee.head</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_fee_head_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first fee head</p>
+            <p>Fee heads define reusable fee components such as Tuition Fee, Lab Fee, or Admission Fee.</p>
+        </field>
+    </record>
+</odoo>

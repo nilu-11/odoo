@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment Checklist — List (standalone)
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_enrollment_checklist_list" model="ir.ui.view">
+        <field name="name">edu.enrollment.checklist.line.list</field>
+        <field name="model">edu.enrollment.checklist.line</field>
+        <field name="arch" type="xml">
+            <list string="Enrollment Checklist">
+                <field name="sequence" widget="handle"/>
+                <field name="enrollment_id"/>
+                <field name="name"/>
+                <field name="is_required"/>
+                <field name="is_complete" widget="boolean_toggle"/>
+                <field name="completed_date"/>
+                <field name="completed_by_user_id"/>
+                <field name="note" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment Checklist — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_enrollment_checklist_form" model="ir.ui.view">
+        <field name="name">edu.enrollment.checklist.line.form</field>
+        <field name="model">edu.enrollment.checklist.line</field>
+        <field name="arch" type="xml">
+            <form string="Checklist Item">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="enrollment_id"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="is_required"/>
+                            <field name="is_complete"/>
+                            <field name="completed_date" readonly="1"/>
+                            <field name="completed_by_user_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Scheme — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_scholarship_scheme_search" model="ir.ui.view">
+        <field name="name">edu.scholarship.scheme.search</field>
+        <field name="model">edu.scholarship.scheme</field>
+        <field name="arch" type="xml">
+            <search string="Scholarship Schemes">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="eligibility_basis"/>
+                <separator/>
+                <filter string="Exclusive" name="exclusive"
+                        domain="[('exclusive', '=', True)]"/>
+                <filter string="Stackable" name="stackable"
+                        domain="[('allow_stacking', '=', True)]"/>
+                <filter string="Requires Approval" name="requires_approval"
+                        domain="[('requires_approval', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Eligibility Basis" name="group_basis"
+                            context="{'group_by': 'eligibility_basis'}"/>
+                    <filter string="Award Type" name="group_award"
+                            context="{'group_by': 'award_type'}"/>
+                    <filter string="Stacking Group" name="group_stacking"
+                            context="{'group_by': 'stacking_group_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Scheme — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_scholarship_scheme_list" model="ir.ui.view">
+        <field name="name">edu.scholarship.scheme.list</field>
+        <field name="model">edu.scholarship.scheme</field>
+        <field name="arch" type="xml">
+            <list string="Scholarship Schemes">
+                <field name="priority"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="eligibility_basis"/>
+                <field name="award_type"/>
+                <field name="default_percent" optional="show"/>
+                <field name="default_amount" optional="show"/>
+                <field name="exclusive"/>
+                <field name="allow_stacking"/>
+                <field name="stacking_group_id" optional="show"/>
+                <field name="max_discount_percent" optional="hide"/>
+                <field name="max_discount_amount" optional="hide"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Scheme — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_scholarship_scheme_form" model="ir.ui.view">
+        <field name="name">edu.scholarship.scheme.form</field>
+        <field name="model">edu.scholarship.scheme</field>
+        <field name="arch" type="xml">
+            <form string="Scholarship Scheme">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived"
+                            bg_color="text-bg-danger" invisible="active"/>
+
+                    <div class="oe_title">
+                        <label for="name" string="Scheme Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Merit Scholarship 100%"/>
+                        </h1>
+                        <field name="code" placeholder="e.g. MERIT-100"/>
+                    </div>
+
+                    <group>
+                        <group string="Eligibility &amp; Award">
+                            <field name="eligibility_basis"/>
+                            <field name="award_type"/>
+                            <field name="default_percent"
+                                   invisible="award_type not in ['percentage', 'full']"/>
+                            <field name="default_amount"
+                                   invisible="award_type != 'fixed'"/>
+                            <field name="applies_on"/>
+                            <field name="fee_head_ids" widget="many2many_tags"
+                                   invisible="applies_on != 'selected_fee_heads'"/>
+                        </group>
+                        <group string="Stacking &amp; Capping">
+                            <field name="exclusive"/>
+                            <field name="allow_stacking"
+                                   invisible="exclusive"/>
+                            <field name="stacking_group_id"/>
+                            <field name="priority"/>
+                            <field name="max_discount_percent"/>
+                            <field name="max_discount_amount"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Options">
+                            <field name="renewable"/>
+                            <field name="requires_approval"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" nolabel="1"
+                                   placeholder="Detailed description of this scholarship scheme..."/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" nolabel="1"
+                                   placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Scholarship Scheme — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_scholarship_scheme" model="ir.actions.act_window">
+        <field name="name">Scholarship Schemes</field>
+        <field name="res_model">edu.scholarship.scheme</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_scholarship_scheme_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Define a Scholarship Scheme</p>
+            <p>Scholarship schemes define award types, eligibility bases, stacking rules, and cap limits. They are referenced by scholarship review lines on individual applications.</p>
+        </field>
+    </record>
+</odoo>

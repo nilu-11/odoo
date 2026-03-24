@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_enrollment_admin,edu.enrollment admin,model_edu_enrollment,group_enrollment_admin,1,1,1,1
+access_enrollment_officer,edu.enrollment officer,model_edu_enrollment,group_enrollment_officer,1,1,1,0
+access_enrollment_viewer,edu.enrollment viewer,model_edu_enrollment,group_enrollment_viewer,1,0,0,0
+access_enrollment_edu_admin,edu.enrollment edu admin,model_edu_enrollment,edu_academic_structure.group_education_admin,1,1,1,1
+access_enrollment_academic_viewer,edu.enrollment academic viewer,model_edu_enrollment,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_checklist_admin,edu.enrollment.checklist.line admin,model_edu_enrollment_checklist_line,group_enrollment_admin,1,1,1,1
+access_checklist_officer,edu.enrollment.checklist.line officer,model_edu_enrollment_checklist_line,group_enrollment_officer,1,1,1,0
+access_checklist_viewer,edu.enrollment.checklist.line viewer,model_edu_enrollment_checklist_line,group_enrollment_viewer,1,0,0,0
+access_checklist_edu_admin,edu.enrollment.checklist.line edu admin,model_edu_enrollment_checklist_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_checklist_academic_viewer,edu.enrollment.checklist.line academic viewer,model_edu_enrollment_checklist_line,edu_academic_structure.group_academic_viewer,1,0,0,0

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================
+         Fees Access Privilege
+         Separate from the Academic Access privilege so a user
+         can hold BOTH an academic role AND a fees role
+         simultaneously (Odoo 19 privilege radio logic applies
+         per privilege, not across all education groups).
+    ====================================================== -->
+    <record id="privilege_fees_access" model="res.groups.privilege">
+        <field name="name">Fees Access</field>
+        <field name="description">Controls access levels for fee configuration (Fee Heads, Fee Terms, Fee Structures).</field>
+        <field name="placeholder">No fees access</field>
+        <field name="sequence">20</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- Fees Viewer: read-only on all fee records -->
+    <record id="group_fees_viewer" model="res.groups">
+        <field name="name">Fees Viewer</field>
+        <field name="privilege_id" ref="privilege_fees_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Read-only access to fee heads, fee terms, and fee structures.</field>
+    </record>
+
+    <!-- Fees Officer: create/read/write on all fee records; no delete on structures -->
+    <record id="group_fees_officer" model="res.groups">
+        <field name="name">Fees Officer</field>
+        <field name="privilege_id" ref="privilege_fees_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_fees_viewer'))]"/>
+        <field name="comment">Can create and modify fee records. Cannot delete fee structures. Python guards prevent editing closed structures.</field>
+    </record>
+</odoo>

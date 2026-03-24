@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Offer Letter — QWeb Template
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_offer_letter">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>Admission Offer Letter</h2>
+                        </div>
+
+                        <!-- Reference and date -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Ref:</strong>
+                                <span t-field="o.application_no"/>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Date:</strong>
+                                <span t-field="o.offer_letter_date"/>
+                            </div>
+                        </div>
+
+                        <!-- Applicant details -->
+                        <div class="mb-4">
+                            <p>
+                                <strong>Dear </strong>
+                                <span t-field="o.applicant_profile_id.full_name"/>,
+                            </p>
+                            <p>
+                                We are pleased to inform you that your application for
+                                admission has been accepted. Below are the details of
+                                your offer:
+                            </p>
+                        </div>
+
+                        <!-- Academic details -->
+                        <table class="table table-sm table-bordered mb-4">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold" style="width: 35%;">Application No.</td>
+                                    <td><span t-field="o.application_no"/></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Program</td>
+                                    <td><span t-field="o.program_id.name"/></td>
+                                </tr>
+                                <tr t-if="o.batch_id">
+                                    <td class="fw-bold">Batch</td>
+                                    <td><span t-field="o.batch_id.name"/></td>
+                                </tr>
+                                <tr t-if="o.academic_year_id">
+                                    <td class="fw-bold">Academic Year</td>
+                                    <td><span t-field="o.academic_year_id.name"/></td>
+                                </tr>
+                                <tr t-if="o.department_id">
+                                    <td class="fw-bold">Department</td>
+                                    <td><span t-field="o.department_id.name"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Fee summary -->
+                        <h4 class="mb-3">Fee Summary</h4>
+                        <table class="table table-sm table-bordered mb-4">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold" style="width: 50%;">
+                                        Base Total Fee
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="o.base_total_fee"
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </td>
+                                </tr>
+                                <tr t-if="o.total_scholarship_discount_amount > 0">
+                                    <td class="fw-bold text-success">
+                                        Scholarship Discount
+                                    </td>
+                                    <td class="text-end text-success">
+                                        (-)
+                                        <span t-field="o.total_scholarship_discount_amount"
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td class="fw-bold">Net Fee Payable</td>
+                                    <td class="text-end fw-bold">
+                                        <span t-field="o.net_fee_after_scholarship"
+                                              t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Scholarship details -->
+                        <t t-set="approved_reviews"
+                           t-value="o.scholarship_review_ids.filtered(lambda r: r.state == 'approved')"/>
+                        <t t-if="approved_reviews">
+                            <h4 class="mb-3">Scholarship Awards</h4>
+                            <table class="table table-sm table-bordered mb-4">
+                                <thead>
+                                    <tr>
+                                        <th>Scholarship</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Discount Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="approved_reviews" t-as="review">
+                                        <td><span t-field="review.scholarship_scheme_id.name"/></td>
+                                        <td><span t-field="review.approved_type"/></td>
+                                        <td class="text-end">
+                                            <span t-esc="'%.2f' % review.calculated_discount_amount"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <!-- Payment plan -->
+                        <t t-if="o.selected_payment_plan_id">
+                            <p>
+                                <strong>Payment Plan:</strong>
+                                <span t-field="o.selected_payment_plan_id.name"/>
+                            </p>
+                        </t>
+
+                        <!-- Validity -->
+                        <t t-if="o.offer_expiry_date">
+                            <p class="mt-3">
+                                <strong>This offer is valid until:</strong>
+                                <span t-field="o.offer_expiry_date"/>
+                            </p>
+                        </t>
+
+                        <!-- Closing -->
+                        <div class="mt-5">
+                            <p>
+                                Please confirm your acceptance of this offer by the
+                                date mentioned above. We look forward to welcoming
+                                you to our institution.
+                            </p>
+                            <p class="mt-4">
+                                Sincerely,<br/>
+                                <strong><span t-esc="o.company_id.name"/></strong>
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

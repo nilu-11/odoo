@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Department — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_department_search" model="ir.ui.view">
+        <field name="name">edu.department.search</field>
+        <field name="model">edu.department</field>
+        <field name="arch" type="xml">
+            <search string="Departments">
+                <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <!-- <group name="group_by">
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Department — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_department_list" model="ir.ui.view">
+        <field name="name">edu.department.list</field>
+        <field name="model">edu.department</field>
+        <field name="arch" type="xml">
+            <list string="Departments">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_count" string="Programs"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Department — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_department_form" model="ir.ui.view">
+        <field name="name">edu.department.form</field>
+        <field name="model">edu.department</field>
+        <field name="arch" type="xml">
+            <form string="Department">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_programs"
+                                icon="fa-graduation-cap"
+                                invisible="program_count == 0">
+                            <field name="program_count" widget="statinfo" string="Programs"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Computer Science"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional notes..."/>
+                    </group>
+                    <notebook>
+                        <page string="Programs" name="programs">
+                            <field name="program_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="program_type"/>
+                                    <field name="duration_value"/>
+                                    <field name="duration_unit"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Department — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_department" model="ir.actions.act_window">
+        <field name="name">Departments</field>
+        <field name="res_model">edu.department</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_department_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first department</p>
+        </field>
+    </record>
+</odoo>

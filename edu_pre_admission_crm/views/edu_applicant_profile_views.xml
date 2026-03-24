@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Applicant Profile — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_applicant_profile_search" model="ir.ui.view">
+        <field name="name">edu.applicant.profile.search</field>
+        <field name="model">edu.applicant.profile</field>
+        <field name="arch" type="xml">
+            <search string="Applicant Profiles">
+                <field name="full_name" string="Name"/>
+                <field name="partner_id"/>
+                <field name="nationality_id"/>
+                <separator/>
+                <filter string="Male"   name="male"   domain="[('gender', '=', 'male')]"/>
+                <filter string="Female" name="female" domain="[('gender', '=', 'female')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Gender"      name="group_gender"      context="{'group_by': 'gender'}"/>
+                    <filter string="Nationality" name="group_nationality" context="{'group_by': 'nationality_id'}"/>
+                    <filter string="Company"     name="group_company"     context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Applicant Profile — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_applicant_profile_list" model="ir.ui.view">
+        <field name="name">edu.applicant.profile.list</field>
+        <field name="model">edu.applicant.profile</field>
+        <field name="arch" type="xml">
+            <list string="Applicant Profiles">
+                <field name="full_name" string="Name"/>
+                <field name="gender" optional="show"/>
+                <field name="date_of_birth" string="Date of Birth" optional="show"/>
+                <field name="age" string="Age" optional="show"/>
+                <field name="nationality_id" optional="show"/>
+                <field name="partner_id" string="Contact" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Applicant Profile — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_applicant_profile_form" model="ir.ui.view">
+        <field name="name">edu.applicant.profile.form</field>
+        <field name="model">edu.applicant.profile</field>
+        <field name="arch" type="xml">
+            <form string="Applicant Profile">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_leads"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-bullhorn"
+                                invisible="lead_count == 0">
+                            <field name="lead_count" string="Leads" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <!-- Profile title -->
+                    <div class="oe_title">
+                        <label for="first_name" string="Applicant Name"/>
+                        <h1>
+                            <div class="o_row">
+                                <field name="first_name" placeholder="First Name" style="width: 30%"/>
+                                <field name="middle_name" placeholder="Middle Name" style="width: 30%"/>
+                                <field name="last_name" placeholder="Last Name" style="width: 35%"/>
+                            </div>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Identity">
+                            <field name="partner_id"
+                                   options="{'no_create': False}"
+                                   help="Link to an existing contact or create a new one."/>
+                            <field name="gender"/>
+                            <field name="date_of_birth"/>
+                            <field name="age" readonly="1"/>
+                            <field name="nationality_id"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Guardians ──────────────────────────────────────── -->
+                        <page string="Guardians" name="guardians">
+                            <field name="guardian_rel_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="guardian_id"
+                                           options="{'no_create': False}"
+                                           context="{'default_company_id': parent.company_id}"/>
+                                    <field name="relationship_type_id"
+                                           options="{'no_create': False}"/>
+                                    <field name="is_primary"/>
+                                    <field name="is_financial_contact"/>
+                                    <field name="is_emergency_contact"/>
+                                    <field name="lives_with_applicant" optional="hide"/>
+                                    <field name="guardian_occupation" optional="show"/>
+                                    <field name="guardian_organization" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Academic History ───────────────────────────────── -->
+                        <page string="Academic History" name="academic_history">
+                            <field name="academic_history_ids">
+                                <list editable="bottom">
+                                    <field name="passed_year" string="Year"/>
+                                    <field name="qualification_level"/>
+                                    <field name="institution_name"/>
+                                    <field name="board_university" optional="show"/>
+                                    <field name="program_stream" optional="show"/>
+                                    <field name="score_type" optional="show"/>
+                                    <field name="score" optional="show"/>
+                                    <field name="is_highest_completed"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- ── Notes ─────────────────────────────────────────── -->
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   nolabel="1"
+                                   placeholder="Additional notes about this applicant..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Applicant Profile — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_applicant_profile" model="ir.actions.act_window">
+        <field name="name">Applicant Profiles</field>
+        <field name="res_model">edu.applicant.profile</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_applicant_profile_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an applicant profile</p>
+            <p>Applicant profiles hold structured identity, guardian relationships, and academic history. Each profile is linked to a system contact (res.partner) for communication and portal access.</p>
+        </field>
+    </record>
+</odoo>

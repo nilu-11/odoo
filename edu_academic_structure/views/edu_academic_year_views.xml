@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Academic Year — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_academic_year_search" model="ir.ui.view">
+        <field name="name">edu.academic.year.search</field>
+        <field name="model">edu.academic.year</field>
+        <field name="arch" type="xml">
+            <search string="Academic Years">
+                <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <filter string="Draft"  name="draft"  domain="[('state', '=', 'draft')]"/>
+                <filter string="Open"   name="open"   domain="[('state', '=', 'open')]"/>
+                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Academic Year — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_academic_year_list" model="ir.ui.view">
+        <field name="name">edu.academic.year.list</field>
+        <field name="model">edu.academic.year</field>
+        <field name="arch" type="xml">
+            <list string="Academic Years" decoration-info="state == 'draft'" decoration-success="state == 'open'" decoration-warning="state == 'closed'">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="term_count" string="Terms"/>
+                <field name="batch_count" string="Batches"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'open'" decoration-warning="state == 'closed'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Academic Year — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_academic_year_form" model="ir.ui.view">
+        <field name="name">edu.academic.year.form</field>
+        <field name="model">edu.academic.year</field>
+        <field name="arch" type="xml">
+            <form string="Academic Year">
+                <header>
+                    <button name="action_open"
+                            string="Open Year"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_academic_structure.group_education_admin"/>
+                    <button name="action_close"
+                            string="Close Year"
+                            type="object"
+                            invisible="state != 'open'"
+                            groups="edu_academic_structure.group_education_admin"/>
+                    <button name="action_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'closed'"
+                            groups="edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_terms"
+                                icon="fa-calendar">
+                            <field name="term_count" widget="statinfo" string="Terms"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_batches"
+                                icon="fa-users"
+                                invisible="batch_count == 0">
+                            <field name="batch_count" widget="statinfo" string="Batches"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. 2024-2025"
+                                   readonly="state == 'closed'"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code" readonly="state == 'closed'"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Duration">
+                            <field name="date_start" readonly="state == 'closed'"/>
+                            <field name="date_end" readonly="state == 'closed'"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional notes about this academic year..."/>
+                    </group>
+                    <notebook>
+                        <page string="Terms" name="terms">
+                            <field name="term_ids" context="{'default_academic_year_id': id}"
+                                   readonly="state == 'closed'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="term_type"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Academic Year — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_academic_year" model="ir.actions.act_window">
+        <field name="name">Academic Years</field>
+        <field name="res_model">edu.academic.year</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_academic_year_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first academic year
+            </p>
+            <p>Academic years define the main study cycle. Only one can be open at a time.</p>
+        </field>
+    </record>
+</odoo>

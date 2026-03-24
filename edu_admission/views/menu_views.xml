@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Admission top-level menu
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_admission_root"
+              name="Admission"
+              sequence="50"
+              groups="group_admission_viewer,group_admission_officer,group_admission_admin,edu_academic_structure.group_education_admin"/>
+
+    <!-- ── Main Operational Items ────────────────────────────────── -->
+    <menuitem id="menu_admission_main"
+              name="Admission"
+              parent="menu_admission_root"
+              sequence="10"/>
+
+    <menuitem id="menu_admission_registers"
+              name="Admission Registers"
+              parent="menu_admission_main"
+              action="action_edu_admission_register"
+              sequence="10"/>
+
+    <menuitem id="menu_admission_applications"
+              name="Applications"
+              parent="menu_admission_main"
+              action="action_edu_admission_application"
+              sequence="20"/>
+
+    <menuitem id="menu_scholarship_reviews"
+              name="Scholarship Reviews"
+              parent="menu_admission_main"
+              action="action_edu_admission_scholarship_review"
+              sequence="30"/>
+
+    <!-- ── Configuration ─────────────────────────────────────────── -->
+    <menuitem id="menu_admission_config"
+              name="Configuration"
+              parent="menu_admission_root"
+              sequence="90"
+              groups="group_admission_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_scholarship_schemes"
+              name="Scholarship Schemes"
+              parent="menu_admission_config"
+              action="action_edu_scholarship_scheme"
+              sequence="10"/>
+
+    <menuitem id="menu_stacking_groups"
+              name="Stacking Groups"
+              parent="menu_admission_config"
+              action="action_edu_scholarship_stacking_group"
+              sequence="20"/>
+</odoo>

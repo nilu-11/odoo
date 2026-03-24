@@ -1,0 +1,31 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fee_head_admin,edu.fee.head admin,model_edu_fee_head,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_head_officer,edu.fee.head officer,model_edu_fee_head,group_fees_officer,1,1,1,1
+access_fee_head_viewer,edu.fee.head viewer,model_edu_fee_head,group_fees_viewer,1,0,0,0
+access_fee_head_academic_officer,edu.fee.head academic officer,model_edu_fee_head,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_head_academic_viewer,edu.fee.head academic viewer,model_edu_fee_head,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_term_admin,edu.fee.term admin,model_edu_fee_term,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_term_officer,edu.fee.term officer,model_edu_fee_term,group_fees_officer,1,1,1,1
+access_fee_term_viewer,edu.fee.term viewer,model_edu_fee_term,group_fees_viewer,1,0,0,0
+access_fee_term_academic_officer,edu.fee.term academic officer,model_edu_fee_term,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_term_academic_viewer,edu.fee.term academic viewer,model_edu_fee_term,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_structure_admin,edu.fee.structure admin,model_edu_fee_structure,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_structure_officer,edu.fee.structure officer,model_edu_fee_structure,group_fees_officer,1,1,1,0
+access_fee_structure_viewer,edu.fee.structure viewer,model_edu_fee_structure,group_fees_viewer,1,0,0,0
+access_fee_structure_academic_officer,edu.fee.structure academic officer,model_edu_fee_structure,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_structure_academic_viewer,edu.fee.structure academic viewer,model_edu_fee_structure,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_structure_line_admin,edu.fee.structure.line admin,model_edu_fee_structure_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_structure_line_officer,edu.fee.structure.line officer,model_edu_fee_structure_line,group_fees_officer,1,1,1,0
+access_fee_structure_line_viewer,edu.fee.structure.line viewer,model_edu_fee_structure_line,group_fees_viewer,1,0,0,0
+access_fee_structure_line_academic_officer,edu.fee.structure.line academic officer,model_edu_fee_structure_line,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_structure_line_academic_viewer,edu.fee.structure.line academic viewer,model_edu_fee_structure_line,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_payment_plan_admin,edu.fee.payment.plan admin,model_edu_fee_payment_plan,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_payment_plan_officer,edu.fee.payment.plan officer,model_edu_fee_payment_plan,group_fees_officer,1,1,1,0
+access_fee_payment_plan_viewer,edu.fee.payment.plan viewer,model_edu_fee_payment_plan,group_fees_viewer,1,0,0,0
+access_fee_payment_plan_academic_officer,edu.fee.payment.plan academic officer,model_edu_fee_payment_plan,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_payment_plan_academic_viewer,edu.fee.payment.plan academic viewer,model_edu_fee_payment_plan,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_installment_line_admin,edu.fee.installment.line admin,model_edu_fee_installment_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_installment_line_officer,edu.fee.installment.line officer,model_edu_fee_installment_line,group_fees_officer,1,1,1,0
+access_fee_installment_line_viewer,edu.fee.installment.line viewer,model_edu_fee_installment_line,group_fees_viewer,1,0,0,0
+access_fee_installment_line_academic_officer,edu.fee.installment.line academic officer,model_edu_fee_installment_line,edu_academic_structure.group_academic_officer,1,0,0,0
+access_fee_installment_line_academic_viewer,edu.fee.installment.line academic viewer,model_edu_fee_installment_line,edu_academic_structure.group_academic_viewer,1,0,0,0

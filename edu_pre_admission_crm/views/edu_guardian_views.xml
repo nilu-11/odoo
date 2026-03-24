@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Guardian — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_guardian_search" model="ir.ui.view">
+        <field name="name">edu.guardian.search</field>
+        <field name="model">edu.guardian</field>
+        <field name="arch" type="xml">
+            <search string="Guardians">
+                <field name="full_name" string="Name"/>
+                <field name="partner_id"/>
+                <field name="occupation"/>
+                <field name="organization"/>
+                <separator/>
+                <filter string="Emergency Contact"
+                        name="emergency"
+                        domain="[('is_emergency_contact', '=', True)]"/>
+                <filter string="Financial Contact"
+                        name="financial"
+                        domain="[('is_financial_contact', '=', True)]"/>
+                <filter string="Legal Guardian"
+                        name="legal"
+                        domain="[('is_legal_guardian', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Company" name="group_company"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Guardian — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_guardian_list" model="ir.ui.view">
+        <field name="name">edu.guardian.list</field>
+        <field name="model">edu.guardian</field>
+        <field name="arch" type="xml">
+            <list string="Guardians">
+                <field name="full_name" string="Name"/>
+                <field name="occupation" optional="show"/>
+                <field name="organization" optional="show"/>
+                <field name="is_financial_contact" optional="show"/>
+                <field name="is_emergency_contact" optional="show"/>
+                <field name="is_legal_guardian" optional="show"/>
+                <field name="applicant_count" string="Applicants"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Guardian — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_guardian_form" model="ir.ui.view">
+        <field name="name">edu.guardian.form</field>
+        <field name="model">edu.guardian</field>
+        <field name="arch" type="xml">
+            <form string="Guardian">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_applicants"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users"
+                                invisible="applicant_count == 0">
+                            <field name="applicant_count" string="Applicants" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <!-- Guardian title -->
+                    <div class="oe_title">
+                        <label for="first_name" string="Guardian Name"/>
+                        <h1>
+                            <div class="o_row">
+                                <field name="first_name" placeholder="First Name" style="width: 30%"/>
+                                <field name="middle_name" placeholder="Middle Name" style="width: 30%"/>
+                                <field name="last_name" placeholder="Last Name" style="width: 35%"/>
+                            </div>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Identity">
+                            <field name="partner_id"
+                                   options="{'no_create': False}"
+                                   help="Link to an existing contact or create a new one."/>
+                            <field name="occupation"/>
+                            <field name="organization"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group string="Role">
+                            <field name="is_legal_guardian"/>
+                            <field name="is_financial_contact"/>
+                            <field name="is_emergency_contact"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Linked Applicants ──────────────────────────────── -->
+                        <page string="Linked Applicants" name="applicants">
+                            <field name="applicant_rel_ids" readonly="1">
+                                <list>
+                                    <field name="applicant_profile_id"/>
+                                    <field name="relationship_type_id"/>
+                                    <field name="is_primary"/>
+                                    <field name="is_financial_contact"/>
+                                    <field name="is_emergency_contact"/>
+                                    <field name="lives_with_applicant" optional="show"/>
+                                </list>
+                            </field>
+                            <p class="text-muted fst-italic"
+                               invisible="applicant_count != 0">
+                                No applicants linked to this guardian yet.
+                                Add this guardian to an applicant's profile to create the link.
+                            </p>
+                        </page>
+
+                        <!-- ── Notes ─────────────────────────────────────────── -->
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   nolabel="1"
+                                   placeholder="Additional notes about this guardian..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Guardian — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_guardian" model="ir.actions.act_window">
+        <field name="name">Guardians</field>
+        <field name="res_model">edu.guardian</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_guardian_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a guardian</p>
+            <p>Guardians are linked to applicants through relationship records. One guardian can be linked to multiple applicants (siblings). Guardian contacts are used for fee routing and future portal access.</p>
+        </field>
+    </record>
+</odoo>

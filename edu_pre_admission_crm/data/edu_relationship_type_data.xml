@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Seed relationship types. noupdate="1" — not overwritten on module upgrade. -->
+
+    <record id="rel_type_father" model="edu.relationship.type">
+        <field name="name">Father</field>
+        <field name="code">FATHER</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="rel_type_mother" model="edu.relationship.type">
+        <field name="name">Mother</field>
+        <field name="code">MOTHER</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="rel_type_guardian" model="edu.relationship.type">
+        <field name="name">Legal Guardian</field>
+        <field name="code">GUARDIAN</field>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="rel_type_grandfather" model="edu.relationship.type">
+        <field name="name">Grandfather</field>
+        <field name="code">GRANDFATHER</field>
+        <field name="sequence">4</field>
+    </record>
+
+    <record id="rel_type_grandmother" model="edu.relationship.type">
+        <field name="name">Grandmother</field>
+        <field name="code">GRANDMOTHER</field>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="rel_type_uncle" model="edu.relationship.type">
+        <field name="name">Uncle</field>
+        <field name="code">UNCLE</field>
+        <field name="sequence">6</field>
+    </record>
+
+    <record id="rel_type_aunt" model="edu.relationship.type">
+        <field name="name">Aunt</field>
+        <field name="code">AUNT</field>
+        <field name="sequence">7</field>
+    </record>
+
+    <record id="rel_type_sibling" model="edu.relationship.type">
+        <field name="name">Sibling</field>
+        <field name="code">SIBLING</field>
+        <field name="sequence">8</field>
+    </record>
+
+    <record id="rel_type_sponsor" model="edu.relationship.type">
+        <field name="name">Sponsor</field>
+        <field name="code">SPONSOR</field>
+        <field name="sequence">9</field>
+    </record>
+
+    <record id="rel_type_self" model="edu.relationship.type">
+        <field name="name">Self (Mature Student)</field>
+        <field name="code">SELF</field>
+        <field name="sequence">10</field>
+        <field name="description">Used when the applicant is their own guardian (adult/independent student).</field>
+    </record>
+
+    <record id="rel_type_other" model="edu.relationship.type">
+        <field name="name">Other</field>
+        <field name="code">OTHER</field>
+        <field name="sequence">99</field>
+    </record>
+</odoo>

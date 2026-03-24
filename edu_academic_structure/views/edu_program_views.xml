@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Program — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_program_search" model="ir.ui.view">
+        <field name="name">edu.program.search</field>
+        <field name="model">edu.program</field>
+        <field name="arch" type="xml">
+            <search string="Programs">
+                <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="department_id"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Department"   name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Program Type" name="group_type" context="{'group_by': 'program_type'}"/>
+                    <!-- <filter string="Company"      name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/> -->
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Program — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_program_list" model="ir.ui.view">
+        <field name="name">edu.program.list</field>
+        <field name="model">edu.program</field>
+        <field name="arch" type="xml">
+            <list string="Programs">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <field name="program_type"/>
+                <field name="level"/>
+                <field name="duration_value"/>
+                <field name="duration_unit"/>
+                <field name="total_terms"/>
+                <field name="batch_count"        string="Batches"/>
+                <field name="program_term_count" string="Prog. Terms"/>
+                <field name="curriculum_count"   string="Curriculum"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Program — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_program_form" model="ir.ui.view">
+        <field name="name">edu.program.form</field>
+        <field name="model">edu.program</field>
+        <field name="arch" type="xml">
+            <form string="Program">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_batches"
+                                icon="fa-users"
+                                invisible="batch_count == 0">
+                            <field name="batch_count" widget="statinfo" string="Batches"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_program_terms"
+                                icon="fa-sitemap"
+                                invisible="program_term_count == 0">
+                            <field name="program_term_count" widget="statinfo" string="Prog. Terms"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_curriculum"
+                                icon="fa-book"
+                                invisible="curriculum_count == 0">
+                            <field name="curriculum_count" widget="statinfo" string="Curriculum"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Bachelor of Computer Science"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="department_id"/>
+                            <field name="program_type"/>
+                            <field name="level"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Duration &amp; Terms">
+                            <field name="duration_value"/>
+                            <field name="duration_unit"/>
+                            <field name="term_system"/>
+                            <field name="total_terms"/>
+                            <button name="action_generate_program_terms"
+                                    string="Generate Progressions"
+                                    type="object"
+                                    class="btn-link"
+                                    icon="fa-magic"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional notes..."/>
+                    </group>
+                    <notebook>
+                        <page string="Program Terms" name="program_terms">
+                            <field name="program_term_ids" context="{'default_program_id': id}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="progression_no"/>
+                                    <field name="progression_label"/>
+                                    <field name="is_final_progression" widget="boolean_toggle"/>
+                                    <field name="curriculum_count" string="Subjects"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Program — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_program" model="ir.actions.act_window">
+        <field name="name">Programs</field>
+        <field name="res_model">edu.program</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_program_search"/>
+        <field name="context">{'search_default_group_dept': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first program</p>
+            <p>Programs are academic offerings students are admitted into, e.g. BCS, MBA.</p>
+        </field>
+    </record>
+</odoo>

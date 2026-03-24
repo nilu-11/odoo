@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Fee Term — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_term_search" model="ir.ui.view">
+        <field name="name">edu.fee.term.search</field>
+        <field name="model">edu.fee.term</field>
+        <field name="arch" type="xml">
+            <search string="Fee Terms">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="At Admission"  name="type_admission"   domain="[('term_type','=','admission')]"/>
+                <filter string="Installment"   name="type_installment" domain="[('term_type','=','installment')]"/>
+                <filter string="Semester"      name="type_semester"    domain="[('term_type','=','semester')]"/>
+                <filter string="Annual"        name="type_annual"      domain="[('term_type','=','annual')]"/>
+                <filter string="Trigger-Based" name="type_trigger"     domain="[('term_type','=','trigger_based')]"/>
+                <separator/>
+                <filter string="Archived"      name="archived"         domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter string="Term Type" name="group_type"    context="{'group_by': 'term_type'}"/>
+                    <filter string="Company"   name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Term — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_term_list" model="ir.ui.view">
+        <field name="name">edu.fee.term.list</field>
+        <field name="model">edu.fee.term</field>
+        <field name="arch" type="xml">
+            <list string="Fee Terms">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="term_type"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Term — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_term_form" model="ir.ui.view">
+        <field name="name">edu.fee.term.form</field>
+        <field name="model">edu.fee.term</field>
+        <field name="arch" type="xml">
+            <form string="Fee Term">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Identity">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="term_type"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Company" groups="base.group_multi_company">
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Term — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_fee_term" model="ir.actions.act_window">
+        <field name="name">Fee Terms</field>
+        <field name="res_model">edu.fee.term</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_fee_term_search"/>
+        <field name="context">{'search_default_group_type': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first fee term</p>
+            <p>Fee terms define when fees are due — e.g. At Admission, Installment 1, Semester 1 Fee.</p>
+        </field>
+    </record>
+</odoo>

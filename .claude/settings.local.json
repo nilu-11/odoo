@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \":*)",
+      "Read(//opt/odoo19/odoo/addons/crm/models/**)"
+    ]
+  }
+}

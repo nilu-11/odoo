@@ -1,0 +1,26 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_register_admin,edu.admission.register admin,model_edu_admission_register,group_admission_admin,1,1,1,1
+access_register_officer,edu.admission.register officer,model_edu_admission_register,group_admission_officer,1,1,1,0
+access_register_viewer,edu.admission.register viewer,model_edu_admission_register,group_admission_viewer,1,0,0,0
+access_register_edu_admin,edu.admission.register edu admin,model_edu_admission_register,edu_academic_structure.group_education_admin,1,1,1,1
+access_register_academic_viewer,edu.admission.register academic viewer,model_edu_admission_register,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_application_admin,edu.admission.application admin,model_edu_admission_application,group_admission_admin,1,1,1,1
+access_application_officer,edu.admission.application officer,model_edu_admission_application,group_admission_officer,1,1,1,0
+access_application_viewer,edu.admission.application viewer,model_edu_admission_application,group_admission_viewer,1,0,0,0
+access_application_edu_admin,edu.admission.application edu admin,model_edu_admission_application,edu_academic_structure.group_education_admin,1,1,1,1
+access_application_academic_viewer,edu.admission.application academic viewer,model_edu_admission_application,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_scheme_admin,edu.scholarship.scheme admin,model_edu_scholarship_scheme,group_admission_admin,1,1,1,1
+access_scheme_officer,edu.scholarship.scheme officer,model_edu_scholarship_scheme,group_admission_officer,1,1,1,0
+access_scheme_viewer,edu.scholarship.scheme viewer,model_edu_scholarship_scheme,group_admission_viewer,1,0,0,0
+access_scheme_edu_admin,edu.scholarship.scheme edu admin,model_edu_scholarship_scheme,edu_academic_structure.group_education_admin,1,1,1,1
+access_scheme_academic_viewer,edu.scholarship.scheme academic viewer,model_edu_scholarship_scheme,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_stacking_group_admin,edu.scholarship.stacking.group admin,model_edu_scholarship_stacking_group,group_admission_admin,1,1,1,1
+access_stacking_group_officer,edu.scholarship.stacking.group officer,model_edu_scholarship_stacking_group,group_admission_officer,1,1,1,0
+access_stacking_group_viewer,edu.scholarship.stacking.group viewer,model_edu_scholarship_stacking_group,group_admission_viewer,1,0,0,0
+access_stacking_group_edu_admin,edu.scholarship.stacking.group edu admin,model_edu_scholarship_stacking_group,edu_academic_structure.group_education_admin,1,1,1,1
+access_stacking_group_academic_viewer,edu.scholarship.stacking.group academic viewer,model_edu_scholarship_stacking_group,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_review_admin,edu.admission.scholarship.review admin,model_edu_admission_scholarship_review,group_admission_admin,1,1,1,1
+access_review_officer,edu.admission.scholarship.review officer,model_edu_admission_scholarship_review,group_admission_officer,1,1,1,0
+access_review_viewer,edu.admission.scholarship.review viewer,model_edu_admission_scholarship_review,group_admission_viewer,1,0,0,0
+access_review_edu_admin,edu.admission.scholarship.review edu admin,model_edu_admission_scholarship_review,edu_academic_structure.group_education_admin,1,1,1,1
+access_review_academic_viewer,edu.admission.scholarship.review academic viewer,model_edu_admission_scholarship_review,edu_academic_structure.group_academic_viewer,1,0,0,0

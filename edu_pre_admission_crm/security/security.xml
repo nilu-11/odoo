@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================
+         Pre-Admission Access Privilege
+         Separate from Academic and Fees privileges so a user
+         can hold a pre-admission role alongside other education
+         roles simultaneously (Odoo 19 privilege radio logic
+         applies per privilege, not across all education groups).
+    ====================================================== -->
+    <record id="privilege_pre_admission_access" model="res.groups.privilege">
+        <field name="name">Pre-Admission Access</field>
+        <field name="description">
+            Controls access levels for the pre-admission CRM workflow
+            (applicant profiles, guardians, academic history, and CRM leads).
+        </field>
+        <field name="placeholder">No pre-admission access</field>
+        <field name="sequence">30</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- Pre-Admission Viewer: read-only access to all pre-admission records -->
+    <record id="group_pre_admission_viewer" model="res.groups">
+        <field name="name">Pre-Admission Viewer</field>
+        <field name="privilege_id" ref="privilege_pre_admission_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">
+            Read-only access to applicant profiles, guardians,
+            academic history, and relationship types.
+        </field>
+    </record>
+
+    <!-- Pre-Admission Officer: full operational CRUD (no delete on profiles) -->
+    <record id="group_pre_admission_officer" model="res.groups">
+        <field name="name">Pre-Admission Officer</field>
+        <field name="privilege_id" ref="privilege_pre_admission_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_pre_admission_viewer'))
+        ]"/>
+        <field name="comment">
+            Can create and modify applicant profiles, guardians, academic history,
+            and manage CRM leads through the pre-admission workflow.
+            Cannot delete applicant profiles.
+        </field>
+    </record>
+</odoo>

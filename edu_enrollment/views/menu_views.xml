@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Enrollment menu — under Admission root
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_enrollment_main"
+              name="Enrollment"
+              parent="edu_admission.menu_admission_main"
+              sequence="40"/>
+
+    <menuitem id="menu_enrollment_records"
+              name="Enrollments"
+              parent="menu_enrollment_main"
+              action="action_edu_enrollment"
+              sequence="10"/>
+</odoo>

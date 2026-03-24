@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════
+         Admission Access Privilege
+    ══════════════════════════════════════════════════════════ -->
+    <record id="privilege_admission_access" model="res.groups.privilege">
+        <field name="name">Admission Access</field>
+        <field name="description">
+            Controls access levels for the admission workflow
+            (registers, applications, scholarship schemes, reviews).
+        </field>
+        <field name="placeholder">No admission access</field>
+        <field name="sequence">40</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- Admission Viewer: read-only access -->
+    <record id="group_admission_viewer" model="res.groups">
+        <field name="name">Admission Viewer</field>
+        <field name="privilege_id" ref="privilege_admission_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">
+            Read-only access to admission registers, applications,
+            scholarship schemes, and reviews.
+        </field>
+    </record>
+
+    <!-- Admission Officer: operational CRUD -->
+    <record id="group_admission_officer" model="res.groups">
+        <field name="name">Admission Officer</field>
+        <field name="privilege_id" ref="privilege_admission_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_admission_viewer'))
+        ]"/>
+        <field name="comment">
+            Can create, modify, and manage admission applications,
+            process scholarship reviews, and generate offer letters.
+            Cannot delete registers or modify closed records.
+        </field>
+    </record>
+
+    <!-- Admission Admin: full CRUD -->
+    <record id="group_admission_admin" model="res.groups">
+        <field name="name">Admission Administrator</field>
+        <field name="privilege_id" ref="privilege_admission_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_admission_officer'))
+        ]"/>
+        <field name="comment">
+            Full access to all admission records including configuration,
+            deletion, and administrative overrides.
+        </field>
+    </record>
+</odoo>

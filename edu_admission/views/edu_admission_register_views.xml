@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Admission Register — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_register_search" model="ir.ui.view">
+        <field name="name">edu.admission.register.search</field>
+        <field name="model">edu.admission.register</field>
+        <field name="arch" type="xml">
+            <search string="Admission Registers">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="batch_id"/>
+                <separator/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Open" name="open"
+                        domain="[('state', '=', 'open')]"/>
+                <filter string="Closed" name="closed"
+                        domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter string="Has Fee Structure" name="has_fee"
+                        domain="[('fee_structure_id', '!=', False)]"/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Program" name="group_program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter string="Academic Year" name="group_year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Register — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_register_list" model="ir.ui.view">
+        <field name="name">edu.admission.register.list</field>
+        <field name="model">edu.admission.register</field>
+        <field name="arch" type="xml">
+            <list string="Admission Registers">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="batch_id" optional="show"/>
+                <field name="fee_structure_id" optional="show"/>
+                <field name="application_count" string="Apps"/>
+                <field name="seat_limit" optional="hide"/>
+                <field name="application_start_date" optional="show"/>
+                <field name="application_end_date" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Register — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_register_form" model="ir.ui.view">
+        <field name="name">edu.admission.register.form</field>
+        <field name="model">edu.admission.register</field>
+        <field name="arch" type="xml">
+            <form string="Admission Register">
+                <header>
+                    <button name="action_open" type="object"
+                            string="Open" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_close" type="object"
+                            string="Close"
+                            invisible="state != 'open'"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state not in ['draft', 'open']"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state not in ['closed', 'cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_applications"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o"
+                                invisible="application_count == 0">
+                            <field name="application_count" string="Applications"
+                                   widget="statinfo"/>
+                        </button>
+                        <button name="action_view_submitted"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-paper-plane"
+                                invisible="submitted_count == 0">
+                            <field name="submitted_count" string="Submitted"
+                                   widget="statinfo"/>
+                        </button>
+                        <button name="action_view_under_review"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-search"
+                                invisible="under_review_count == 0">
+                            <field name="under_review_count" string="Under Review"
+                                   widget="statinfo"/>
+                        </button>
+                        <button name="action_view_offered"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-gift"
+                                invisible="offered_count == 0">
+                            <field name="offered_count" string="Offered"
+                                   widget="statinfo"/>
+                        </button>
+                        <button name="action_view_enrolled"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-graduation-cap"
+                                invisible="enrolled_count == 0">
+                            <field name="enrolled_count" string="Enrolled"
+                                   widget="statinfo"/>
+                        </button>
+                        <button name="action_view_cancelled"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-times-circle"
+                                invisible="cancelled_count == 0">
+                            <field name="cancelled_count" string="Cancelled"
+                                   widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Register Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. BCA Intake 2026"/>
+                        </h1>
+                        <field name="code" readonly="1"/>
+                    </div>
+
+                    <group>
+                        <group string="Academic Scope">
+                            <field name="program_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="academic_year_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="batch_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                        <group string="Dates &amp; Capacity">
+                            <field name="application_start_date"/>
+                            <field name="application_end_date"/>
+                            <field name="seat_limit"/>
+                            <field name="available_seat_count"
+                                   invisible="seat_limit == 0"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Fee Configuration">
+                            <field name="fee_structure_id"/>
+                            <field name="available_payment_plan_ids"
+                                   widget="many2many_tags"/>
+                            <field name="default_payment_plan_id"
+                                   domain="[('id', 'in', available_payment_plan_ids)]"/>
+                        </group>
+                        <group string="System">
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <field name="note" nolabel="1"
+                                   placeholder="Internal notes about this admission register..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Admission Register — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_admission_register" model="ir.actions.act_window">
+        <field name="name">Admission Registers</field>
+        <field name="res_model">edu.admission.register</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_admission_register_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an Admission Register</p>
+            <p>Admission registers define intake openings for a specific program, academic year, and optional batch. Each register resolves its fee structure automatically.</p>
+        </field>
+    </record>
+</odoo>

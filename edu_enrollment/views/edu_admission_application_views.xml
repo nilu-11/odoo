@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Admission Application — Add Enrollment Smart Button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_admission_application_form_enrollment"
+            model="ir.ui.view">
+        <field name="name">edu.admission.application.form.enrollment</field>
+        <field name="model">edu.admission.application</field>
+        <field name="inherit_id"
+               ref="edu_admission.view_edu_admission_application_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_enrollment"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-id-card"
+                        invisible="enrollment_count == 0">
+                    <field name="enrollment_count"
+                           string="Enrollment" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
