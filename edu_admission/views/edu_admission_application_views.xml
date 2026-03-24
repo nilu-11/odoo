@@ -117,11 +117,12 @@
                             string="Reject Offer" class="btn-secondary"
                             invisible="state != 'offered'"/>
                     <button name="action_mark_ready_for_enrollment" type="object"
-                            string="Ready for Enrollment" class="btn-primary"
-                            invisible="not can_mark_ready_for_enrollment"/>
+                            string="Mark Ready for Enrollment" class="btn-primary"
+                            invisible="state != 'offer_accepted'"/>
                     <button name="action_enroll" type="object"
-                            string="Enroll" class="btn-primary"
-                            invisible="not can_enroll"/>
+                            string="Create Enrollment" class="btn-primary"
+                            invisible="not can_enroll"
+                            confirm="Create an enrollment record from this application? This will advance the application to Enrolled state."/>
                     <button name="action_cancel" type="object"
                             string="Cancel"
                             invisible="state in ['enrolled', 'cancelled']"/>
@@ -319,9 +320,12 @@
                                 <group string="Readiness Flags">
                                     <field name="can_generate_offer" readonly="1"/>
                                     <field name="can_accept_offer" readonly="1"/>
-                                    <field name="can_mark_ready_for_enrollment" readonly="1"/>
-                                    <field name="can_enroll" readonly="1"/>
-                                    <field name="enrollment_ready" readonly="1"/>
+                                    <field name="can_mark_ready_for_enrollment" readonly="1"
+                                           string="Can Mark Ready for Enrollment"/>
+                                    <field name="enrollment_ready" readonly="1"
+                                           string="Enrollment Criteria Met"/>
+                                    <field name="can_enroll" readonly="1"
+                                           string="Can Create Enrollment"/>
                                 </group>
                             </group>
                         </page>

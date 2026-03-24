@@ -660,30 +660,94 @@ class EduAdmissionApplication(models.Model):
             rec.can_generate_offer = (
                 rec.state in ('under_review', 'scholarship_review')
                 and rec.review_complete
-                and rec.fee_structure_id
+                and bool(rec.fee_structure_id)
             )
             rec.can_accept_offer = (
                 rec.state == 'offered'
                 and rec.offer_status == 'sent'
             )
+            # All readiness criteria must pass before "Ready for Enrollment"
             rec.can_mark_ready_for_enrollment = (
                 rec.state == 'offer_accepted'
-                and rec.fee_confirmed
-                and rec.selected_payment_plan_id
+                and not rec._get_enrollment_block_reasons()
             )
+            # can_enroll: application is ready_for_enrollment
+            # (the enrollment extension overrides this to also check
+            #  enrollment_count == 0, preventing duplicate creation)
             rec.can_enroll = rec.state == 'ready_for_enrollment'
 
+    @api.depends(
+        'state', 'offer_status', 'fee_confirmed', 'selected_payment_plan_id',
+        'applicant_profile_id', 'program_id', 'batch_id', 'academic_year_id',
+        'fee_structure_id', 'batch_id.current_program_term_id',
+    )
     def _compute_enrollment_readiness(self):
+        """
+        Compute enrollment_ready and enrollment_block_reason based on a
+        comprehensive check of all fields required for handoff to edu_enrollment.
+        """
         for rec in self:
-            blocks = []
-            if rec.state != 'offer_accepted':
-                blocks.append('Offer must be accepted.')
-            if not rec.fee_confirmed:
-                blocks.append('Fee must be confirmed.')
-            if not rec.selected_payment_plan_id:
-                blocks.append('A payment plan must be selected.')
+            blocks = rec._get_enrollment_block_reasons()
             rec.enrollment_ready = not blocks
-            rec.enrollment_block_reason = '\n'.join(blocks) if blocks else False
+            rec.enrollment_block_reason = (
+                '\n'.join(f'• {b}' for b in blocks) if blocks else False
+            )
+
+    def _get_enrollment_block_reasons(self):
+        """
+        Return a list of human-readable reasons blocking enrollment creation.
+        An empty list means the application is fully ready for enrollment.
+
+        Checks mirror edu.enrollment._check_application_enrollment_readiness()
+        so that the application can self-validate before calling the enrollment
+        module.
+        """
+        self.ensure_one()
+        blocks = []
+
+        # Hard stops — no point checking further
+        if self.state in ('cancelled', 'offer_rejected'):
+            blocks.append(f'Application is in "{self.state}" state.')
+            return blocks
+
+        # Offer outcome
+        if self.offer_status != 'accepted':
+            blocks.append(
+                f'Offer is not accepted (current: "{self.offer_status}").'
+            )
+
+        # Fee confirmation
+        if not self.fee_confirmed:
+            blocks.append('Fee is not confirmed.')
+
+        # Payment plan
+        if not self.selected_payment_plan_id:
+            blocks.append('No payment plan selected.')
+
+        # Identity
+        if not self.applicant_profile_id:
+            blocks.append('Applicant profile is missing.')
+
+        # Academic placement
+        if not self.program_id:
+            blocks.append('Program is missing.')
+        if not self.batch_id:
+            blocks.append('Batch is missing.')
+        if not self.academic_year_id:
+            blocks.append('Academic year is missing.')
+
+        # Fee structure
+        if not self.fee_structure_id:
+            blocks.append('Fee structure is missing.')
+
+        # Batch must have a current program term (enrollment requires it)
+        if self.batch_id and not self.batch_id.current_program_term_id:
+            blocks.append(
+                f'Batch "{self.batch_id.name}" has no current program term '
+                'configured. Set the current progression stage on the batch.'
+            )
+
+        return blocks
 
     # ═════════════════════════════════════════════════════════════════════════
     # State Transitions
@@ -774,34 +838,56 @@ class EduAdmissionApplication(models.Model):
         })
 
     def action_mark_ready_for_enrollment(self):
-        """Verify enrollment readiness and transition state."""
+        """
+        Validate full enrollment readiness and transition to ready_for_enrollment.
+
+        All downstream requirements (fee, batch term, payment plan, etc.) are
+        checked here via _get_enrollment_block_reasons() so that the enrollment
+        module can accept the application immediately upon creation.
+        """
         for rec in self:
-            if not rec.can_mark_ready_for_enrollment:
-                blocks = rec.enrollment_block_reason or 'Unknown issue.'
+            if rec.state != 'offer_accepted':
+                raise UserError(
+                    f'Application "{rec.application_no}" must be in '
+                    '"offer_accepted" state to mark ready for enrollment.'
+                )
+            blocks = rec._get_enrollment_block_reasons()
+            if blocks:
                 raise UserError(
                     f'Cannot mark "{rec.application_no}" ready for enrollment:\n'
-                    f'{blocks}'
+                    + '\n'.join(f'  • {b}' for b in blocks)
                 )
         self.write({'state': 'ready_for_enrollment'})
 
     def action_enroll(self):
         """
-        Enrollment hook — creates enrollment record if enrollment module
-        is installed, otherwise marks as enrolled.
+        Enrollment hook — base implementation for when edu_enrollment is not
+        installed.
+
+        When edu_enrollment IS installed, this method is fully overridden by
+        edu_enrollment's application extension (edu_enrollment/models/
+        edu_admission_application.py) which properly creates the enrollment
+        record, handles duplicates, and returns a form view action.
+
+        Base behaviour (standalone admission without enrollment module):
+        - Validates state and readiness
+        - If enrollment module is present, delegates to it
+        - Advances application state to 'enrolled'
         """
         for rec in self:
             if rec.state != 'ready_for_enrollment':
                 raise UserError(
                     f'Application "{rec.application_no}" is not ready '
-                    'for enrollment.'
+                    'for enrollment. Use "Mark Ready for Enrollment" first.'
                 )
-        # Check if enrollment module exists
-        enrollment_model = self.env.get('edu.enrollment')
-        if enrollment_model is not None:
-            for rec in self:
-                vals = rec._prepare_enrollment_vals()
-                enrollment_model.create(vals)
+            blocks = rec._get_enrollment_block_reasons()
+            if blocks:
+                raise UserError(
+                    f'Cannot enroll "{rec.application_no}":\n'
+                    + '\n'.join(f'  • {b}' for b in blocks)
+                )
         self.write({'state': 'enrolled'})
+
 
     def action_cancel(self):
         for rec in self:
@@ -980,50 +1066,84 @@ class EduAdmissionApplication(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # Enrollment Handoff
     # ═════════════════════════════════════════════════════════════════════════
-    def _check_enrollment_ready(self):
-        """Raise UserError if not ready for enrollment."""
+    def _check_enrollment_readiness(self):
+        """
+        Raise UserError listing all reasons that prevent enrollment creation.
+        Call before any enrollment creation logic.
+        """
         self.ensure_one()
-        if not self.enrollment_ready:
+        blocks = self._get_enrollment_block_reasons()
+        if blocks:
             raise UserError(
-                f'Application "{self.application_no}" is not ready for enrollment.\n'
-                f'{self.enrollment_block_reason}'
+                f'Application "{self.application_no}" is not ready for '
+                'enrollment:\n'
+                + '\n'.join(f'  • {b}' for b in blocks)
             )
 
     def _prepare_enrollment_vals(self):
         """
-        Prepare values dict for creating enrollment record.
-        Future enrollment module should consume this.
+        Build a values dict for creating an edu.enrollment record.
+
+        Field names match edu.enrollment exactly (application_id,
+        payment_plan_id, etc.).  All academic and financial fields are
+        snapshotted so they remain historically stable.
+
+        current_program_term_id is derived from batch.current_program_term_id
+        at the moment of enrollment preparation — it is NOT stored on the
+        application itself.
+
+        Called internally by action_create_enrollment().
+        Can be overridden in downstream modules.
         """
         self.ensure_one()
-        self._check_enrollment_ready()
+        self._check_enrollment_readiness()
+
+        batch = self.batch_id
+        program_term = batch.current_program_term_id if batch else False
+
         return {
+            # ── Source linkage ──────────────────────────────────────────────
+            'application_id': self.id,
             'applicant_profile_id': self.applicant_profile_id.id,
-            'partner_id': self.partner_id.id,
-            'crm_lead_id': self.crm_lead_id.id if self.crm_lead_id else False,
-            'admission_application_id': self.id,
+            # ── Academic placement (snapshots) ──────────────────────────────
             'program_id': self.program_id.id,
-            'batch_id': self.batch_id.id if self.batch_id else False,
+            'batch_id': batch.id if batch else False,
             'academic_year_id': (
                 self.academic_year_id.id if self.academic_year_id else False
             ),
-            'department_id': self.department_id.id if self.department_id else False,
+            'current_program_term_id': (
+                program_term.id if program_term else False
+            ),
+            # ── Financial context (snapshots) ───────────────────────────────
             'fee_structure_id': (
                 self.fee_structure_id.id if self.fee_structure_id else False
             ),
-            'selected_payment_plan_id': (
+            'payment_plan_id': (
                 self.selected_payment_plan_id.id
                 if self.selected_payment_plan_id else False
             ),
+            'base_total_fee': self.base_total_fee,
+            'scholarship_eligible_total': self.scholarship_eligible_total,
             'total_scholarship_discount_amount': (
                 self.total_scholarship_discount_amount
             ),
             'net_fee_after_scholarship': self.net_fee_after_scholarship,
+            'scholarship_status': self.scholarship_status,
+            'scholarship_cap_applied': self.scholarship_cap_applied,
+            # ── Admission outcome (snapshots) ───────────────────────────────
+            'fee_confirmed': self.fee_confirmed,
+            'fee_confirmation_date': self.fee_confirmation_date,
+            'offer_status': self.offer_status,
             'offer_acceptance_date': self.offer_acceptance_date,
         }
 
     # ═════════════════════════════════════════════════════════════════════════
     # Smart Buttons
     # ═════════════════════════════════════════════════════════════════════════
+    # NOTE: action_view_enrollment is defined in edu_enrollment's extension
+    # (edu_enrollment/models/edu_admission_application.py) and requires
+    # enrollment_ids / enrollment_count fields added by that module.
+
     def action_view_scholarship_reviews(self):
         self.ensure_one()
         return {

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Admission Application — Add Enrollment Smart Button
+         Admission Application — Enrollment Integration
+         Adds enrollment smart button and header action buttons
+         extending the base edu_admission form view.
     ══════════════════════════════════════════════════════ -->
     <record id="view_edu_admission_application_form_enrollment"
             model="ir.ui.view">
@@ -10,6 +12,8 @@
         <field name="inherit_id"
                ref="edu_admission.view_edu_admission_application_form"/>
         <field name="arch" type="xml">
+
+            <!-- Smart button: Enrollment (shown when enrollment exists) -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_enrollment"
                         type="object"
@@ -20,6 +24,23 @@
                            string="Enrollment" widget="statinfo"/>
                 </button>
             </xpath>
+
+            <!-- Header: Change "Create Enrollment" button visibility to
+                 also hide when an enrollment already exists, and add
+                 "View Enrollment" button for the enrolled state. -->
+            <xpath expr="//button[@name='action_enroll']" position="attributes">
+                <!-- Restrict: show only when ready AND no enrollment yet -->
+                <attribute name="invisible">state != 'ready_for_enrollment' or enrollment_count > 0</attribute>
+                <attribute name="confirm">Create an enrollment record? This advances the application to Enrolled state and cannot be undone.</attribute>
+            </xpath>
+
+            <!-- View Enrollment: visible when enrollment exists -->
+            <xpath expr="//button[@name='action_enroll']" position="after">
+                <button name="action_view_enrollment" type="object"
+                        string="View Enrollment" class="btn-secondary"
+                        invisible="enrollment_count == 0"/>
+            </xpath>
+
         </field>
     </record>
 </odoo>
