@@ -130,6 +130,13 @@ class EduEnrollment(models.Model):
             )
             total = sum(required_dues.mapped('due_amount'))
             paid = sum(required_dues.mapped('paid_amount'))
+            # A due marked 'paid' via accounting sync has state='paid' but
+            # balance_amount may still reflect internal allocations only.
+            # Treat state='paid' dues as fully cleared for eligibility.
+            effective_balance = sum(
+                0.0 if d.state == 'paid' else d.balance_amount
+                for d in required_dues
+            )
             balance = sum(required_dues.mapped('balance_amount'))
 
             rec.enrollment_required_total = total
@@ -143,20 +150,20 @@ class EduEnrollment(models.Model):
                 # No required dues configured — no block
                 rec.enrollment_fee_eligible = True
                 rec.enrollment_fee_block_detail = False
-            elif float_compare(balance, 0.0, precision_digits=2) <= 0:
+            elif float_compare(effective_balance, 0.0, precision_digits=2) <= 0:
                 rec.enrollment_fee_eligible = True
                 rec.enrollment_fee_block_detail = False
             else:
                 rec.enrollment_fee_eligible = False
                 unpaid_heads = required_dues.filtered(
-                    lambda d: float_compare(
+                    lambda d: d.state != 'paid' and float_compare(
                         d.balance_amount, 0.0, precision_digits=2
                     ) > 0
                 ).mapped('fee_head_id.name')
                 rec.enrollment_fee_block_detail = (
                     'Outstanding required fees:\n'
                     + '\n'.join(f'  - {h}' for h in unpaid_heads)
-                    + f'\n\nTotal balance: {balance:.2f}'
+                    + f'\n\nTotal balance: {effective_balance:.2f}'
                 )
 
     # ═════════════════════════════════════════════════════════════════════════

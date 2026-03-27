@@ -261,6 +261,7 @@ class EduEnrollment(models.Model):
     can_confirm = fields.Boolean(
         string='Can Confirm',
         compute='_compute_readiness_flags',
+        store=False,
     )
     can_activate = fields.Boolean(
         string='Can Activate',

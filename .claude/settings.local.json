@@ -12,7 +12,9 @@
       "Bash(for f:*)",
       "Bash(do python3:*)",
       "Bash(done)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
