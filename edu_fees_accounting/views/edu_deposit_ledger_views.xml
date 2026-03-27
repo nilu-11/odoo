@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Ledger — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_ledger_search" model="ir.ui.view">
+        <field name="name">edu.deposit.ledger.search</field>
+        <field name="model">edu.deposit.ledger</field>
+        <field name="arch" type="xml">
+            <search string="Deposit Ledgers">
+                <field name="student_id"/>
+                <field name="partner_id"/>
+                <filter string="Has Balance" name="has_balance"
+                        domain="[('balance', '>', 0)]"/>
+                <filter string="Zero Balance" name="zero_balance"
+                        domain="[('balance', '=', 0)]"/>
+                <group name="group_by">
+                    <filter string="Company" name="group_company"
+                            context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Ledger — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_ledger_list" model="ir.ui.view">
+        <field name="name">edu.deposit.ledger.list</field>
+        <field name="model">edu.deposit.ledger</field>
+        <field name="arch" type="xml">
+            <list string="Deposit Ledgers"
+                  decoration-success="balance > 0"
+                  decoration-muted="balance == 0">
+                <field name="student_id"/>
+                <field name="partner_id" optional="show"/>
+                <field name="total_collected" sum="Collected"/>
+                <field name="total_adjusted" sum="Adjusted"/>
+                <field name="total_refunded" sum="Refunded"/>
+                <field name="balance" sum="Balance"
+                       decoration-bf="True"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="adjustment_count" optional="show"/>
+                <field name="refund_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Ledger — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_ledger_form" model="ir.ui.view">
+        <field name="name">edu.deposit.ledger.form</field>
+        <field name="model">edu.deposit.ledger</field>
+        <field name="arch" type="xml">
+            <form string="Deposit Ledger">
+                <header>
+                    <button name="action_create_adjustment" type="object"
+                            string="New Adjustment" class="btn-secondary"
+                            invisible="balance &lt;= 0"/>
+                    <button name="action_create_refund" type="object"
+                            string="New Refund" class="btn-secondary"
+                            invisible="balance &lt;= 0"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_adjustments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-adjust"
+                                invisible="adjustment_count == 0">
+                            <field name="adjustment_count"
+                                   string="Adjustments" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_refunds"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-undo"
+                                invisible="refund_count == 0">
+                            <field name="refund_count"
+                                   string="Refunds" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Student">
+                            <field name="student_id"/>
+                            <field name="partner_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Deposit Balance">
+                            <field name="total_collected"/>
+                            <field name="total_adjusted"/>
+                            <field name="total_refunded"/>
+                            <field name="balance"
+                                   decoration-success="balance > 0"
+                                   decoration-danger="balance &lt; 0"
+                                   decoration-bf="True"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Adjustments" name="adjustments">
+                            <field name="adjustment_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="amount"/>
+                                    <field name="reason"/>
+                                    <field name="approved_by"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-warning="state == 'submitted'"
+                                           decoration-success="state == 'approved'"
+                                           decoration-muted="state == 'cancelled'"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Refunds" name="refunds">
+                            <field name="refund_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="refund_date"/>
+                                    <field name="amount"/>
+                                    <field name="payment_method"/>
+                                    <field name="approved_by"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-warning="state == 'submitted'"
+                                           decoration-primary="state == 'approved'"
+                                           decoration-success="state == 'done'"
+                                           decoration-muted="state == 'cancelled'"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Ledger — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_deposit_ledger" model="ir.actions.act_window">
+        <field name="name">Deposit Ledger</field>
+        <field name="res_model">edu.deposit.ledger</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_deposit_ledger_search"/>
+        <field name="context">{'search_default_has_balance': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No deposit ledgers yet</p>
+            <p>Deposit ledgers track security deposits collected, adjusted, and refunded per student.</p>
+        </field>
+    </record>
+</odoo>

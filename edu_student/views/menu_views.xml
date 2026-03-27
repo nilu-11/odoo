@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student — Top-level menu under Admission root
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_student_main"
+              name="Students"
+              parent="edu_admission.menu_admission_main"
+              sequence="50"/>
+
+    <menuitem id="menu_student_records"
+              name="Student Records"
+              parent="menu_student_main"
+              action="action_edu_student"
+              sequence="10"/>
+
+    <menuitem id="menu_student_status_history"
+              name="Status History"
+              parent="menu_student_main"
+              action="action_edu_student_status_history"
+              sequence="20"/>
+</odoo>

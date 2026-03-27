@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Fees Accounting Privilege
+    ══════════════════════════════════════════════════════════════ -->
+    <record id="privilege_fees_accounting_access" model="res.groups.privilege">
+        <field name="name">Fees Accounting Access</field>
+        <field name="description">
+            Controls access levels for deposit approvals, cashier
+            operations, and other fees-accounting workflows.
+        </field>
+        <field name="placeholder">No fees accounting access</field>
+        <field name="sequence">60</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Deposit Approver Group
+         Cross‑cutting group that can approve deposit adjustments
+         and refunds.  Not a privilege level — assigned independently.
+    ══════════════════════════════════════════════════════════════ -->
+    <record id="group_deposit_approver" model="res.groups">
+        <field name="name">Deposit Approver</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="privilege_id" ref="privilege_fees_accounting_access"/>
+        <field name="comment">
+            Allows the user to approve deposit adjustments and refunds.
+            Typically assigned to a finance manager or designated authority.
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Cashier / Account User Group
+         For finance front‑desk staff who process payments but don't
+         approve adjustments.
+    ══════════════════════════════════════════════════════════════ -->
+    <record id="group_cashier" model="res.groups">
+        <field name="name">Student Finance Cashier</field>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('edu_fees.group_student_finance_officer')),
+        ]"/>
+        <field name="privilege_id" ref="privilege_fees_accounting_access"/>
+        <field name="comment">
+            Front‑desk cashier role.  Can record payments, create
+            invoices, and view deposits.  Cannot approve adjustments
+            or refunds.
+        </field>
+    </record>
+</odoo>

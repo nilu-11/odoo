@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Accounting Fields on Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_form_inherit_accounting" model="ir.ui.view">
+        <field name="name">edu.fee.head.form.inherit.accounting</field>
+        <field name="model">edu.fee.head</field>
+        <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_form"/>
+        <field name="arch" type="xml">
+            <!-- Add accounting fields section -->
+            <xpath expr="//field[@name='description']" position="before">
+                <separator string="Accounting Integration"/>
+                <group>
+                    <group string="Product &amp; Accounts">
+                        <field name="product_id"/>
+                        <field name="income_account_id"/>
+                        <field name="liability_account_id"
+                               invisible="fee_nature != 'deposit'"/>
+                    </group>
+                    <group string="Taxes &amp; Analytics">
+                        <field name="tax_ids" widget="many2many_tags"/>
+                        <field name="analytic_account_id"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Accounting Columns on List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_list_inherit_accounting" model="ir.ui.view">
+        <field name="name">edu.fee.head.list.inherit.accounting</field>
+        <field name="model">edu.fee.head</field>
+        <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_refundable']" position="after">
+                <field name="product_id" optional="hide"/>
+                <field name="income_account_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

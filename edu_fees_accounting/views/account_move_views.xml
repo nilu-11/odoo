@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Account Move — Fee Dues Smart Button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_account_move_form_inherit_edu" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.edu</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_edu_fee_dues"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-graduation-cap"
+                        invisible="edu_fee_due_count == 0">
+                    <field name="edu_fee_due_count"
+                           string="Fee Dues" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

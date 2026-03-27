@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Payment — Extend Form with Accounting Fields
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_payment_form_inherit_acct" model="ir.ui.view">
+        <field name="name">edu.student.payment.form.inherit.accounting</field>
+        <field name="model">edu.student.payment</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_payment_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add journal selection in payment details -->
+            <xpath expr="//field[@name='payment_method']" position="after">
+                <field name="journal_id"
+                       readonly="state != 'draft'"
+                       placeholder="Auto-detect from method"/>
+            </xpath>
+
+            <!-- Accounting reference group -->
+            <xpath expr="//notebook" position="before">
+                <group string="Accounting" invisible="not account_payment_id">
+                    <field name="account_payment_id" readonly="1"/>
+                    <field name="account_payment_state"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Payment — Extend List with Accounting Column
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_payment_list_inherit_acct" model="ir.ui.view">
+        <field name="name">edu.student.payment.list.inherit.accounting</field>
+        <field name="model">edu.student.payment</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_payment_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="account_payment_id" optional="hide"
+                       string="Acct. Entry"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

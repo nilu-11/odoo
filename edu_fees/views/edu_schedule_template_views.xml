@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Schedule Template — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_schedule_template_search" model="ir.ui.view">
+        <field name="name">edu.schedule.template.search</field>
+        <field name="model">edu.schedule.template</field>
+        <field name="arch" type="xml">
+            <search string="Schedule Templates">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="Full Payment" name="type_full"
+                        domain="[('schedule_type','=','full')]"/>
+                <filter string="Installment" name="type_installment"
+                        domain="[('schedule_type','=','installment')]"/>
+                <separator/>
+                <filter string="Archived" name="archived"
+                        domain="[('active','=',False)]"/>
+                <group name="group_by">
+                    <filter string="Schedule Type" name="group_type"
+                            context="{'group_by': 'schedule_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Schedule Template — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_schedule_template_list" model="ir.ui.view">
+        <field name="name">edu.schedule.template.list</field>
+        <field name="model">edu.schedule.template</field>
+        <field name="arch" type="xml">
+            <list string="Schedule Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="schedule_type"/>
+                <field name="line_count"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Schedule Template — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_schedule_template_form" model="ir.ui.view">
+        <field name="name">edu.schedule.template.form</field>
+        <field name="model">edu.schedule.template</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Template">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <group>
+                        <group string="Identity">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="schedule_type"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Settings">
+                            <field name="sequence"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Installment Lines"
+                              invisible="schedule_type != 'installment'">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="installment_no"/>
+                                    <field name="label"/>
+                                    <field name="percentage"/>
+                                    <field name="offset_days"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" placeholder="Optional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Schedule Template — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_schedule_template" model="ir.actions.act_window">
+        <field name="name">Schedule Templates</field>
+        <field name="res_model">edu.schedule.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_schedule_template_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first schedule template</p>
+            <p>Schedule templates define how fee amounts are split into due installments with offset dates.</p>
+        </field>
+    </record>
+</odoo>

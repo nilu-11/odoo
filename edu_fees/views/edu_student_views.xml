@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Form — Finance Smart Buttons & Summary
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form_inherit_fees" model="ir.ui.view">
+        <field name="name">edu.student.form.inherit.fees</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_form"/>
+        <field name="arch" type="xml">
+
+            <!-- ── Finance Smart Buttons ── -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_fee_plans"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-list-alt"
+                        invisible="fee_plan_count == 0">
+                    <field name="fee_plan_count"
+                           string="Fee Plans" widget="statinfo"/>
+                </button>
+                <button name="action_view_fee_dues"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calendar-check-o"
+                        invisible="fee_due_count == 0">
+                    <field name="fee_due_count"
+                           string="Dues" widget="statinfo"/>
+                </button>
+                <button name="action_view_payments"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-money"
+                        invisible="payment_count == 0">
+                    <field name="payment_count"
+                           string="Payments" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <!-- ── Finance Summary Tab ── -->
+            <xpath expr="//notebook/page[@name='notes']" position="before">
+                <page string="Finance" name="finance">
+                    <group>
+                        <group string="Fee Summary">
+                            <field name="finance_currency_id" invisible="1"/>
+                            <field name="finance_total_planned"/>
+                            <field name="finance_total_discount"/>
+                            <field name="finance_total_due"/>
+                            <field name="finance_total_paid"/>
+                            <field name="finance_total_outstanding"
+                                   decoration-danger="finance_total_outstanding > 0"
+                                   decoration-success="finance_total_outstanding == 0"/>
+                        </group>
+                        <group string="Deposits">
+                            <field name="finance_total_deposit_paid"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student List — Add finance columns
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_list_inherit_fees" model="ir.ui.view">
+        <field name="name">edu.student.list.inherit.fees</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="finance_total_outstanding" optional="hide"
+                       string="Outstanding"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

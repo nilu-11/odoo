@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Accounting-related menus under existing Student Finance section
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Accounting sub-section under Operations ── -->
+    <menuitem id="menu_finance_accounting"
+              name="Accounting"
+              parent="edu_fees.menu_student_finance_operations"
+              sequence="40"/>
+
+    <menuitem id="menu_student_invoices"
+              name="Student Invoices"
+              parent="menu_finance_accounting"
+              action="action_edu_student_invoices"
+              sequence="10"/>
+
+    <!-- ── Deposits sub-section under Operations ── -->
+    <menuitem id="menu_finance_deposits"
+              name="Deposits"
+              parent="edu_fees.menu_student_finance_operations"
+              sequence="50"/>
+
+    <menuitem id="menu_deposit_ledger"
+              name="Deposit Ledger"
+              parent="menu_finance_deposits"
+              action="action_edu_deposit_ledger"
+              sequence="10"/>
+
+    <menuitem id="menu_deposit_adjustments"
+              name="Adjustments"
+              parent="menu_finance_deposits"
+              action="action_edu_deposit_adjustment"
+              sequence="20"/>
+
+    <menuitem id="menu_deposit_refunds"
+              name="Refunds"
+              parent="menu_finance_deposits"
+              action="action_edu_deposit_refund"
+              sequence="30"/>
+
+    <!-- ── Reports sub-section ── -->
+    <menuitem id="menu_finance_reports"
+              name="Reports"
+              parent="edu_fees.menu_student_finance"
+              sequence="50"/>
+
+    <menuitem id="menu_report_fee_collection"
+              name="Fee Collection"
+              parent="menu_finance_reports"
+              action="action_edu_fee_collection_report"
+              sequence="10"/>
+
+    <menuitem id="menu_report_outstanding_dues"
+              name="Outstanding Dues"
+              parent="menu_finance_reports"
+              action="action_edu_outstanding_dues_report"
+              sequence="20"/>
+
+    <menuitem id="menu_report_fee_plan_summary"
+              name="Fee Plan Summary"
+              parent="menu_finance_reports"
+              action="action_edu_fee_plan_report"
+              sequence="30"/>
+
+    <menuitem id="menu_report_payment_analysis"
+              name="Payment Analysis"
+              parent="menu_finance_reports"
+              action="action_edu_payment_report"
+              sequence="40"/>
+
+    <menuitem id="menu_report_deposit_summary"
+              name="Deposit Summary"
+              parent="menu_finance_reports"
+              action="action_edu_deposit_summary_report"
+              sequence="50"/>
+</odoo>

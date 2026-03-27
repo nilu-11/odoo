@@ -1,0 +1,34 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_schedule_template_admin,edu.schedule.template admin,model_edu_schedule_template,group_student_finance_admin,1,1,1,1
+access_schedule_template_officer,edu.schedule.template officer,model_edu_schedule_template,group_student_finance_officer,1,1,1,0
+access_schedule_template_viewer,edu.schedule.template viewer,model_edu_schedule_template,group_student_finance_viewer,1,0,0,0
+access_schedule_template_fees_officer,edu.schedule.template fees officer,model_edu_schedule_template,edu_fees_structure.group_fees_officer,1,0,0,0
+access_schedule_template_line_admin,edu.schedule.template.line admin,model_edu_schedule_template_line,group_student_finance_admin,1,1,1,1
+access_schedule_template_line_officer,edu.schedule.template.line officer,model_edu_schedule_template_line,group_student_finance_officer,1,1,1,0
+access_schedule_template_line_viewer,edu.schedule.template.line viewer,model_edu_schedule_template_line,group_student_finance_viewer,1,0,0,0
+access_schedule_template_line_fees_officer,edu.schedule.template.line fees officer,model_edu_schedule_template_line,edu_fees_structure.group_fees_officer,1,0,0,0
+access_fee_plan_admin,edu.student.fee.plan admin,model_edu_student_fee_plan,group_student_finance_admin,1,1,1,1
+access_fee_plan_officer,edu.student.fee.plan officer,model_edu_student_fee_plan,group_student_finance_officer,1,1,1,0
+access_fee_plan_viewer,edu.student.fee.plan viewer,model_edu_student_fee_plan,group_student_finance_viewer,1,0,0,0
+access_fee_plan_enrollment_officer,edu.student.fee.plan enrollment officer,model_edu_student_fee_plan,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_fee_plan_enrollment_admin,edu.student.fee.plan enrollment admin,model_edu_student_fee_plan,edu_enrollment.group_enrollment_admin,1,1,1,0
+access_fee_plan_line_admin,edu.student.fee.plan.line admin,model_edu_student_fee_plan_line,group_student_finance_admin,1,1,1,1
+access_fee_plan_line_officer,edu.student.fee.plan.line officer,model_edu_student_fee_plan_line,group_student_finance_officer,1,1,1,0
+access_fee_plan_line_viewer,edu.student.fee.plan.line viewer,model_edu_student_fee_plan_line,group_student_finance_viewer,1,0,0,0
+access_fee_plan_line_enrollment_officer,edu.student.fee.plan.line enrollment officer,model_edu_student_fee_plan_line,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_fee_plan_line_enrollment_admin,edu.student.fee.plan.line enrollment admin,model_edu_student_fee_plan_line,edu_enrollment.group_enrollment_admin,1,1,1,0
+access_fee_due_admin,edu.student.fee.due admin,model_edu_student_fee_due,group_student_finance_admin,1,1,1,1
+access_fee_due_officer,edu.student.fee.due officer,model_edu_student_fee_due,group_student_finance_officer,1,1,1,0
+access_fee_due_viewer,edu.student.fee.due viewer,model_edu_student_fee_due,group_student_finance_viewer,1,0,0,0
+access_fee_due_enrollment_officer,edu.student.fee.due enrollment officer,model_edu_student_fee_due,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_fee_due_enrollment_admin,edu.student.fee.due enrollment admin,model_edu_student_fee_due,edu_enrollment.group_enrollment_admin,1,1,1,0
+access_payment_admin,edu.student.payment admin,model_edu_student_payment,group_student_finance_admin,1,1,1,1
+access_payment_officer,edu.student.payment officer,model_edu_student_payment,group_student_finance_officer,1,1,1,0
+access_payment_viewer,edu.student.payment viewer,model_edu_student_payment,group_student_finance_viewer,1,0,0,0
+access_payment_enrollment_officer,edu.student.payment enrollment officer,model_edu_student_payment,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_payment_enrollment_admin,edu.student.payment enrollment admin,model_edu_student_payment,edu_enrollment.group_enrollment_admin,1,1,1,0
+access_payment_alloc_admin,edu.student.payment.allocation admin,model_edu_student_payment_allocation,group_student_finance_admin,1,1,1,1
+access_payment_alloc_officer,edu.student.payment.allocation officer,model_edu_student_payment_allocation,group_student_finance_officer,1,1,1,0
+access_payment_alloc_viewer,edu.student.payment.allocation viewer,model_edu_student_payment_allocation,group_student_finance_viewer,1,0,0,0
+access_payment_alloc_enrollment_officer,edu.student.payment.allocation enrollment officer,model_edu_student_payment_allocation,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_payment_alloc_enrollment_admin,edu.student.payment.allocation enrollment admin,model_edu_student_payment_allocation,edu_enrollment.group_enrollment_admin,1,1,1,0

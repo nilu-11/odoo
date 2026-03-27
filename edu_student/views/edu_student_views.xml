@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_search" model="ir.ui.view">
+        <field name="name">edu.student.search</field>
+        <field name="model">edu.student</field>
+        <field name="arch" type="xml">
+            <search string="Students">
+                <field name="student_no"/>
+                <field name="roll_number"/>
+                <field name="partner_id"/>
+                <field name="applicant_profile_id"/>
+                <field name="program_id"/>
+                <field name="batch_id"/>
+                <field name="academic_year_id"/>
+                <field name="current_program_term_id"/>
+                <field name="department_id"/>
+                <field name="section_id"/>
+                <separator/>
+                <filter string="Active" name="state_active"
+                        domain="[('state', '=', 'active')]"/>
+                <filter string="On Leave" name="state_on_leave"
+                        domain="[('state', '=', 'on_leave')]"/>
+                <filter string="Suspended" name="state_suspended"
+                        domain="[('state', '=', 'suspended')]"/>
+                <filter string="Graduated" name="state_graduated"
+                        domain="[('state', '=', 'graduated')]"/>
+                <filter string="Alumni" name="state_alumni"
+                        domain="[('state', '=', 'alumni')]"/>
+                <filter string="Withdrawn" name="state_withdrawn"
+                        domain="[('state', '=', 'withdrawn')]"/>
+                <filter string="Inactive" name="state_inactive"
+                        domain="[('state', '=', 'inactive')]"/>
+                <separator/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Program" name="group_program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter string="Batch" name="group_batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter string="Academic Year" name="group_year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Department" name="group_department"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter string="Current Term" name="group_term"
+                            context="{'group_by': 'current_program_term_id'}"/>
+                    <filter string="Section" name="group_section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter string="Admission Date" name="group_admission_date"
+                            context="{'group_by': 'admission_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_list" model="ir.ui.view">
+        <field name="name">edu.student.list</field>
+        <field name="model">edu.student</field>
+        <field name="arch" type="xml">
+            <list string="Students" default_order="student_no desc">
+                <field name="student_no" decoration-bf="1"/>
+                <field name="roll_number"/>
+                <field name="partner_id"/>
+                <field name="program_id"/>
+                <field name="batch_id" optional="show"/>
+                <field name="academic_year_id" optional="show"/>
+                <field name="current_program_term_id" optional="show"/>
+                <field name="section_id" optional="hide"/>
+                <field name="department_id" optional="hide"/>
+                <field name="admission_date" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state in ('graduated', 'alumni')"
+                       decoration-warning="state in ('on_leave', 'suspended')"
+                       decoration-danger="state == 'withdrawn'"
+                       decoration-muted="state == 'inactive'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form" model="ir.ui.view">
+        <field name="name">edu.student.form</field>
+        <field name="model">edu.student</field>
+        <field name="arch" type="xml">
+            <form string="Student">
+                <header>
+                    <!-- Lifecycle transitions -->
+                    <button name="action_set_active" type="object"
+                            string="Reactivate" class="btn-primary"
+                            invisible="state not in ('on_leave', 'suspended', 'inactive')"
+                            confirm="Reactivate this student?"/>
+                    <button name="action_put_on_leave" type="object"
+                            string="Put on Leave" class="btn-secondary"
+                            invisible="state != 'active'"
+                            confirm="Place this student on leave?"/>
+                    <button name="action_suspend" type="object"
+                            string="Suspend" class="btn-warning"
+                            invisible="state != 'active'"
+                            groups="edu_student.group_student_admin"
+                            confirm="Suspend this student? This is a controlled action."/>
+                    <button name="action_withdraw" type="object"
+                            string="Withdraw"
+                            invisible="state not in ('active', 'on_leave', 'suspended')"
+                            groups="edu_student.group_student_admin"
+                            confirm="Withdraw this student? This is typically irreversible."/>
+                    <button name="action_graduate" type="object"
+                            string="Graduate" class="btn-success"
+                            invisible="state != 'active'"
+                            confirm="Mark this student as graduated?"/>
+                    <button name="action_mark_alumni" type="object"
+                            string="Mark Alumni" class="btn-info"
+                            invisible="state != 'graduated'"
+                            confirm="Transition this student to alumni status?"/>
+                    <button name="action_deactivate" type="object"
+                            string="Deactivate"
+                            invisible="state in ('active', 'inactive')"
+                            groups="edu_student.group_student_admin"
+                            confirm="Deactivate this student record?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,graduated,alumni"/>
+                </header>
+
+                <sheet>
+                    <!-- ── Smart Buttons ── -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_applicant_profile"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-user-circle">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Applicant</span>
+                            </div>
+                        </button>
+                        <button name="action_view_guardians"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users"
+                                invisible="guardian_count == 0">
+                            <field name="guardian_count"
+                                   string="Guardians" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_current_enrollment"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Enrollment</span>
+                            </div>
+                        </button>
+                        <button name="action_view_enrollments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-history"
+                                invisible="enrollment_count &lt; 2">
+                            <field name="enrollment_count"
+                                   string="Enrollments" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_status_history"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-list-ul"
+                                invisible="status_history_count == 0">
+                            <field name="status_history_count"
+                                   string="Status Changes" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <!-- ── Title ── -->
+                    <div class="oe_title">
+                        <label for="student_no" string="Student"/>
+                        <h1>
+                            <field name="student_no" readonly="1"
+                                   placeholder="Auto-generated"/>
+                        </h1>
+                        <h2>
+                            <field name="roll_number" readonly="1"
+                                   placeholder="Auto-generated"/>
+                        </h2>
+                    </div>
+
+                    <!-- ── Identity &amp; Academic ── -->
+                    <group>
+                        <group string="Identity">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="applicant_profile_id" readonly="1"/>
+                            <field name="lead_id" readonly="1"
+                                   invisible="not lead_id"/>
+                        </group>
+                        <group string="Academic Placement">
+                            <field name="program_id"
+                                   readonly="state != 'active'"
+                                   options="{'no_create': True}"/>
+                            <field name="batch_id"
+                                   readonly="state != 'active'"
+                                   domain="[('program_id', '=', program_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="academic_year_id"
+                                   readonly="state != 'active'"
+                                   options="{'no_create': True}"/>
+                            <field name="current_program_term_id"
+                                   readonly="state != 'active'"
+                                   domain="[('program_id', '=', program_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="section_id"
+                                   readonly="state != 'active'"
+                                   domain="[('batch_id', '=', batch_id)]"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Key Dates">
+                            <field name="admission_date" readonly="1"/>
+                            <field name="current_status_date" readonly="1"/>
+                            <field name="graduation_date" readonly="1"
+                                   invisible="not graduation_date"/>
+                            <field name="withdrawal_date" readonly="1"
+                                   invisible="not withdrawal_date"/>
+                            <field name="suspension_date" readonly="1"
+                                   invisible="not suspension_date"/>
+                            <field name="alumni_date" readonly="1"
+                                   invisible="not alumni_date"/>
+                        </group>
+                        <group string="Enrollment Source">
+                            <field name="current_enrollment_id" readonly="1"/>
+                            <field name="has_active_enrollment" readonly="1"
+                                   widget="boolean"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- ── Notes ── -->
+                        <page string="Notes" name="notes">
+                            <group string="Internal Notes">
+                                <field name="internal_note" nolabel="1"/>
+                            </group>
+                            <group string="General Notes">
+                                <field name="note" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <!-- ── Audit ── -->
+                        <page string="Audit" name="audit">
+                            <group>
+                                <group string="Creation">
+                                    <field name="student_created_by" readonly="1"/>
+                                    <field name="student_created_on" readonly="1"/>
+                                </group>
+                                <group string="System">
+                                    <field name="active" invisible="1"/>
+                                    <field name="company_id"
+                                           groups="base.group_multi_company"
+                                           readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_student" model="ir.actions.act_window">
+        <field name="name">Students</field>
+        <field name="res_model">edu.student</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_student_search"/>
+        <field name="context">{'search_default_state_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No student records yet</p>
+            <p>Student records are created from active enrollment records.
+            Navigate to an active enrollment and click "Create Student".</p>
+        </field>
+    </record>
+</odoo>

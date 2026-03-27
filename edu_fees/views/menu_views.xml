@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Finance Menu
+         Placed under the existing Education root menu.
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ── Top-level Student Finance section ── -->
+    <menuitem id="menu_student_finance"
+              name="Student Finance"
+              parent="edu_academic_structure.menu_education_root"
+              sequence="40"/>
+
+    <!-- ── Operations ── -->
+    <menuitem id="menu_student_finance_operations"
+              name="Operations"
+              parent="menu_student_finance"
+              sequence="10"/>
+
+    <menuitem id="menu_student_fee_plans"
+              name="Fee Plans"
+              parent="menu_student_finance_operations"
+              action="action_edu_student_fee_plan"
+              sequence="10"/>
+
+    <menuitem id="menu_student_fee_dues"
+              name="Fee Dues"
+              parent="menu_student_finance_operations"
+              action="action_edu_student_fee_due"
+              sequence="20"/>
+
+    <menuitem id="menu_student_payments"
+              name="Payments"
+              parent="menu_student_finance_operations"
+              action="action_edu_student_payment"
+              sequence="30"/>
+
+    <!-- ── Configuration ── -->
+    <menuitem id="menu_student_finance_config"
+              name="Configuration"
+              parent="menu_student_finance"
+              sequence="90"/>
+
+    <menuitem id="menu_schedule_templates"
+              name="Schedule Templates"
+              parent="menu_student_finance_config"
+              action="action_edu_schedule_template"
+              sequence="10"/>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Form — Deposit Smart Button & Balance
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form_inherit_deposits" model="ir.ui.view">
+        <field name="name">edu.student.form.inherit.deposits</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Deposit smart button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_deposit_ledger"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-shield"
+                        invisible="deposit_ledger_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="deposit_balance"
+                                   widget="monetary"
+                                   options="{'currency_field': 'finance_currency_id'}"/>
+                        </span>
+                        <span class="o_stat_text">Deposit</span>
+                    </div>
+                </button>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Finance Tab — Add Deposit Summary
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form_finance_deposit" model="ir.ui.view">
+        <field name="name">edu.student.form.finance.deposit</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_form_inherit_fees"/>
+        <field name="arch" type="xml">
+
+            <!-- Extend the Deposits group in the Finance tab -->
+            <xpath expr="//field[@name='finance_total_deposit_paid']" position="after">
+                <field name="deposit_balance"
+                       decoration-success="deposit_balance > 0"
+                       decoration-muted="deposit_balance == 0"/>
+                <field name="deposit_ledger_count" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

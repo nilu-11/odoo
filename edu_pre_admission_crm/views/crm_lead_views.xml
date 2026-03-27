@@ -9,7 +9,35 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- ── Smart button: Applicant Profile ──────────────────────────── -->
+            <!-- ══════════════════════════════════════════════════════════════
+                 HEADER: Hide standard CRM buttons & pipeline statusbar
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//header/button[@name='action_set_won_rainbowman']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='%(crm.action_crm_lead2opportunity_partner)d']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_restore']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='%(crm.crm_lead_lost_action)d']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/field[@name='stage_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 BUTTON BOX: Hide standard CRM smart buttons, add ours
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//button[@name='action_schedule_meeting']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_show_potential_duplicates']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="%(edu_pre_admission_crm.action_edu_applicant_profile)d"
                         type="action"
@@ -24,7 +52,51 @@
                 </button>
             </xpath>
 
-            <!-- ── Pre-Admission notebook page ──────────────────────────────── -->
+            <!-- ══════════════════════════════════════════════════════════════
+                 TITLE: Hide revenue / probability row, keep lead name
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//div[hasclass('oe_title')]//h2" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 MAIN SECTION: Hide all CRM field groups, show partner_id
+            ══════════════════════════════════════════════════════════════ -->
+            <!-- Hide the entire parent group containing all CRM fields -->
+            <xpath expr="//sheet/group[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Add a clean group with only partner_id -->
+            <xpath expr="//sheet/group[1]" position="before">
+                <group>
+                    <group>
+                        <field name="partner_id" widget="res_partner_many2one" string="Contact"/>
+                    </group>
+                    <group/>
+                </group>
+            </xpath>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 PROPERTIES: Hide CRM lead properties
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//field[@name='lead_properties']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 NOTEBOOK: Hide standard CRM pages, add Pre-Admission page
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='extra']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='lead']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <xpath expr="//notebook" position="inside">
                 <page string="Pre-Admission" name="pre_admission">
 

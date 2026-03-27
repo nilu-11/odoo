@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(python3 -c \":*)",
-      "Read(//opt/odoo19/odoo/addons/crm/models/**)"
+      "Read(//opt/odoo19/odoo/addons/crm/models/**)",
+      "Bash(python3 -m py_compile edu_fees/__init__.py)",
+      "Bash(python3 -m py_compile edu_fees/models/__init__.py)",
+      "Bash(python3 -m py_compile edu_fees/models/edu_fee_head.py)",
+      "Bash(python3 -m py_compile edu_fees/models/edu_schedule_template.py)",
+      "Bash(python3 -m py_compile edu_fees/models/edu_student_fee_plan.py)",
+      "Bash(grep -l 'view_edu_enrollment_search\\\\|view_edu_enrollment_list\\\\|view_edu_student_list' /opt/custom_addons/education/edu_enrollment/views/*.xml /opt/custom_addons/education/edu_student/views/*.xml)",
+      "Bash(for f:*)",
+      "Bash(do python3:*)",
+      "Bash(done)",
+      "Bash(git add:*)"
     ]
   }
 }

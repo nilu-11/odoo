@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Extend Form with finance fields
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_form_inherit_fees" model="ir.ui.view">
+        <field name="name">edu.fee.head.form.inherit.fees</field>
+        <field name="model">edu.fee.head</field>
+        <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_form"/>
+        <field name="arch" type="xml">
+            <!-- Add fee_nature after fee_type -->
+            <xpath expr="//field[@name='fee_type']" position="after">
+                <field name="fee_nature"/>
+            </xpath>
+            <!-- Add finance flags in Properties group -->
+            <xpath expr="//field[@name='is_refundable']" position="after">
+                <field name="is_required_for_enrollment"/>
+                <field name="allow_adjustment"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Extend List with finance columns
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_list_inherit_fees" model="ir.ui.view">
+        <field name="name">edu.fee.head.list.inherit.fees</field>
+        <field name="model">edu.fee.head</field>
+        <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_refundable']" position="after">
+                <field name="fee_nature"/>
+                <field name="is_required_for_enrollment"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Fee Head — Extend Search with finance filters
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_fee_head_search_inherit_fees" model="ir.ui.view">
+        <field name="name">edu.fee.head.search.inherit.fees</field>
+        <field name="model">edu.fee.head</field>
+        <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='refundable']" position="after">
+                <filter string="Required for Enrollment" name="required_enrollment"
+                        domain="[('is_required_for_enrollment','=',True)]"/>
+                <filter string="Deposit" name="nature_deposit"
+                        domain="[('fee_nature','=','deposit')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_type']" position="after">
+                <filter string="Fee Nature" name="group_nature"
+                        context="{'group_by': 'fee_nature'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

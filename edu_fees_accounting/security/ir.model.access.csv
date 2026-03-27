@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_deposit_ledger_admin,edu.deposit.ledger admin,model_edu_deposit_ledger,edu_fees.group_student_finance_admin,1,1,1,1
+access_deposit_ledger_officer,edu.deposit.ledger officer,model_edu_deposit_ledger,edu_fees.group_student_finance_officer,1,1,1,0
+access_deposit_ledger_viewer,edu.deposit.ledger viewer,model_edu_deposit_ledger,edu_fees.group_student_finance_viewer,1,0,0,0
+access_deposit_ledger_cashier,edu.deposit.ledger cashier,model_edu_deposit_ledger,group_cashier,1,1,1,0
+access_deposit_adjustment_admin,edu.deposit.adjustment admin,model_edu_deposit_adjustment,edu_fees.group_student_finance_admin,1,1,1,1
+access_deposit_adjustment_officer,edu.deposit.adjustment officer,model_edu_deposit_adjustment,edu_fees.group_student_finance_officer,1,1,1,0
+access_deposit_adjustment_viewer,edu.deposit.adjustment viewer,model_edu_deposit_adjustment,edu_fees.group_student_finance_viewer,1,0,0,0
+access_deposit_adjustment_approver,edu.deposit.adjustment approver,model_edu_deposit_adjustment,group_deposit_approver,1,1,1,0
+access_deposit_refund_admin,edu.deposit.refund admin,model_edu_deposit_refund,edu_fees.group_student_finance_admin,1,1,1,1
+access_deposit_refund_officer,edu.deposit.refund officer,model_edu_deposit_refund,edu_fees.group_student_finance_officer,1,1,1,0
+access_deposit_refund_viewer,edu.deposit.refund viewer,model_edu_deposit_refund,edu_fees.group_student_finance_viewer,1,0,0,0
+access_deposit_refund_approver,edu.deposit.refund approver,model_edu_deposit_refund,group_deposit_approver,1,1,1,0

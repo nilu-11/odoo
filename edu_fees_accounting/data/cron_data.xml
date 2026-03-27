@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Daily sync of student fee due financial status -->
+        <record id="cron_sync_due_financial_status" model="ir.cron">
+            <field name="name">Education: Sync Due Financial Status</field>
+            <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_sync_financial_status()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+            <field name="priority">50</field>
+        </record>
+
+    </data>
+</odoo>

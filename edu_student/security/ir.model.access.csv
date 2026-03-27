@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_student_admin,edu.student admin,model_edu_student,group_student_admin,1,1,1,1
+access_student_officer,edu.student officer,model_edu_student,group_student_officer,1,1,1,0
+access_student_viewer,edu.student viewer,model_edu_student,group_student_viewer,1,0,0,0
+access_student_edu_admin,edu.student edu admin,model_edu_student,edu_academic_structure.group_education_admin,1,1,1,1
+access_student_academic_viewer,edu.student academic viewer,model_edu_student,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_student_enrollment_admin,edu.student enrollment admin,model_edu_student,edu_enrollment.group_enrollment_admin,1,1,1,0
+access_student_enrollment_officer,edu.student enrollment officer,model_edu_student,edu_enrollment.group_enrollment_officer,1,0,0,0
+access_student_admission_admin,edu.student admission admin,model_edu_student,edu_admission.group_admission_admin,1,0,0,0
+access_student_admission_viewer,edu.student admission viewer,model_edu_student,edu_admission.group_admission_viewer,1,0,0,0
+access_status_history_admin,edu.student.status.history admin,model_edu_student_status_history,group_student_admin,1,1,1,1
+access_status_history_officer,edu.student.status.history officer,model_edu_student_status_history,group_student_officer,1,1,1,0
+access_status_history_viewer,edu.student.status.history viewer,model_edu_student_status_history,group_student_viewer,1,0,0,0
+access_status_history_edu_admin,edu.student.status.history edu admin,model_edu_student_status_history,edu_academic_structure.group_education_admin,1,1,1,1
+access_status_history_academic_viewer,edu.student.status.history academic viewer,model_edu_student_status_history,edu_academic_structure.group_academic_viewer,1,0,0,0

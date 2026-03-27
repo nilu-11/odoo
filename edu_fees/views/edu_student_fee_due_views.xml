@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_search" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.search</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="arch" type="xml">
+            <search string="Student Fee Dues">
+                <field name="enrollment_id"/>
+                <field name="student_id"/>
+                <field name="fee_head_id"/>
+                <filter string="Draft" name="state_draft"
+                        domain="[('state','=','draft')]"/>
+                <filter string="Due" name="state_due"
+                        domain="[('state','=','due')]"/>
+                <filter string="Partial" name="state_partial"
+                        domain="[('state','=','partial')]"/>
+                <filter string="Paid" name="state_paid"
+                        domain="[('state','=','paid')]"/>
+                <filter string="Overdue" name="state_overdue"
+                        domain="[('state','=','overdue')]"/>
+                <separator/>
+                <filter string="Required for Enrollment"
+                        name="required_enrollment"
+                        domain="[('is_required_for_enrollment','=',True)]"/>
+                <filter string="Deposit" name="nature_deposit"
+                        domain="[('fee_nature','=','deposit')]"/>
+                <separator/>
+                <filter string="Outstanding"
+                        name="outstanding"
+                        domain="[('balance_amount','>',0),('state','not in',['draft','paid'])]"/>
+                <group name="group_by">
+                    <filter string="Fee Head" name="group_fee_head"
+                            context="{'group_by': 'fee_head_id'}"/>
+                    <filter string="Progression" name="group_progression"
+                            context="{'group_by': 'program_term_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Due Date" name="group_due_date"
+                            context="{'group_by': 'due_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_list" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.list</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="arch" type="xml">
+            <list string="Student Fee Dues"
+                  decoration-danger="state == 'overdue'"
+                  decoration-success="state == 'paid'"
+                  decoration-warning="state == 'partial'"
+                  decoration-info="state == 'draft'">
+                <field name="enrollment_id"/>
+                <field name="student_id" optional="show"/>
+                <field name="fee_head_id"/>
+                <field name="program_term_id" optional="show"/>
+                <field name="installment_no" optional="show"/>
+                <field name="due_date"/>
+                <field name="due_amount" sum="Total Due"/>
+                <field name="paid_amount" sum="Total Paid"/>
+                <field name="balance_amount" sum="Total Balance"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="is_required_for_enrollment" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'due'"
+                       decoration-warning="state == 'partial'"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'overdue'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_form" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.form</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="arch" type="xml">
+            <form string="Student Fee Due">
+                <header>
+                    <button name="action_set_due" type="object"
+                            string="Set as Due" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_mark_overdue" type="object"
+                            string="Mark Overdue"
+                            invisible="state not in ('due', 'partial')"
+                            confirm="Mark this due as overdue?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,due,partial,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Reference">
+                            <field name="enrollment_id"/>
+                            <field name="student_id"/>
+                            <field name="fee_plan_line_id"/>
+                            <field name="fee_plan_id"/>
+                        </group>
+                        <group string="Fee Details">
+                            <field name="fee_head_id"/>
+                            <field name="fee_nature"/>
+                            <field name="program_term_id"/>
+                            <field name="installment_no"/>
+                            <field name="due_date"/>
+                            <field name="is_required_for_enrollment"/>
+                        </group>
+                    </group>
+                    <group string="Amounts">
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="original_amount"/>
+                            <field name="discount_amount"/>
+                            <field name="due_amount"/>
+                        </group>
+                        <group>
+                            <field name="paid_amount"/>
+                            <field name="balance_amount"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payment Allocations" name="allocations">
+                            <field name="allocation_ids">
+                                <list>
+                                    <field name="payment_id"/>
+                                    <field name="allocated_amount"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_student_fee_due" model="ir.actions.act_window">
+        <field name="name">Student Fee Dues</field>
+        <field name="res_model">edu.student.fee.due</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_student_fee_due_search"/>
+        <field name="context">{'search_default_outstanding': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No fee dues found</p>
+            <p>Fee dues are generated from student fee plans based on schedule templates.</p>
+        </field>
+    </record>
+</odoo>

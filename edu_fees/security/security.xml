@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Student Finance Privilege
+         Separate privilege so a user can hold fees-config AND
+         student-finance roles simultaneously.
+    ══════════════════════════════════════════════════════════════ -->
+    <record id="privilege_student_finance_access" model="res.groups.privilege">
+        <field name="name">Student Finance Access</field>
+        <field name="description">
+            Controls access levels for student fee plans, dues, payments,
+            and schedule templates.
+        </field>
+        <field name="placeholder">No student finance access</field>
+        <field name="sequence">55</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- ── Viewer ─────────────────────────────────────────────────── -->
+    <record id="group_student_finance_viewer" model="res.groups">
+        <field name="name">Student Finance Viewer</field>
+        <field name="privilege_id" ref="privilege_student_finance_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">
+            Read-only access to student fee plans, dues, payments,
+            and schedule templates.
+        </field>
+    </record>
+
+    <!-- ── Officer ────────────────────────────────────────────────── -->
+    <record id="group_student_finance_officer" model="res.groups">
+        <field name="name">Student Finance Officer</field>
+        <field name="privilege_id" ref="privilege_student_finance_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_student_finance_viewer')),
+        ]"/>
+        <field name="comment">
+            Create and manage student fee plans, dues, and payments.
+            Can post payments and generate fee plans / dues.
+        </field>
+    </record>
+
+    <!-- ── Admin ──────────────────────────────────────────────────── -->
+    <record id="group_student_finance_admin" model="res.groups">
+        <field name="name">Student Finance Admin</field>
+        <field name="privilege_id" ref="privilege_student_finance_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_student_finance_officer')),
+        ]"/>
+        <field name="comment">
+            Full CRUD on all student finance records including deletion.
+            Can manage schedule templates.
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Enrollment Fee Override Group
+         Cross-cutting group (not a privilege level) — grants the
+         ability to bypass the enrollment fee payment block.
+    ══════════════════════════════════════════════════════════════ -->
+    <record id="group_enrollment_fee_override" model="res.groups">
+        <field name="name">Enrollment Fee Override</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">
+            Allows the user to bypass the enrollment fee payment block.
+            Override is fully audited — reason, user, and timestamp are
+            recorded on the enrollment record.
+        </field>
+    </record>
+</odoo>

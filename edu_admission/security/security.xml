@@ -25,13 +25,43 @@
         </field>
     </record>
 
-    <!-- Admission Officer: operational CRUD -->
+    <!-- Scholarship Reviewer: can assess eligibility and recommend scholarships -->
+    <record id="group_scholarship_reviewer" model="res.groups">
+        <field name="name">Scholarship Reviewer</field>
+        <field name="privilege_id" ref="privilege_admission_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_admission_viewer'))
+        ]"/>
+        <field name="comment">
+            Can create scholarship review lines, assess eligibility,
+            and recommend scholarship awards. Cannot approve or reject.
+            Typically: scholarship coordinator, financial aid officer.
+        </field>
+    </record>
+
+    <!-- Scholarship Approver: can approve and reject scholarship reviews -->
+    <record id="group_scholarship_approver" model="res.groups">
+        <field name="name">Scholarship Approver</field>
+        <field name="privilege_id" ref="privilege_admission_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_scholarship_reviewer'))
+        ]"/>
+        <field name="comment">
+            Can approve and reject scholarship review lines, freeze scholarship
+            outcomes, and override recommendations. Typically: admissions head,
+            principal, committee chair.
+        </field>
+    </record>
+
+    <!-- Admission Officer: full operational CRUD on applications -->
     <record id="group_admission_officer" model="res.groups">
         <field name="name">Admission Officer</field>
         <field name="privilege_id" ref="privilege_admission_access"/>
         <field name="implied_ids" eval="[
             (4, ref('base.group_user')),
-            (4, ref('group_admission_viewer'))
+            (4, ref('group_scholarship_reviewer'))
         ]"/>
         <field name="comment">
             Can create, modify, and manage admission applications,
@@ -40,17 +70,18 @@
         </field>
     </record>
 
-    <!-- Admission Admin: full CRUD -->
+    <!-- Admission Admin: full CRUD including scholarship approval -->
     <record id="group_admission_admin" model="res.groups">
         <field name="name">Admission Administrator</field>
         <field name="privilege_id" ref="privilege_admission_access"/>
         <field name="implied_ids" eval="[
             (4, ref('base.group_user')),
-            (4, ref('group_admission_officer'))
+            (4, ref('group_admission_officer')),
+            (4, ref('group_scholarship_approver'))
         ]"/>
         <field name="comment">
             Full access to all admission records including configuration,
-            deletion, and administrative overrides.
+            deletion, scholarship approval, and administrative overrides.
         </field>
     </record>
 </odoo>

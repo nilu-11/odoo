@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Adjustment — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_adjustment_search" model="ir.ui.view">
+        <field name="name">edu.deposit.adjustment.search</field>
+        <field name="model">edu.deposit.adjustment</field>
+        <field name="arch" type="xml">
+            <search string="Deposit Adjustments">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="reason"/>
+                <filter string="Draft" name="state_draft"
+                        domain="[('state','=','draft')]"/>
+                <filter string="Submitted" name="state_submitted"
+                        domain="[('state','=','submitted')]"/>
+                <filter string="Approved" name="state_approved"
+                        domain="[('state','=','approved')]"/>
+                <filter string="Cancelled" name="state_cancelled"
+                        domain="[('state','=','cancelled')]"/>
+                <group name="group_by">
+                    <filter string="Student" name="group_student"
+                            context="{'group_by': 'student_id'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Date" name="group_date"
+                            context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Adjustment — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_adjustment_list" model="ir.ui.view">
+        <field name="name">edu.deposit.adjustment.list</field>
+        <field name="model">edu.deposit.adjustment</field>
+        <field name="arch" type="xml">
+            <list string="Deposit Adjustments"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'submitted'"
+                  decoration-success="state == 'approved'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="date"/>
+                <field name="amount" sum="Total"/>
+                <field name="reason" optional="show"/>
+                <field name="approved_by" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state == 'approved'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Adjustment — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_deposit_adjustment_form" model="ir.ui.view">
+        <field name="name">edu.deposit.adjustment.form</field>
+        <field name="model">edu.deposit.adjustment</field>
+        <field name="arch" type="xml">
+            <form string="Deposit Adjustment">
+                <header>
+                    <button name="action_submit" type="object"
+                            string="Submit for Approval" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object"
+                            string="Approve" class="btn-success"
+                            invisible="state != 'submitted'"
+                            groups="edu_fees_accounting.group_deposit_approver"
+                            confirm="Approve this deposit adjustment?"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state in ('approved', 'cancelled')"
+                            confirm="Cancel this adjustment?"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"
+                                   placeholder="Auto-generated"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Adjustment Details">
+                            <field name="ledger_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="student_id"/>
+                            <field name="partner_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount"
+                                   readonly="state != 'draft'"/>
+                            <field name="date"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Accounting">
+                            <field name="deposit_account_id"
+                                   readonly="state not in ('draft', 'submitted')"/>
+                            <field name="destination_account_id"
+                                   readonly="state not in ('draft', 'submitted')"/>
+                            <field name="journal_id"
+                                   readonly="state not in ('draft', 'submitted')"/>
+                            <field name="account_move_id" readonly="1"
+                                   invisible="not account_move_id"/>
+                        </group>
+                    </group>
+                    <group string="Reason &amp; Reference">
+                        <field name="reason" readonly="state != 'draft'"
+                               placeholder="Describe the reason for this adjustment..."/>
+                        <field name="reference" readonly="state != 'draft'"
+                               placeholder="Incident no., damage report ref, etc."/>
+                    </group>
+                    <group string="Approval" invisible="not approved_by">
+                        <field name="approved_by" readonly="1"/>
+                        <field name="approved_date" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Deposit Adjustment — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_deposit_adjustment" model="ir.actions.act_window">
+        <field name="name">Deposit Adjustments</field>
+        <field name="res_model">edu.deposit.adjustment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_deposit_adjustment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No deposit adjustments</p>
+            <p>Deposit adjustments are created from the deposit ledger.</p>
+        </field>
+    </record>
+</odoo>

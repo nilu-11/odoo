@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Access — Privilege + Groups
+    ══════════════════════════════════════════════════════ -->
+    <record id="privilege_student_access" model="res.groups.privilege">
+        <field name="name">Student Access</field>
+        <field name="description">Controls access levels for official student master records and lifecycle operations.</field>
+        <field name="placeholder">No student access</field>
+        <field name="sequence">50</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- Viewer → Officer → Admin -->
+    <record id="group_student_viewer" model="res.groups">
+        <field name="name">Student Viewer</field>
+        <field name="privilege_id" ref="privilege_student_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_student_officer" model="res.groups">
+        <field name="name">Student Officer</field>
+        <field name="privilege_id" ref="privilege_student_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_student_viewer'))]"/>
+    </record>
+
+    <record id="group_student_admin" model="res.groups">
+        <field name="name">Student Administrator</field>
+        <field name="privilege_id" ref="privilege_student_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_student_officer'))]"/>
+    </record>
+</odoo>

@@ -176,11 +176,12 @@ class EduAdmissionApplication(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     scholarship_status = fields.Selection(
         selection=[
-            ('not_applicable', 'Not Applicable'),
-            ('pending', 'Pending'),
-            ('approved', 'Approved'),
+            ('not_applicable',   'Not Applicable'),
+            ('pending',          'Pending'),
+            ('under_review',     'Under Review'),
+            ('approved',         'Approved'),
             ('partially_approved', 'Partially Approved'),
-            ('rejected', 'Rejected'),
+            ('rejected',         'Rejected'),
         ],
         string='Scholarship Status',
         default='not_applicable',
@@ -210,6 +211,30 @@ class EduAdmissionApplication(models.Model):
     approved_scholarship_count = fields.Integer(
         string='Approved Scholarships',
         compute='_compute_scholarship_review_count',
+    )
+    scholarship_scheme_count = fields.Integer(
+        string='Distinct Schemes',
+        compute='_compute_scholarship_review_count',
+    )
+    scholarship_cap_reason_summary = fields.Text(
+        string='Cap Reason Summary',
+        compute='_compute_scholarship_summary',
+        store=True,
+        help='Aggregated explanation of all caps applied across approved review lines.',
+    )
+    scholarship_freeze_date = fields.Datetime(
+        string='Scholarship Frozen On',
+        readonly=True,
+        copy=False,
+        help='Timestamp when the scholarship outcome was frozen (at offer acceptance).',
+    )
+    scholarship_frozen = fields.Boolean(
+        string='Scholarship Frozen',
+        default=False,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help='Once True, approved scholarship review lines cannot be edited.',
     )
 
     # ═════════════════════════════════════════════════════════════════════════
@@ -559,90 +584,117 @@ class EduAdmissionApplication(models.Model):
         'scholarship_review_ids.state',
         'scholarship_review_ids.calculated_discount_amount',
         'scholarship_review_ids.cap_applied',
+        'scholarship_review_ids.cap_reason',
         'scholarship_eligible_total',
     )
     def _compute_scholarship_summary(self):
+        """
+        Aggregate approved scholarship review lines into application-level
+        scholarship summary fields.
+
+        Reads already-calculated per-line discount amounts (set by
+        _recompute_scholarship_summary) and applies the final global cap.
+        Does NOT re-run per-line cap/stacking logic — that belongs in
+        _recompute_scholarship_summary.
+        """
         for rec in self:
-            approved_lines = rec.scholarship_review_ids.filtered(
-                lambda r: r.state == 'approved'
-            )
+            all_reviews = rec.scholarship_review_ids
+            approved_lines = all_reviews.filtered(lambda r: r.state == 'approved')
+
             if not approved_lines:
-                has_any = bool(rec.scholarship_review_ids)
+                has_any = bool(all_reviews)
                 all_rejected = has_any and all(
-                    r.state == 'rejected'
-                    for r in rec.scholarship_review_ids
+                    r.state in ('rejected', 'cancelled') for r in all_reviews
+                )
+                any_active_review = any(
+                    r.state in ('under_review', 'recommended') for r in all_reviews
                 )
                 rec.total_scholarship_discount_amount = 0.0
                 rec.net_fee_after_scholarship = rec.base_total_fee
                 rec.scholarship_cap_applied = False
                 rec.scholarship_note_summary = False
+                rec.scholarship_cap_reason_summary = False
                 if all_rejected:
                     rec.scholarship_status = 'rejected'
+                elif any_active_review:
+                    rec.scholarship_status = 'under_review'
                 elif has_any:
                     rec.scholarship_status = 'pending'
                 else:
                     rec.scholarship_status = 'not_applicable'
                 continue
 
-            # Calculate total discount from approved lines
+            # Sum per-line calculated discounts (caps already applied per-line)
             total_discount = sum(
-                approved_lines.mapped('calculated_discount_amount')
+                l.calculated_discount_amount for l in approved_lines
             )
             eligible = rec.scholarship_eligible_total or 0.0
 
-            # Final cap: never exceed eligible amount
-            cap_applied = False
+            # Global cap: total discount can never exceed eligible amount
+            global_cap_applied = False
+            global_cap_reason = False
             if float_compare(total_discount, eligible, precision_digits=2) > 0:
                 total_discount = eligible
-                cap_applied = True
+                global_cap_applied = True
+                global_cap_reason = (
+                    f'Total discount capped to scholarship-eligible amount '
+                    f'({eligible:,.2f})'
+                )
 
             # Floor at zero
             if float_compare(total_discount, 0.0, precision_digits=2) < 0:
                 total_discount = 0.0
 
             total_discount = float_round(total_discount, precision_digits=2)
-            net = float_round(
-                rec.base_total_fee - total_discount, precision_digits=2
-            )
+            net = float_round(rec.base_total_fee - total_discount, precision_digits=2)
             if float_compare(net, 0.0, precision_digits=2) < 0:
                 net = 0.0
 
-            # Determine status
+            # Status determination
             any_pending = any(
-                r.state in ('draft', 'under_review')
-                for r in rec.scholarship_review_ids
+                r.state in ('draft', 'under_review', 'recommended')
+                for r in all_reviews
             )
-            any_rejected = any(
-                r.state == 'rejected' for r in rec.scholarship_review_ids
-            )
+            any_rejected = any(r.state == 'rejected' for r in all_reviews)
             if any_pending:
-                status = 'pending'
+                status = 'under_review' if any(
+                    r.state in ('under_review', 'recommended') for r in all_reviews
+                ) else 'pending'
             elif any_rejected and approved_lines:
                 status = 'partially_approved'
             else:
                 status = 'approved'
 
-            # Check if any individual line had a cap applied
-            line_cap = any(approved_lines.mapped('cap_applied'))
+            # Aggregate line-level cap flags and reasons
+            line_cap = any(l.cap_applied for l in approved_lines)
+            cap_reasons = [
+                f'{l.scholarship_scheme_id.name}: {l.cap_reason}'
+                for l in approved_lines
+                if l.cap_applied and l.cap_reason
+            ]
+            if global_cap_reason:
+                cap_reasons.append(global_cap_reason)
 
-            # Build summary notes
+            # Build human-readable summary notes
             notes = []
             for line in approved_lines.sorted('sequence'):
+                cap_flag = ' [capped]' if line.cap_applied else ''
                 notes.append(
-                    f"{line.scholarship_scheme_id.name}: "
-                    f"{line.calculated_discount_amount:,.2f}"
+                    f'{line.scholarship_scheme_id.name}'
+                    f' ({line.scheme_category_snapshot or line.scholarship_scheme_id.eligibility_basis})'
+                    f': {line.calculated_discount_amount:,.2f}{cap_flag}'
                 )
-            if cap_applied:
-                notes.append(
-                    f"[Total capped to scholarship-eligible amount: "
-                    f"{eligible:,.2f}]"
-                )
+            if global_cap_reason:
+                notes.append(f'[{global_cap_reason}]')
 
             rec.total_scholarship_discount_amount = total_discount
             rec.net_fee_after_scholarship = net
-            rec.scholarship_cap_applied = cap_applied or line_cap
+            rec.scholarship_cap_applied = global_cap_applied or line_cap
             rec.scholarship_status = status
             rec.scholarship_note_summary = '\n'.join(notes) if notes else False
+            rec.scholarship_cap_reason_summary = (
+                '\n'.join(cap_reasons) if cap_reasons else False
+            )
 
     def _compute_scholarship_review_count(self):
         for rec in self:
@@ -650,6 +702,9 @@ class EduAdmissionApplication(models.Model):
             rec.scholarship_review_count = len(reviews)
             rec.approved_scholarship_count = len(
                 reviews.filtered(lambda r: r.state == 'approved')
+            )
+            rec.scholarship_scheme_count = len(
+                reviews.mapped('scholarship_scheme_id')
             )
 
     # ═════════════════════════════════════════════════════════════════════════
@@ -810,7 +865,7 @@ class EduAdmissionApplication(models.Model):
         })
 
     def action_accept_offer(self):
-        """Accept the offer — triggers fee confirmation and freezes outcomes."""
+        """Accept the offer — confirms fees and freezes scholarship outcome."""
         for rec in self:
             if not rec.can_accept_offer:
                 raise UserError(
@@ -825,6 +880,9 @@ class EduAdmissionApplication(models.Model):
             'fee_confirmed': True,
             'fee_confirmation_date': now,
         })
+        # Freeze scholarship outcome immediately upon offer acceptance
+        for rec in self:
+            rec.action_freeze_scholarship_outcome()
 
     def action_reject_offer(self):
         for rec in self:
@@ -919,109 +977,231 @@ class EduAdmissionApplication(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # Scholarship Calculation Engine
     # ═════════════════════════════════════════════════════════════════════════
-    def _recompute_scholarship_summary(self):
+
+    def _get_approved_scholarship_lines(self):
         """
-        Recalculate all approved scholarship review lines with proper
-        stacking, capping, and conflict validation.
+        Return all approved scholarship review lines for this application.
+        Excludes cancelled and rejected lines.
         """
         self.ensure_one()
-        approved = self.scholarship_review_ids.filtered(
+        return self.scholarship_review_ids.filtered(
             lambda r: r.state == 'approved'
-        ).sorted('sequence')
-        if not approved:
-            return
+        )
 
-        # Validate stacking rules
-        self._validate_scholarship_stacking(approved)
+    def _get_sorted_scholarship_lines(self, approved_lines=None):
+        """
+        Return approved lines sorted by sequence (priority) ascending.
 
-        # Apply caps to individual lines
-        eligible = self.scholarship_eligible_total or 0.0
-        running_total = 0.0
+        Lower sequence = higher priority = calculated first.
+        Within the same sequence, percentage/full awards come before fixed/custom
+        so percentage-based awards are applied to the full eligible base first.
+        """
+        if approved_lines is None:
+            approved_lines = self._get_approved_scholarship_lines()
 
-        for line in approved:
-            raw = line._calculate_raw_discount(eligible)
-            capped = self._apply_scholarship_caps(line, raw, eligible)
+        def _sort_key(line):
+            type_order = {
+                'full': 0,
+                'percentage': 1,
+                'fixed': 2,
+                'custom': 3,
+            }
+            t = type_order.get(line.approved_type or 'custom', 3)
+            return (line.sequence, t, line.id)
 
-            # Ensure running total doesn't exceed eligible
-            if float_compare(
-                running_total + capped, eligible, precision_digits=2
-            ) > 0:
-                capped = max(0.0, eligible - running_total)
-                line.cap_applied = True
-
-            line.calculated_discount_amount = float_round(
-                capped, precision_digits=2
-            )
-            running_total += capped
+        return approved_lines.sorted(key=_sort_key)
 
     def _validate_scholarship_stacking(self, approved_lines):
         """
         Validate stacking rules across all approved scholarship lines.
 
-        Rules:
-        1. Exclusive scholarship cannot coexist with any other
-        2. Non-stackable schemes cannot combine with others
-        3. Schemes in the same stacking group may conflict
+        Rules enforced:
+        1. Exclusive scholarship cannot coexist with any other approved line
+        2. Non-stackable scheme cannot coexist with any other approved line
+        3. Only one scheme per stacking group is allowed (same-group conflict)
+
+        Uses snapshot values so that the validation reflects the rules
+        that were in force when each line was approved.
         """
         if len(approved_lines) <= 1:
             return
 
-        exclusive = approved_lines.filtered(
-            lambda r: r.exclusive_snapshot
-        )
+        # Rule 1: exclusive
+        exclusive = approved_lines.filtered(lambda r: r.exclusive_snapshot)
         if exclusive:
+            names = ', '.join(exclusive.mapped('scholarship_scheme_id.name'))
             raise UserError(
-                f'Scholarship "{exclusive[0].scholarship_scheme_id.name}" '
-                'is exclusive and cannot be combined with other scholarships. '
+                f'Scholarship(s) [{names}] are exclusive and cannot be '
+                'combined with any other scholarship. '
                 f'Found {len(approved_lines)} approved lines total.'
             )
 
+        # Rule 2: non-stackable
         non_stackable = approved_lines.filtered(
             lambda r: not r.stacking_allowed_snapshot
         )
-        if non_stackable and len(approved_lines) > 1:
+        if non_stackable:
             names = ', '.join(
                 non_stackable.mapped('scholarship_scheme_id.name')
             )
             raise UserError(
                 f'Scholarship(s) [{names}] do not allow stacking, '
-                'but multiple scholarships are approved.'
+                'but multiple scholarships are approved on this application.'
             )
 
-    def _apply_scholarship_caps(self, review_line, raw_amount, eligible_total):
-        """
-        Apply scheme-level caps to a single scholarship review line.
+        # Rule 3: stacking-group conflict — only one per group
+        group_seen = {}
+        for line in approved_lines:
+            grp = line.stacking_group_snapshot
+            if not grp:
+                continue
+            if grp in group_seen:
+                raise UserError(
+                    f'Two scholarships from the same stacking group '
+                    f'"{grp}" are approved: '
+                    f'"{group_seen[grp]}" and '
+                    f'"{line.scholarship_scheme_id.name}". '
+                    'Only one scholarship per stacking group is allowed.'
+                )
+            group_seen[grp] = line.scholarship_scheme_id.name
 
-        Returns the capped amount.
+    def _apply_scheme_caps(self, review_line, raw_amount, eligible_total):
+        """
+        Apply scheme-level caps (percent cap + amount cap) to a single
+        scholarship review line.  Uses snapshot values for deterministic
+        historical results.
+
+        Returns: (capped_amount: float, cap_applied: bool, cap_reason: str|False)
         """
         amount = raw_amount
         cap_applied = False
-        scheme = review_line.scholarship_scheme_id
+        cap_reasons = []
 
-        # Scheme max percent cap
-        if (
-            scheme.max_discount_percent > 0
-            and eligible_total > 0
-        ):
-            max_by_percent = eligible_total * scheme.max_discount_percent / 100.0
-            if float_compare(amount, max_by_percent, precision_digits=2) > 0:
-                amount = max_by_percent
+        # Use snapshots for scheme caps (not live scheme values)
+        max_pct = review_line.max_discount_percent_snapshot
+        max_amt = review_line.max_discount_amount_snapshot
+
+        if max_pct > 0 and eligible_total > 0:
+            max_by_pct = float_round(
+                eligible_total * max_pct / 100.0, precision_digits=2
+            )
+            if float_compare(amount, max_by_pct, precision_digits=2) > 0:
+                amount = max_by_pct
                 cap_applied = True
+                cap_reasons.append(
+                    f'scheme max {max_pct}% cap (≤ {max_by_pct:,.2f})'
+                )
 
-        # Scheme max amount cap
-        if scheme.max_discount_amount > 0:
-            if float_compare(
-                amount, scheme.max_discount_amount, precision_digits=2
-            ) > 0:
-                amount = scheme.max_discount_amount
+        if max_amt > 0:
+            if float_compare(amount, max_amt, precision_digits=2) > 0:
+                amount = max_amt
                 cap_applied = True
+                cap_reasons.append(
+                    f'scheme max amount cap (≤ {max_amt:,.2f})'
+                )
 
-        # Never negative
         if float_compare(amount, 0.0, precision_digits=2) < 0:
             amount = 0.0
 
-        review_line.cap_applied = cap_applied
-        return amount
+        cap_reason = '; '.join(cap_reasons) if cap_reasons else False
+        return amount, cap_applied, cap_reason
+
+    def _apply_total_cap(self, running_total, new_amount, eligible_total):
+        """
+        Apply the global total cap: running + new cannot exceed eligible_total.
+
+        Returns: (allowed_amount: float, global_cap_triggered: bool)
+        """
+        combined = running_total + new_amount
+        if float_compare(combined, eligible_total, precision_digits=2) > 0:
+            allowed = max(0.0, float_round(
+                eligible_total - running_total, precision_digits=2
+            ))
+            return allowed, True
+        return float_round(new_amount, precision_digits=2), False
+
+    def _compute_final_scholarship_discount(self):
+        """
+        Full calculation pipeline:
+        1. Collect approved lines
+        2. Validate stacking/exclusivity
+        3. Sort by priority (ascending sequence, then type order)
+        4. For each line:
+            a. Compute raw discount from approved type/values
+            b. Apply scheme-level caps (snapshot-based)
+            c. Apply running total cap (never exceed eligible)
+            d. Write calculated_discount_amount, cap_applied, cap_reason
+        5. Return total applied discount
+
+        This is the canonical entry point for the engine.
+        """
+        self.ensure_one()
+        approved = self._get_approved_scholarship_lines()
+        if not approved:
+            return 0.0
+
+        self._validate_scholarship_stacking(approved)
+        sorted_lines = self._get_sorted_scholarship_lines(approved)
+        eligible = self.scholarship_eligible_total or 0.0
+        running_total = 0.0
+
+        for line in sorted_lines:
+            raw = line._calculate_raw_discount(eligible)
+            capped, scheme_cap, scheme_cap_reason = self._apply_scheme_caps(
+                line, raw, eligible
+            )
+            final, total_cap = self._apply_total_cap(
+                running_total, capped, eligible
+            )
+
+            cap_applied = scheme_cap or total_cap
+            cap_reasons = []
+            if scheme_cap_reason:
+                cap_reasons.append(scheme_cap_reason)
+            if total_cap:
+                cap_reasons.append('global eligible-amount cap')
+
+            line.write({
+                'calculated_discount_amount': final,
+                'cap_applied': cap_applied,
+                'cap_reason': '; '.join(cap_reasons) if cap_reasons else False,
+            })
+            running_total += final
+
+        return float_round(running_total, precision_digits=2)
+
+    def _recompute_scholarship_summary(self):
+        """
+        Entry point called after any scholarship review state change.
+        Delegates to _compute_final_scholarship_discount for the full pipeline.
+        """
+        self.ensure_one()
+        if self.scholarship_frozen:
+            return
+        self._compute_final_scholarship_discount()
+
+    def action_freeze_scholarship_outcome(self):
+        """
+        Explicitly freeze the scholarship outcome.
+
+        Called automatically from action_accept_offer.
+        After freezing:
+        - approved review lines cannot be edited (protected by write() lock)
+        - scholarship_frozen = True prevents further recalculation
+        - scholarship_freeze_date is recorded for audit
+
+        Can be called manually by admins on a non-frozen application if needed
+        to lock scholarship outcome before offer acceptance (edge case).
+        """
+        self.ensure_one()
+        if self.scholarship_frozen:
+            return  # already frozen, idempotent
+        # Run a final recalculation before locking
+        self._compute_final_scholarship_discount()
+        self.write({
+            'scholarship_frozen': True,
+            'scholarship_freeze_date': fields.Datetime.now(),
+        })
 
     # ═════════════════════════════════════════════════════════════════════════
     # Offer Letter Context
@@ -1169,10 +1349,10 @@ class EduAdmissionApplication(models.Model):
     def action_recompute_scholarship(self):
         """Manual trigger for scholarship recalculation."""
         for rec in self:
-            if rec.state in self._FROZEN_STATES:
+            if rec.scholarship_frozen:
                 raise UserError(
                     f'Cannot recompute scholarships on "{rec.application_no}" — '
-                    'the application is frozen.'
+                    'the scholarship outcome is frozen after offer acceptance.'
                 )
             rec._recompute_scholarship_summary()
         return {
@@ -1185,3 +1365,216 @@ class EduAdmissionApplication(models.Model):
                 'sticky': False,
             },
         }
+
+    # ═════════════════════════════════════════════════════════════════════════
+    # Scholarship Auto-Suggestion Engine
+    # ═════════════════════════════════════════════════════════════════════════
+
+    def action_suggest_scholarships(self):
+        """
+        Auto-suggest eligible scholarship schemes for this application.
+
+        Searches all active schemes with auto_suggest_if_eligible=True,
+        filters them against the application's context (program, department,
+        academic year, applicant demographics, academic score), creates
+        draft review lines for matching schemes not already linked, and
+        runs the eligibility hint check on each new line.
+
+        Returns a notification summarising what was suggested.
+        """
+        self.ensure_one()
+        if self.scholarship_frozen:
+            raise UserError(
+                f'Cannot suggest scholarships on "{self.application_no}" — '
+                'the scholarship outcome is frozen.'
+            )
+
+        # Collect candidate schemes
+        candidates = self._get_auto_suggest_candidate_schemes()
+
+        # Filter out schemes already linked to this application
+        existing_scheme_ids = set(
+            self.scholarship_review_ids.mapped('scholarship_scheme_id').ids
+        )
+        new_candidates = candidates.filtered(
+            lambda s: s.id not in existing_scheme_ids
+        )
+
+        if not new_candidates:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'No New Scholarships',
+                    'message': (
+                        'No additional scholarship schemes match this '
+                        'application\'s criteria, or all eligible schemes '
+                        'are already linked.'
+                    ),
+                    'type': 'warning',
+                    'sticky': False,
+                },
+            }
+
+        # Create draft review lines and run eligibility hints
+        ReviewModel = self.env['edu.admission.scholarship.review']
+        created_lines = self.env['edu.admission.scholarship.review']
+
+        for scheme in new_candidates:
+            line = ReviewModel.create({
+                'application_id': self.id,
+                'scholarship_scheme_id': scheme.id,
+                'sequence': scheme.priority,
+            })
+            # Trigger onchange to pre-fill recommendation from scheme defaults
+            line._onchange_scheme()
+            # Run eligibility hint check
+            line._auto_fill_eligibility_hint()
+            created_lines |= line
+
+        suggested_names = ', '.join(created_lines.mapped(
+            'scholarship_scheme_id.name'
+        ))
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': f'{len(created_lines)} Scholarship(s) Suggested',
+                'message': (
+                    f'Draft review lines created for: {suggested_names}. '
+                    'Review eligibility notes and proceed with assessment.'
+                ),
+                'type': 'success',
+                'sticky': True,
+            },
+        }
+
+    def _get_auto_suggest_candidate_schemes(self):
+        """
+        Return scholarship schemes eligible for auto-suggestion based on
+        the application's context and the applicant's profile.
+
+        Filtering pipeline:
+        1. Active schemes with auto_suggest_if_eligible=True
+        2. Validity date window (valid_from / valid_to)
+        3. Program applicability
+        4. Department applicability
+        5. Academic year applicability
+        6. Gender applicability
+        7. Nationality applicability
+        8. Age range applicability
+        9. Minimum academic score applicability
+        """
+        SchemeModel = self.env['edu.scholarship.scheme']
+        today = fields.Date.today()
+
+        # Step 1: base domain — active and auto-suggest enabled
+        domain = [
+            ('active', '=', True),
+            ('auto_suggest_if_eligible', '=', True),
+        ]
+
+        # Step 2: validity date window
+        domain += [
+            '|', ('valid_from', '=', False), ('valid_from', '<=', today),
+        ]
+        domain += [
+            '|', ('valid_to', '=', False), ('valid_to', '>=', today),
+        ]
+
+        candidates = SchemeModel.search(domain)
+
+        if not candidates:
+            return candidates
+
+        # Gather application and profile context
+        profile = self.applicant_profile_id
+        program = self.program_id
+        department = self.department_id
+        academic_year = self.academic_year_id
+        gender = profile.gender if profile else False
+        nationality = profile.nationality_id if profile else False
+        age = profile.age if profile else 0
+
+        # Get highest-completed academic history for score check
+        highest_history = False
+        if profile:
+            highest_history = profile.academic_history_ids.filtered(
+                lambda h: h.is_highest_completed
+            )[:1]
+
+        # Filter candidates through applicability rules
+        result = self.env['edu.scholarship.scheme']
+        for scheme in candidates:
+            if not self._scheme_matches_application(
+                scheme, program, department, academic_year,
+                gender, nationality, age, highest_history,
+            ):
+                continue
+            result |= scheme
+
+        return result
+
+    def _scheme_matches_application(
+        self, scheme, program, department, academic_year,
+        gender, nationality, age, highest_history,
+    ):
+        """
+        Check if a single scheme's applicability filters match the
+        application's context. Returns True if the scheme is applicable.
+
+        Empty filter fields (M2M with no records, selection='any', int=0)
+        mean 'no restriction' — the scheme applies to all in that dimension.
+        """
+        # Program filter
+        if scheme.applicable_program_ids and program:
+            if program not in scheme.applicable_program_ids:
+                return False
+        elif scheme.applicable_program_ids and not program:
+            return False  # scheme requires specific programs but app has none
+
+        # Department filter
+        if scheme.applicable_department_ids and department:
+            if department not in scheme.applicable_department_ids:
+                return False
+        elif scheme.applicable_department_ids and not department:
+            return False
+
+        # Academic year filter
+        if scheme.applicable_academic_year_ids and academic_year:
+            if academic_year not in scheme.applicable_academic_year_ids:
+                return False
+        elif scheme.applicable_academic_year_ids and not academic_year:
+            return False
+
+        # Gender filter
+        if scheme.applicable_gender and scheme.applicable_gender != 'any':
+            if not gender or gender != scheme.applicable_gender:
+                return False
+
+        # Nationality filter
+        if scheme.applicable_nationality_ids:
+            if not nationality or nationality not in scheme.applicable_nationality_ids:
+                return False
+
+        # Age range filter
+        if scheme.min_applicant_age and age < scheme.min_applicant_age:
+            return False
+        if scheme.max_applicant_age and age > scheme.max_applicant_age:
+            return False
+
+        # Academic score filter
+        if scheme.min_academic_score > 0:
+            if not highest_history:
+                return False  # no academic history → can't verify score
+            # Check score type compatibility
+            if (
+                scheme.academic_score_type
+                and scheme.academic_score_type != 'any'
+                and highest_history.score_type != scheme.academic_score_type
+            ):
+                return False  # score type mismatch
+            if highest_history.score < scheme.min_academic_score:
+                return False  # score too low
+
+        return True

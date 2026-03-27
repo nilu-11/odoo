@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Extend Form with Invoice Fields
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_form_inherit_acct" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.form.inherit.accounting</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_fee_due_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Action buttons in header -->
+            <xpath expr="//button[@name='action_set_due']" position="before">
+                <button name="action_create_invoice_from_dues" type="object"
+                        string="Create Invoice" class="btn-primary"
+                        invisible="state == 'draft' or invoice_id"/>
+                <button name="action_create_credit_note" type="object"
+                        string="Create Credit Note" class="btn-warning"
+                        invisible="not invoice_id or credit_note_id"
+                        confirm="Create a credit note for this due?"/>
+                <button name="action_sync_due_financial_status" type="object"
+                        string="Sync Status" class="btn-secondary"
+                        invisible="state == 'draft'"
+                        help="Synchronise status with Accounting"/>
+            </xpath>
+
+            <!-- Accounting section after amounts -->
+            <xpath expr="//notebook" position="before">
+                <group string="Accounting">
+                    <field name="invoice_id" readonly="1"/>
+                    <field name="invoice_state" invisible="not invoice_id"/>
+                    <field name="invoice_payment_state" invisible="not invoice_id"/>
+                    <field name="amount_invoiced" readonly="1"/>
+                    <field name="credit_note_id" readonly="1"
+                           invisible="not credit_note_id"/>
+                </group>
+            </xpath>
+
+            <!-- Invoice smart-link buttons -->
+            <xpath expr="//notebook" position="before">
+                <div class="alert alert-info mb-3"
+                     invisible="not invoice_id or invoice_payment_state != 'not_paid'">
+                    <i class="fa fa-info-circle me-2"/>
+                    Invoice <field name="invoice_id" readonly="1" nolabel="1"
+                                   class="d-inline" widget="many2one"/>
+                    is posted but unpaid.
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Extend List with Invoice Column
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_list_inherit_acct" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.list.inherit.accounting</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_fee_due_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="invoice_id" optional="hide"/>
+                <field name="invoice_payment_state" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Fee Due — Extend Search with Invoice Filters
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_fee_due_search_inherit_acct" model="ir.ui.view">
+        <field name="name">edu.student.fee.due.search.inherit.accounting</field>
+        <field name="model">edu.student.fee.due</field>
+        <field name="inherit_id" ref="edu_fees.view_edu_student_fee_due_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='outstanding']" position="after">
+                <separator/>
+                <filter string="Invoiced" name="invoiced"
+                        domain="[('invoice_id', '!=', False)]"/>
+                <filter string="Not Invoiced" name="not_invoiced"
+                        domain="[('invoice_id', '=', False), ('state', '!=', 'draft')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Server Action: Create Invoice from Selected Dues
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_create_invoice_from_dues_server" model="ir.actions.server">
+        <field name="name">Create Invoice</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
+        <field name="binding_model_id" ref="edu_fees.model_edu_student_fee_due"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_create_invoice_from_dues()
+        </field>
+    </record>
+</odoo>
