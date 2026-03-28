@@ -1,0 +1,8 @@
+# Python cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Local Claude worktrees and settings
+.claude/worktrees/
+.claude/settings.local.json
