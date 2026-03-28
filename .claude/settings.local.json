@@ -59,7 +59,17 @@
       "Bash(/opt/custom_addons/education/edu_assessment/report/edu_assessment_report_actions.xml:*)",
       "Bash(find /opt/odoo19/odoo -name report_backend*)",
       "Bash(tail -10 grep -n \"ir.actions.act_window\\\\|id=\"\"action_\" /opt/custom_addons/education/edu_exam/views/edu_exam_paper_views.xml)",
-      "Bash(tail -5 grep -n \"ir.actions.act_window\\\\|id=\"\"action_\" /opt/custom_addons/education/edu_exam/views/edu_exam_marksheet_views.xml)"
+      "Bash(tail -5 grep -n \"ir.actions.act_window\\\\|id=\"\"action_\" /opt/custom_addons/education/edu_exam/views/edu_exam_marksheet_views.xml)",
+      "Bash(grep -r \"smart_button\" /opt/custom_addons/education/edu_exam/views/*.xml)",
+      "Bash(grep -r \"class EduCurriculumLine\\\\|class EduStudent\\\\b\\\\|class EduBatch\\\\|class EduSection\\\\|class EduProgram\\\\b\\\\|class EduSubject\\\\b\" /opt/custom_addons/education/edu_academic_structure/models/ --include=*.py -l)",
+      "Bash(grep -rn \"_name = ''''edu.assessment.category''''\" /opt/custom_addons/education/ --include=\"*.py\")",
+      "Bash(grep '_name = ' /opt/custom_addons/education/edu_result/models/*.py /opt/custom_addons/education/edu_result/wizards/*.py)",
+      "Bash(do)",
+      "Bash(sed -i 's/<group expand=\"\"0\"\" string=\"\"Group By\"\">/<group name=\"\"group_by\"\">/g' \"$f\")",
+      "Bash(echo \"Fixed: $f\")",
+      "Bash(grep -n 'type=\"\"\"\"object\"\"\"\"' /opt/custom_addons/education/edu_result/views/*.xml)",
+      "Bash(grep:*)",
+      "Bash(pip install:*)"
     ]
   }
 }

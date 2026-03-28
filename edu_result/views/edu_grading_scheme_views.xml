@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Grading Scheme — Form
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_grading_scheme_form" model="ir.ui.view">
+        <field name="name">edu.grading.scheme.form</field>
+        <field name="model">edu.grading.scheme</field>
+        <field name="arch" type="xml">
+            <form string="Grading Scheme">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard A-F Grading"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="result_system"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Format">
+                            <field name="use_letters"/>
+                            <field name="use_grade_points"/>
+                            <field name="rounding_method"/>
+                            <field name="rounding_precision"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Grade Bands" name="bands">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="min_percent"/>
+                                    <field name="max_percent"/>
+                                    <field name="grade_letter"/>
+                                    <field name="grade_point"/>
+                                    <field name="result_remark"/>
+                                    <field name="is_fail"
+                                           decoration-danger="is_fail == True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" placeholder="Notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_edu_grading_scheme_list" model="ir.ui.view">
+        <field name="name">edu.grading.scheme.list</field>
+        <field name="model">edu.grading.scheme</field>
+        <field name="arch" type="xml">
+            <list string="Grading Schemes"
+                  decoration-muted="not active">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="result_system"/>
+                <field name="use_letters"/>
+                <field name="use_grade_points"/>
+                <field name="rounding_method"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_edu_grading_scheme_search" model="ir.ui.view">
+        <field name="name">edu.grading.scheme.search</field>
+        <field name="model">edu.grading.scheme</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <separator/>
+                <filter name="active_only" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_system" string="Result System"
+                            context="{'group_by': 'result_system'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_edu_grading_scheme" model="ir.actions.act_window">
+        <field name="name">Grading Schemes</field>
+        <field name="res_model">edu.grading.scheme</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_grading_scheme_search"/>
+        <field name="context">{'search_default_active_only': 1}</field>
+    </record>
+
+</odoo>

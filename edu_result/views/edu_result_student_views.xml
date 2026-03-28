@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Student Result — Form
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_result_student_form" model="ir.ui.view">
+        <field name="name">edu.result.student.form</field>
+        <field name="model">edu.result.student</field>
+        <field name="arch" type="xml">
+            <form string="Student Result">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_subject_lines"
+                                type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Subject Details</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Student">
+                            <field name="student_id" readonly="1"/>
+                            <field name="enrollment_id" readonly="1"/>
+                            <field name="student_progression_history_id" readonly="1"/>
+                        </group>
+                        <group string="Academic Snapshot">
+                            <field name="batch_id" readonly="1"/>
+                            <field name="section_id" readonly="1"/>
+                            <field name="program_term_id" readonly="1"/>
+                            <field name="result_session_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Result">
+                            <field name="percentage" readonly="1"/>
+                            <field name="gpa" readonly="1"/>
+                            <field name="grade_letter" readonly="1"/>
+                            <field name="obtained_marks" readonly="1"/>
+                            <field name="total_marks" readonly="1"/>
+                            <field name="distinction_flag" readonly="1"/>
+                        </group>
+                        <group string="Status">
+                            <field name="result_status" readonly="1"
+                                   widget="badge"
+                                   decoration-success="result_status in ('pass', 'promoted')"
+                                   decoration-warning="result_status == 'promoted_with_backlog'"
+                                   decoration-danger="result_status in ('fail', 'repeat', 'malpractice')"
+                                   decoration-muted="result_status in ('withheld', 'incomplete')"/>
+                            <field name="backlog_count" readonly="1"/>
+                            <field name="cleared_backlog_count" readonly="1"/>
+                            <field name="remaining_backlog_count" readonly="1"/>
+                            <field name="has_active_backlog" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Audit">
+                            <field name="published_on" readonly="1"/>
+                            <field name="promotion_hold_reason"/>
+                        </group>
+                    </group>
+                    <field name="remarks"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_student_list" model="ir.ui.view">
+        <field name="name">edu.result.student.list</field>
+        <field name="model">edu.result.student</field>
+        <field name="arch" type="xml">
+            <list string="Student Results"
+                  decoration-success="result_status in ('pass', 'promoted')"
+                  decoration-warning="result_status == 'promoted_with_backlog'"
+                  decoration-danger="result_status in ('fail', 'repeat', 'malpractice')"
+                  decoration-muted="result_status in ('withheld', 'incomplete')">
+                <field name="result_session_id"/>
+                <field name="student_id"/>
+                <field name="batch_id"/>
+                <field name="section_id"/>
+                <field name="program_term_id"/>
+                <field name="percentage"/>
+                <field name="gpa"/>
+                <field name="grade_letter"/>
+                <field name="result_status" widget="badge"
+                       decoration-success="result_status in ('pass', 'promoted')"
+                       decoration-warning="result_status == 'promoted_with_backlog'"
+                       decoration-danger="result_status in ('fail', 'repeat', 'malpractice')"
+                       decoration-muted="result_status in ('withheld', 'incomplete')"/>
+                <field name="backlog_count"/>
+                <field name="remaining_backlog_count"/>
+                <field name="distinction_flag"/>
+                <field name="published_on"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_student_search" model="ir.ui.view">
+        <field name="name">edu.result.student.search</field>
+        <field name="model">edu.result.student</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="result_session_id"/>
+                <field name="batch_id"/>
+                <separator/>
+                <filter name="pass" string="Pass"
+                        domain="[('result_status', 'in', ('pass', 'promoted'))]"/>
+                <filter name="fail" string="Fail"
+                        domain="[('result_status', 'in', ('fail', 'repeat'))]"/>
+                <filter name="backlog" string="With Backlog"
+                        domain="[('has_active_backlog', '=', True)]"/>
+                <filter name="promoted_backlog" string="Promoted with Backlog"
+                        domain="[('result_status', '=', 'promoted_with_backlog')]"/>
+                <filter name="distinction" string="Distinction"
+                        domain="[('distinction_flag', '=', True)]"/>
+                <filter name="withheld" string="Withheld"
+                        domain="[('result_status', '=', 'withheld')]"/>
+                <filter name="malpractice" string="Malpractice"
+                        domain="[('result_status', '=', 'malpractice')]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter name="group_session" string="Session"
+                            context="{'group_by': 'result_session_id'}"/>
+                    <filter name="group_batch" string="Batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_section" string="Section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter name="group_status" string="Result Status"
+                            context="{'group_by': 'result_status'}"/>
+                    <filter name="group_term" string="Program Term"
+                            context="{'group_by': 'program_term_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_edu_result_student" model="ir.actions.act_window">
+        <field name="name">Student Results</field>
+        <field name="res_model">edu.result.student</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_result_student_search"/>
+    </record>
+
+    <!-- ── Pass/Fail summary action ──────────────────────────────────────── -->
+    <record id="action_edu_result_student_pass_fail" model="ir.actions.act_window">
+        <field name="name">Pass/Fail Summary</field>
+        <field name="res_model">edu.result.student</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_result_student_search"/>
+        <field name="context">{'search_default_group_status': 1, 'search_default_group_batch': 1}</field>
+    </record>
+
+</odoo>

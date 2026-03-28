@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_edu_result_session" model="ir.sequence">
+        <field name="name">Result Session</field>
+        <field name="code">edu.result.session</field>
+        <field name="prefix">RS-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

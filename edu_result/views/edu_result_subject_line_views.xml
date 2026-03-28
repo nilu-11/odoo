@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Result Subject Line — Form
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_result_subject_line_form" model="ir.ui.view">
+        <field name="name">edu.result.subject.line.form</field>
+        <field name="model">edu.result.subject.line</field>
+        <field name="arch" type="xml">
+            <form string="Subject Result">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Context">
+                            <field name="result_session_id" readonly="1"/>
+                            <field name="student_id" readonly="1"/>
+                            <field name="subject_id" readonly="1"/>
+                            <field name="curriculum_line_id" readonly="1"/>
+                        </group>
+                        <group string="Academic Snapshot">
+                            <field name="batch_id" readonly="1"/>
+                            <field name="section_id" readonly="1"/>
+                            <field name="program_term_id" readonly="1"/>
+                            <field name="enrollment_id" readonly="1"/>
+                            <field name="student_progression_history_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Result">
+                            <field name="percentage" readonly="1"/>
+                            <field name="weighted_total" readonly="1"/>
+                            <field name="component_total" readonly="1"/>
+                            <field name="grade_letter" readonly="1"/>
+                            <field name="grade_point" readonly="1"/>
+                        </group>
+                        <group string="Status">
+                            <field name="is_pass" readonly="1"
+                                   decoration-success="is_pass == True"
+                                   decoration-danger="is_pass == False"/>
+                            <field name="is_failed" readonly="1"/>
+                            <field name="is_absent" readonly="1"/>
+                            <field name="is_withheld" readonly="1"/>
+                            <field name="is_malpractice" readonly="1"/>
+                            <field name="current_result_status" readonly="1"/>
+                            <field name="original_result_status" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Backlog">
+                            <field name="is_backlog_subject" readonly="1"/>
+                            <field name="is_back_exam_eligible"/>
+                            <field name="attempt_count" readonly="1"/>
+                            <field name="has_back_exam" readonly="1"/>
+                            <field name="back_exam_cleared" readonly="1"/>
+                            <field name="recomputed_after_back" readonly="1"/>
+                        </group>
+                        <group string="History">
+                            <field name="superseded_by_result_subject_line_id" readonly="1"/>
+                            <field name="effective_attempt_no" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="remarks"/>
+
+                    <notebook>
+                        <page string="Component Breakdown" name="components">
+                            <field name="component_ids" readonly="1" nolabel="1">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="name"/>
+                                    <field name="raw_obtained"/>
+                                    <field name="raw_max"/>
+                                    <field name="normalized_obtained"/>
+                                    <field name="normalized_max"/>
+                                    <field name="weightage_percent"/>
+                                    <field name="weighted_contribution"/>
+                                    <field name="is_pass"
+                                           decoration-success="is_pass == True"
+                                           decoration-danger="is_pass == False"/>
+                                    <field name="is_mandatory"/>
+                                    <field name="records_count"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_subject_line_list" model="ir.ui.view">
+        <field name="name">edu.result.subject.line.list</field>
+        <field name="model">edu.result.subject.line</field>
+        <field name="arch" type="xml">
+            <list string="Subject Results"
+                  decoration-success="is_pass == True"
+                  decoration-danger="is_failed == True"
+                  decoration-muted="superseded_by_result_subject_line_id != False">
+                <field name="result_session_id"/>
+                <field name="student_id"/>
+                <field name="subject_id"/>
+                <field name="batch_id"/>
+                <field name="section_id"/>
+                <field name="program_term_id"/>
+                <field name="percentage"/>
+                <field name="weighted_total"/>
+                <field name="grade_letter"/>
+                <field name="grade_point"/>
+                <field name="is_pass" widget="boolean_favorite" nolabel="1"/>
+                <field name="current_result_status"/>
+                <field name="is_backlog_subject"
+                       decoration-danger="is_backlog_subject == True"/>
+                <field name="attempt_count"/>
+                <field name="back_exam_cleared"/>
+                <field name="recomputed_after_back"/>
+                <field name="superseded_by_result_subject_line_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_subject_line_search" model="ir.ui.view">
+        <field name="name">edu.result.subject.line.search</field>
+        <field name="model">edu.result.subject.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="subject_id"/>
+                <field name="result_session_id"/>
+                <field name="batch_id"/>
+                <separator/>
+                <filter name="passed" string="Passed" domain="[('is_pass', '=', True)]"/>
+                <filter name="failed" string="Failed" domain="[('is_failed', '=', True)]"/>
+                <filter name="backlog" string="Backlog"
+                        domain="[('is_backlog_subject', '=', True)]"/>
+                <filter name="back_eligible" string="Back Exam Eligible"
+                        domain="[('is_back_exam_eligible', '=', True)]"/>
+                <filter name="back_cleared" string="Back Exam Cleared"
+                        domain="[('back_exam_cleared', '=', True)]"/>
+                <filter name="recomputed" string="Recomputed"
+                        domain="[('recomputed_after_back', '=', True)]"/>
+                <filter name="active_only" string="Not Superseded"
+                        domain="[('superseded_by_result_subject_line_id', '=', False)]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter name="group_session" string="Session"
+                            context="{'group_by': 'result_session_id'}"/>
+                    <filter name="group_student" string="Student"
+                            context="{'group_by': 'student_id'}"/>
+                    <filter name="group_subject" string="Subject"
+                            context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_batch" string="Batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_section" string="Section"
+                            context="{'group_by': 'section_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_edu_result_subject_line" model="ir.actions.act_window">
+        <field name="name">Subject Results</field>
+        <field name="res_model">edu.result.subject.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_result_subject_line_search"/>
+        <field name="context">{'search_default_active_only': 1}</field>
+    </record>
+
+    <!-- ── Backlog report action ──────────────────────────────────────────── -->
+    <record id="action_edu_result_backlog_report" model="ir.actions.act_window">
+        <field name="name">Backlog Report</field>
+        <field name="res_model">edu.result.subject.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_backlog_subject', '=', True), ('superseded_by_result_subject_line_id', '=', False)]</field>
+        <field name="context">{'search_default_back_eligible': 1}</field>
+    </record>
+
+</odoo>

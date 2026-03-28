@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Result Session — Form
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_result_session_form" model="ir.ui.view">
+        <field name="name">edu.result.session.form</field>
+        <field name="model">edu.result.session</field>
+        <field name="arch" type="xml">
+            <form string="Result Session">
+                <header>
+                    <button name="action_open_compute_wizard"
+                            string="Compute Results"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'processing')"
+                            groups="edu_result.group_result_officer"/>
+                    <button name="action_verify" string="Verify"
+                            type="object"
+                            invisible="state != 'processing'"
+                            class="btn-primary"
+                            groups="edu_result.group_result_publish_manager"/>
+                    <button name="action_publish" string="Publish"
+                            type="object"
+                            invisible="state != 'verified'"
+                            class="btn-primary"
+                            groups="edu_result.group_result_publish_manager"/>
+                    <button name="action_open_recompute_backlog_wizard"
+                            string="Recompute After Back Exam"
+                            type="object"
+                            invisible="state not in ('verified', 'published')"
+                            groups="edu_result.group_result_officer"/>
+                    <button name="action_close" string="Close"
+                            type="object"
+                            invisible="state != 'published'"
+                            groups="edu_result.group_result_admin"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state in ('draft', 'closed')"
+                            groups="edu_result.group_result_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,processing,verified,published,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_subject_lines"
+                                type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="subject_line_count" widget="statinfo"
+                                   string="Subject Lines"/>
+                        </button>
+                        <button name="action_view_student_results"
+                                type="object"
+                                class="oe_stat_button" icon="fa-users">
+                            <field name="student_result_count" widget="statinfo"
+                                   string="Students"/>
+                        </button>
+                        <button name="action_view_student_results"
+                                type="object"
+                                class="oe_stat_button" icon="fa-check-circle"
+                                invisible="student_result_count == 0">
+                            <field name="pass_count" widget="statinfo" string="Pass"/>
+                        </button>
+                        <button name="action_view_student_results"
+                                type="object"
+                                class="oe_stat_button" icon="fa-times-circle"
+                                invisible="student_result_count == 0">
+                            <field name="fail_count" widget="statinfo" string="Fail"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="assessment_scheme_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="grading_scheme_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="result_rule_id"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Scope">
+                            <field name="academic_year_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="program_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="batch_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="program_term_id"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Audit">
+                            <field name="verified_by" readonly="1"/>
+                            <field name="published_on" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Summary"
+                               invisible="student_result_count == 0">
+                            <field name="student_result_count" readonly="1"/>
+                            <field name="pass_count" readonly="1"/>
+                            <field name="fail_count" readonly="1"/>
+                            <field name="backlog_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notes">
+                            <field name="note" placeholder="Notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_session_list" model="ir.ui.view">
+        <field name="name">edu.result.session.list</field>
+        <field name="model">edu.result.session</field>
+        <field name="arch" type="xml">
+            <list string="Result Sessions"
+                  decoration-muted="state == 'closed'"
+                  decoration-success="state == 'published'"
+                  decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="assessment_scheme_id"/>
+                <field name="academic_year_id"/>
+                <field name="program_id"/>
+                <field name="batch_id"/>
+                <field name="program_term_id"/>
+                <field name="student_result_count"/>
+                <field name="pass_count"/>
+                <field name="fail_count"/>
+                <field name="backlog_count"/>
+                <field name="published_on"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('processing',)"
+                       decoration-success="state in ('verified', 'published')"
+                       decoration-muted="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban ────────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_session_kanban" model="ir.ui.view">
+        <field name="name">edu.result.session.kanban</field>
+        <field name="model">edu.result.session</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="assessment_scheme_id"/>
+                <field name="batch_id"/>
+                <field name="student_result_count"/>
+                <field name="pass_count"/>
+                <field name="fail_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <strong><field name="name"/></strong>
+                            <div class="text-muted small">
+                                <field name="assessment_scheme_id"/>
+                            </div>
+                            <div>
+                                <field name="batch_id"/>
+                            </div>
+                            <div class="d-flex gap-2 mt-2">
+                                <span class="badge bg-success">
+                                    Pass: <field name="pass_count"/>
+                                </span>
+                                <span class="badge bg-danger">
+                                    Fail: <field name="fail_count"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_edu_result_session_search" model="ir.ui.view">
+        <field name="name">edu.result.session.search</field>
+        <field name="model">edu.result.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="assessment_scheme_id"/>
+                <field name="academic_year_id"/>
+                <field name="program_id"/>
+                <field name="batch_id"/>
+                <field name="program_term_id"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="processing" string="Processing"
+                        domain="[('state', '=', 'processing')]"/>
+                <filter name="verified" string="Verified"
+                        domain="[('state', '=', 'verified')]"/>
+                <filter name="published" string="Published"
+                        domain="[('state', '=', 'published')]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter name="group_year" string="Academic Year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter name="group_program" string="Program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter name="group_batch" string="Batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_edu_result_session" model="ir.actions.act_window">
+        <field name="name">Result Sessions</field>
+        <field name="res_model">edu.result.session</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_edu_result_session_search"/>
+    </record>
+
+
+</odoo>

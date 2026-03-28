@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_edu_result_rule_form" model="ir.ui.view">
+        <field name="name">edu.result.rule.form</field>
+        <field name="model">edu.result.rule</field>
+        <field name="arch" type="xml">
+            <form string="Result Rule">
+                <header>
+                    <button name="action_activate" string="Activate"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_result.group_result_admin"/>
+                    <button name="action_archive_rule" string="Archive"
+                            type="object"
+                            invisible="state != 'active'"
+                            groups="edu_result.group_result_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Linked Schemes">
+                            <field name="scheme_id"/>
+                            <field name="grading_scheme_id"/>
+                        </group>
+                        <group string="Result Basis">
+                            <field name="result_status_basis"/>
+                            <field name="use_weighted_total"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pass Rules" name="pass_rules">
+                            <group>
+                                <group string="Component Pass">
+                                    <field name="fail_on_any_mandatory_component"/>
+                                    <field name="use_component_wise_pass"/>
+                                    <field name="combine_internal_and_external"/>
+                                </group>
+                                <group string="Thresholds">
+                                    <field name="minimum_overall_percent"/>
+                                    <field name="minimum_overall_gpa"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Backlog / Promotion" name="backlog">
+                            <group>
+                                <field name="allow_backlog"/>
+                                <field name="max_backlog_subjects"
+                                       invisible="not allow_backlog"/>
+                            </group>
+                        </page>
+                        <page string="Special Conditions" name="special">
+                            <group>
+                                <group string="Actions">
+                                    <field name="attendance_shortage_action"/>
+                                    <field name="fee_due_action"/>
+                                    <field name="malpractice_action"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" placeholder="Notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_edu_result_rule_list" model="ir.ui.view">
+        <field name="name">edu.result.rule.list</field>
+        <field name="model">edu.result.rule</field>
+        <field name="arch" type="xml">
+            <list string="Result Rules"
+                  decoration-muted="state == 'archived'"
+                  decoration-success="state == 'active'">
+                <field name="name"/>
+                <field name="scheme_id"/>
+                <field name="grading_scheme_id"/>
+                <field name="minimum_overall_percent"/>
+                <field name="allow_backlog"/>
+                <field name="max_backlog_subjects"/>
+                <field name="attendance_shortage_action"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_edu_result_rule" model="ir.actions.act_window">
+        <field name="name">Result Rules</field>
+        <field name="res_model">edu.result.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

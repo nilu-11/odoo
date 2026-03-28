@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Assessment Scheme — Form
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_assessment_scheme_form" model="ir.ui.view">
+        <field name="name">edu.assessment.scheme.form</field>
+        <field name="model">edu.assessment.scheme</field>
+        <field name="arch" type="xml">
+            <form string="Assessment Scheme">
+                <header>
+                    <button name="action_activate" string="Activate"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_result.group_result_admin"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'archived'"
+                            groups="edu_result.group_result_admin"/>
+                    <button name="action_archive_scheme" string="Archive"
+                            type="object"
+                            invisible="state != 'active'"
+                            groups="edu_result.group_result_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_scheme_lines"
+                                type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="line_count" widget="statinfo" string="Lines"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Annual Weighted Scheme 2024"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Scope (optional)">
+                            <field name="program_id"/>
+                            <field name="academic_year_id"/>
+                            <field name="program_term_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Result Configuration">
+                            <field name="result_period_type"/>
+                            <field name="result_system"/>
+                            <field name="promotion_basis"/>
+                            <field name="back_exam_policy_id"/>
+                        </group>
+                        <group string="Source Flags">
+                            <field name="internal_exam_included"/>
+                            <field name="board_exam_included"/>
+                            <field name="continuous_assessment_included"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Grace Marks">
+                            <field name="allow_grace_marks"/>
+                            <field name="grace_marks_limit"
+                                   invisible="not allow_grace_marks"/>
+                        </group>
+                        <group string="Attendance Rule">
+                            <field name="attendance_rule_enabled"/>
+                            <field name="attendance_threshold_percent"
+                                   invisible="not attendance_rule_enabled"/>
+                        </group>
+                    </group>
+
+                    <!-- Scheme Lines -->
+                    <notebook>
+                        <page string="Scheme Lines" name="lines">
+                            <field name="total_weightage" readonly="1"
+                                   widget="float" decoration-danger="total_weightage != 100.0"
+                                   decoration-success="total_weightage == 100.0"/>
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="source_type"/>
+                                    <field name="component_category"/>
+                                    <field name="aggregation_method"/>
+                                    <field name="max_marks"/>
+                                    <field name="pass_marks"/>
+                                    <field name="weightage_percent"/>
+                                    <field name="is_mandatory"/>
+                                    <field name="requires_separate_pass"/>
+                                    <field name="contributes_to_final"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Internal notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── List ─────────────────────────────────────────────────────────── -->
+    <record id="view_edu_assessment_scheme_list" model="ir.ui.view">
+        <field name="name">edu.assessment.scheme.list</field>
+        <field name="model">edu.assessment.scheme</field>
+        <field name="arch" type="xml">
+            <list string="Assessment Schemes"
+                  decoration-muted="state == 'archived'"
+                  decoration-info="state == 'draft'"
+                  decoration-success="state == 'active'">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="result_period_type"/>
+                <field name="result_system"/>
+                <field name="promotion_basis"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="total_weightage"
+                       decoration-danger="total_weightage != 100.0"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-muted="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Search ───────────────────────────────────────────────────────── -->
+    <record id="view_edu_assessment_scheme_search" model="ir.ui.view">
+        <field name="name">edu.assessment.scheme.search</field>
+        <field name="model">edu.assessment.scheme</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <separator/>
+                <filter name="active_schemes" string="Active"
+                        domain="[('state', '=', 'active')]"/>
+                <filter name="draft_schemes" string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_program" string="Program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter name="group_period" string="Period Type"
+                            context="{'group_by': 'result_period_type'}"/>
+                    <filter name="group_system" string="Result System"
+                            context="{'group_by': 'result_system'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ───────────────────────────────────────────────────────── -->
+    <record id="action_edu_assessment_scheme" model="ir.actions.act_window">
+        <field name="name">Assessment Schemes</field>
+        <field name="res_model">edu.assessment.scheme</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_assessment_scheme_search"/>
+        <field name="context">{'search_default_active_schemes': 1}</field>
+    </record>
+
+    <!-- ── Scheme Lines standalone action ──────────────────────────────── -->
+    <record id="action_edu_assessment_scheme_line" model="ir.actions.act_window">
+        <field name="name">Scheme Lines</field>
+        <field name="res_model">edu.assessment.scheme.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_edu_assessment_scheme_line_form" model="ir.ui.view">
+        <field name="name">edu.assessment.scheme.line.form</field>
+        <field name="model">edu.assessment.scheme.line</field>
+        <field name="arch" type="xml">
+            <form string="Scheme Line">
+                <sheet>
+                    <group>
+                        <group string="Identity">
+                            <field name="scheme_id"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Source">
+                            <field name="source_type"/>
+                            <field name="component_category"/>
+                            <field name="exam_attempt_type"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Aggregation">
+                            <field name="aggregation_method"/>
+                            <field name="best_of_count"
+                                   invisible="aggregation_method != 'best'"/>
+                            <field name="drop_lowest"/>
+                            <field name="group_key"/>
+                        </group>
+                        <group string="Marks">
+                            <field name="max_marks"/>
+                            <field name="pass_marks"/>
+                            <field name="weightage_percent"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Pass Rules">
+                            <field name="is_mandatory"/>
+                            <field name="requires_separate_pass"/>
+                            <field name="contributes_to_final"/>
+                            <field name="include_in_percentage"/>
+                            <field name="include_in_gpa"/>
+                        </group>
+                        <group string="Flags">
+                            <field name="is_external"/>
+                            <field name="is_board_component"/>
+                            <field name="linked_exam_type"/>
+                        </group>
+                    </group>
+                    <group string="Source Links">
+                        <field name="exam_session_ids" widget="many2many_tags"/>
+                        <field name="assessment_category_ids" widget="many2many_tags"/>
+                    </group>
+                    <field name="note" placeholder="Notes…"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_edu_assessment_scheme_line_list" model="ir.ui.view">
+        <field name="name">edu.assessment.scheme.line.list</field>
+        <field name="model">edu.assessment.scheme.line</field>
+        <field name="arch" type="xml">
+            <list string="Scheme Lines">
+                <field name="scheme_id"/>
+                <field name="sequence"/>
+                <field name="name"/>
+                <field name="source_type"/>
+                <field name="aggregation_method"/>
+                <field name="max_marks"/>
+                <field name="pass_marks"/>
+                <field name="weightage_percent"/>
+                <field name="is_mandatory"/>
+                <field name="requires_separate_pass"/>
+                <field name="contributes_to_final"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>

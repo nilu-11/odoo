@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_edu_back_exam_policy_form" model="ir.ui.view">
+        <field name="name">edu.back.exam.policy.form</field>
+        <field name="model">edu.back.exam.policy</field>
+        <field name="arch" type="xml">
+            <form string="Back Exam Policy">
+                <header>
+                    <button name="action_activate" string="Activate"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_result.group_result_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identity">
+                            <field name="code"/>
+                            <field name="applicable_scheme_id"/>
+                        </group>
+                        <group string="Attempt Limits">
+                            <field name="max_attempts"/>
+                            <field name="reattempt_scope"/>
+                            <field name="result_replacement_method"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Eligibility" name="eligibility">
+                            <group string="Eligible Result Statuses">
+                                <field name="eligible_status_fail"/>
+                                <field name="eligible_status_absent"/>
+                                <field name="eligible_status_withheld"/>
+                                <field name="eligible_status_incomplete"/>
+                            </group>
+                        </page>
+                        <page string="Carry Forward Rules" name="carry_forward">
+                            <group>
+                                <group string="Marks to Carry Forward">
+                                    <field name="carry_forward_internal_marks"/>
+                                    <field name="carry_forward_practical_marks"/>
+                                    <field name="carry_forward_assignment_marks"/>
+                                    <field name="carry_forward_attendance_marks"/>
+                                    <field name="carry_forward_class_performance"/>
+                                </group>
+                                <group string="Grade Cap After Back Exam">
+                                    <field name="cap_max_grade_after_back"/>
+                                    <field name="cap_max_percentage_after_back"/>
+                                    <field name="promotion_after_back_allowed"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" placeholder="Notes…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_edu_back_exam_policy_list" model="ir.ui.view">
+        <field name="name">edu.back.exam.policy.list</field>
+        <field name="model">edu.back.exam.policy</field>
+        <field name="arch" type="xml">
+            <list string="Back Exam Policies"
+                  decoration-muted="state == 'archived'">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="applicable_scheme_id"/>
+                <field name="max_attempts"/>
+                <field name="reattempt_scope"/>
+                <field name="result_replacement_method"/>
+                <field name="cap_max_percentage_after_back"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_edu_back_exam_policy" model="ir.actions.act_window">
+        <field name="name">Back Exam Policies</field>
+        <field name="res_model">edu.back.exam.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

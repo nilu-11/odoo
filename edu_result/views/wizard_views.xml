@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Compute Result Wizard
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_result_compute_wizard_form" model="ir.ui.view">
+        <field name="name">edu.result.compute.wizard.form</field>
+        <field name="model">edu.result.compute.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Compute Results">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        This wizard will compute results for the selected session using
+                        the configured assessment scheme, grading scheme, and result rule.
+                        All existing results will be replaced if "Recompute" is enabled.
+                    </div>
+                    <group>
+                        <group string="Session">
+                            <field name="result_session_id" readonly="1"/>
+                            <field name="assessment_scheme_id" readonly="1"/>
+                            <field name="grading_scheme_id" readonly="1"/>
+                            <field name="result_rule_id" readonly="1"/>
+                        </group>
+                        <group string="Scope">
+                            <field name="academic_year_id" readonly="1"/>
+                            <field name="program_id" readonly="1"/>
+                            <field name="batch_id" readonly="1"/>
+                            <field name="program_term_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Estimated Scope">
+                            <field name="estimated_student_count" readonly="1"/>
+                            <field name="estimated_curriculum_line_count" readonly="1"/>
+                        </group>
+                        <group string="Options">
+                            <field name="recompute_if_exists"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_compute" string="Compute Now"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Recompute Backlog Wizard
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_edu_result_recompute_backlog_wizard_form" model="ir.ui.view">
+        <field name="name">edu.result.recompute.backlog.wizard.form</field>
+        <field name="model">edu.result.recompute.backlog.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Recompute After Back Exam">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        Select the published back exam session and the applicable back
+                        exam policy.  Original subject lines will be preserved and new
+                        lines created for each student who took the back exam.
+                    </div>
+                    <group>
+                        <group string="Original Session">
+                            <field name="result_session_id" readonly="1"/>
+                        </group>
+                        <group string="Back Exam">
+                            <field name="back_exam_session_id"/>
+                            <field name="back_exam_policy_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Preview">
+                            <field name="eligible_subject_line_count" readonly="1"/>
+                            <field name="affected_student_count" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_recompute" string="Recompute Now"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

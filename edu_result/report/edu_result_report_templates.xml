@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         1. Result Sheet  (per student — printed from edu.result.student)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_result_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="student_result">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>RESULT SHEET</h2>
+                            <h4><t t-out="student_result.result_session_id.name or ''"/></h4>
+                        </div>
+
+                        <!-- Student info -->
+                        <table class="table table-borderless w-100 mb-3">
+                            <tr>
+                                <td><strong>Student:</strong></td>
+                                <td><t t-out="student_result.student_id.display_name or ''"/></td>
+                                <td><strong>Batch:</strong></td>
+                                <td><t t-out="student_result.batch_id.name or ''"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Program Term:</strong></td>
+                                <td><t t-out="student_result.program_term_id.name or ''"/></td>
+                                <td><strong>Section:</strong></td>
+                                <td><t t-out="student_result.section_id.name or ''"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Academic Year:</strong></td>
+                                <td>
+                                    <t t-out="student_result.result_session_id.academic_year_id.name or ''"/>
+                                </td>
+                                <td><strong>Published On:</strong></td>
+                                <td>
+                                    <t t-if="student_result.published_on">
+                                        <t t-out="student_result.published_on.strftime('%d %b %Y') if student_result.published_on else ''"/>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Subject-wise marks -->
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>S.N.</th>
+                                    <th>Subject</th>
+                                    <th>Percentage</th>
+                                    <th>Grade</th>
+                                    <th>Grade Point</th>
+                                    <th>Status</th>
+                                    <th>Backlog</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="subject_lines" t-value="request.env['edu.result.subject.line'].search([
+                                    ('result_session_id', '=', student_result.result_session_id.id),
+                                    ('student_progression_history_id', '=', student_result.student_progression_history_id.id),
+                                    ('superseded_by_result_subject_line_id', '=', False),
+                                ], order='subject_id')"/>
+                                <t t-set="sn" t-value="0"/>
+                                <t t-foreach="subject_lines" t-as="sl">
+                                    <t t-set="sn" t-value="sn + 1"/>
+                                    <tr t-attf-class="{{ 'table-danger' if sl.is_failed else ('table-success' if sl.is_pass else '') }}">
+                                        <td><t t-out="sn"/></td>
+                                        <td><t t-out="sl.subject_id.name or ''"/></td>
+                                        <td><t t-out="'%.2f' % sl.percentage"/>%</td>
+                                        <td><t t-out="sl.grade_letter or '-'"/></td>
+                                        <td><t t-out="'%.2f' % sl.grade_point"/></td>
+                                        <td>
+                                            <t t-out="sl.current_result_status.upper() if sl.current_result_status else ''"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="sl.is_backlog_subject">
+                                                <span class="badge bg-warning">Backlog</span>
+                                                <t t-if="sl.back_exam_cleared">
+                                                    <span class="badge bg-success">Cleared</span>
+                                                </t>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="not subject_lines">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            No subject results found.
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Summary row -->
+                        <table class="table table-bordered mt-3">
+                            <tr>
+                                <th>Overall Percentage</th>
+                                <td><t t-out="'%.2f' % student_result.percentage"/>%</td>
+                                <th>GPA</th>
+                                <td><t t-out="'%.2f' % student_result.gpa"/></td>
+                                <th>Grade</th>
+                                <td><t t-out="student_result.grade_letter or '-'"/></td>
+                            </tr>
+                            <tr>
+                                <th>Result</th>
+                                <td t-attf-class="{{ 'text-success fw-bold' if student_result.result_status in ('pass', 'promoted') else 'text-danger fw-bold' }}">
+                                    <t t-out="(student_result.result_status or '').upper().replace('_', ' ')"/>
+                                </td>
+                                <th>Backlogs</th>
+                                <td><t t-out="student_result.backlog_count"/></td>
+                                <th>Distinction</th>
+                                <td>
+                                    <t t-if="student_result.distinction_flag">Yes</t>
+                                    <t t-else="">—</t>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <t t-if="student_result.remarks">
+                            <p><strong>Remarks:</strong> <t t-out="student_result.remarks"/></p>
+                        </t>
+
+                        <!-- Signature block -->
+                        <div class="row mt-5">
+                            <div class="col-4 text-center">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    Class Teacher
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    Examination Controller
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top: 1px solid black; padding-top: 5px;">
+                                    Principal / HoD
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         2. Subject Tabulation  (per session — printed from edu.result.session)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_subject_tabulation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-3">
+                            <h2>SUBJECT TABULATION SHEET</h2>
+                            <h4><t t-out="session.name or ''"/></h4>
+                            <p>
+                                <t t-out="session.program_id.name or ''"/>
+                                <t t-if="session.batch_id"> | <t t-out="session.batch_id.name or ''"/></t>
+                                <t t-if="session.program_term_id"> | <t t-out="session.program_term_id.name or ''"/></t>
+                            </p>
+                        </div>
+
+                        <t t-set="subject_lines" t-value="session.subject_line_ids.filtered(
+                            lambda l: not l.superseded_by_result_subject_line_id
+                        ).sorted(lambda l: (l.student_id.display_name or '', l.subject_id.name or ''))"/>
+
+                        <!-- Group by subject -->
+                        <t t-set="subjects" t-value="session.subject_line_ids.mapped('subject_id').sorted('name')"/>
+                        <t t-foreach="subjects" t-as="subject">
+                            <h5 class="mt-4"><t t-out="subject.name or ''"/></h5>
+                            <table class="table table-bordered table-sm">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>S.N.</th>
+                                        <th>Student</th>
+                                        <th>Section</th>
+                                        <th>%</th>
+                                        <th>Grade</th>
+                                        <th>GP</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="subj_lines" t-value="subject_lines.filtered(
+                                        lambda l: l.subject_id.id == subject.id
+                                    )"/>
+                                    <t t-set="sn" t-value="0"/>
+                                    <t t-foreach="subj_lines" t-as="sl">
+                                        <t t-set="sn" t-value="sn + 1"/>
+                                        <tr>
+                                            <td><t t-out="sn"/></td>
+                                            <td><t t-out="sl.student_id.display_name or ''"/></td>
+                                            <td><t t-out="sl.section_id.name or ''"/></td>
+                                            <td><t t-out="'%.2f' % sl.percentage"/>%</td>
+                                            <td><t t-out="sl.grade_letter or '-'"/></td>
+                                            <td><t t-out="'%.2f' % sl.grade_point"/></td>
+                                            <td t-attf-class="{{ 'text-success' if sl.is_pass else 'text-danger' }}">
+                                                <t t-out="(sl.current_result_status or '').upper()"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         3. Student Result Summary  (per session)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_student_result_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-3">
+                            <h2>STUDENT RESULT SUMMARY</h2>
+                            <h4><t t-out="session.name or ''"/></h4>
+                        </div>
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>S.N.</th>
+                                    <th>Student</th>
+                                    <th>Batch / Section</th>
+                                    <th>%</th>
+                                    <th>GPA</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                    <th>Backlogs</th>
+                                    <th>Distinction</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="student_results" t-value="session.student_result_ids.sorted(
+                                    lambda r: r.student_id.display_name or ''
+                                )"/>
+                                <t t-set="sn" t-value="0"/>
+                                <t t-foreach="student_results" t-as="sr">
+                                    <t t-set="sn" t-value="sn + 1"/>
+                                    <tr t-attf-class="{{ 'table-success' if sr.result_status in ('pass', 'promoted') else ('table-warning' if sr.result_status == 'promoted_with_backlog' else 'table-danger') }}">
+                                        <td><t t-out="sn"/></td>
+                                        <td><t t-out="sr.student_id.display_name or ''"/></td>
+                                        <td>
+                                            <t t-out="sr.batch_id.name or ''"/>
+                                            <t t-if="sr.section_id"> / <t t-out="sr.section_id.name or ''"/></t>
+                                        </td>
+                                        <td><t t-out="'%.2f' % sr.percentage"/>%</td>
+                                        <td><t t-out="'%.2f' % sr.gpa"/></td>
+                                        <td><t t-out="sr.grade_letter or '-'"/></td>
+                                        <td>
+                                            <t t-out="(sr.result_status or '').upper().replace('_', ' ')"/>
+                                        </td>
+                                        <td><t t-out="sr.backlog_count"/></td>
+                                        <td>
+                                            <t t-if="sr.distinction_flag">★</t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="not student_results">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">
+                                            No results available.
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <!-- Footer stats -->
+                        <div class="row mt-3">
+                            <div class="col">
+                                <strong>Total Students:</strong> <t t-out="len(session.student_result_ids)"/>
+                            </div>
+                            <div class="col">
+                                <strong>Passed:</strong> <t t-out="session.pass_count"/>
+                            </div>
+                            <div class="col">
+                                <strong>Failed:</strong> <t t-out="session.fail_count"/>
+                            </div>
+                            <div class="col">
+                                <strong>With Backlog:</strong> <t t-out="session.backlog_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         4. Backlog Report
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_backlog">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-3">
+                            <h2>BACKLOG REPORT</h2>
+                            <h4><t t-out="session.name or ''"/></h4>
+                        </div>
+                        <t t-set="backlog_lines" t-value="session.subject_line_ids.filtered(
+                            lambda l: l.is_backlog_subject and not l.superseded_by_result_subject_line_id
+                        ).sorted(lambda l: (l.student_id.display_name or '', l.subject_id.name or ''))"/>
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>S.N.</th>
+                                    <th>Student</th>
+                                    <th>Subject</th>
+                                    <th>%</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                    <th>Attempts</th>
+                                    <th>Back Eligible</th>
+                                    <th>Cleared</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="sn" t-value="0"/>
+                                <t t-foreach="backlog_lines" t-as="bl">
+                                    <t t-set="sn" t-value="sn + 1"/>
+                                    <tr t-attf-class="{{ 'table-success' if bl.back_exam_cleared else '' }}">
+                                        <td><t t-out="sn"/></td>
+                                        <td><t t-out="bl.student_id.display_name or ''"/></td>
+                                        <td><t t-out="bl.subject_id.name or ''"/></td>
+                                        <td><t t-out="'%.2f' % bl.percentage"/>%</td>
+                                        <td><t t-out="bl.grade_letter or '-'"/></td>
+                                        <td><t t-out="(bl.current_result_status or '').upper()"/></td>
+                                        <td><t t-out="bl.attempt_count"/></td>
+                                        <td>
+                                            <t t-if="bl.is_back_exam_eligible">Yes</t>
+                                            <t t-else="">No</t>
+                                        </td>
+                                        <td>
+                                            <t t-if="bl.back_exam_cleared">
+                                                <span class="badge bg-success">Cleared</span>
+                                            </t>
+                                            <t t-else="">Pending</t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="not backlog_lines">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">
+                                            No backlog subjects found.
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         5. Back Exam Eligibility Report
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_back_exam_eligibility">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center mb-3">
+                            <h2>BACK EXAM ELIGIBILITY REPORT</h2>
+                            <h4><t t-out="session.name or ''"/></h4>
+                        </div>
+                        <t t-set="eligible_lines" t-value="session.subject_line_ids.filtered(
+                            lambda l: l.is_back_exam_eligible and not l.back_exam_cleared
+                                      and not l.superseded_by_result_subject_line_id
+                        ).sorted(lambda l: (l.student_id.display_name or '', l.subject_id.name or ''))"/>
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>S.N.</th>
+                                    <th>Student</th>
+                                    <th>Section</th>
+                                    <th>Subject</th>
+                                    <th>%</th>
+                                    <th>Attempts Used</th>
+                                    <th>Original Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="sn" t-value="0"/>
+                                <t t-foreach="eligible_lines" t-as="el">
+                                    <t t-set="sn" t-value="sn + 1"/>
+                                    <tr>
+                                        <td><t t-out="sn"/></td>
+                                        <td><t t-out="el.student_id.display_name or ''"/></td>
+                                        <td><t t-out="el.section_id.name or ''"/></td>
+                                        <td><t t-out="el.subject_id.name or ''"/></td>
+                                        <td><t t-out="'%.2f' % el.percentage"/>%</td>
+                                        <td><t t-out="el.attempt_count"/></td>
+                                        <td><t t-out="(el.original_result_status or '').upper()"/></td>
+                                    </tr>
+                                </t>
+                                <t t-if="not eligible_lines">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            No students eligible for back exam.
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div class="mt-2">
+                            <strong>Total Eligible:</strong> <t t-out="len(eligible_lines)"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

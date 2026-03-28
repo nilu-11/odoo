@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Root menu (under Education)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_edu_result_root"
+              name="Results"
+              parent="edu_academic_structure.menu_education_root"
+              sequence="95"
+              groups="edu_result.group_result_viewer"/>
+
+    <!-- ── Operational sub-menus ──────────────────────────────────────────── -->
+    <menuitem id="menu_edu_result_sessions"
+              name="Result Sessions"
+              parent="menu_edu_result_root"
+              action="action_edu_result_session"
+              sequence="10"
+              groups="edu_result.group_result_officer"/>
+
+    <menuitem id="menu_edu_result_subject_lines"
+              name="Subject Results"
+              parent="menu_edu_result_root"
+              action="action_edu_result_subject_line"
+              sequence="20"
+              groups="edu_result.group_result_officer"/>
+
+    <menuitem id="menu_edu_result_students"
+              name="Student Results"
+              parent="menu_edu_result_root"
+              action="action_edu_result_student"
+              sequence="30"
+              groups="edu_result.group_result_viewer"/>
+
+    <!-- ── Reports sub-menu ───────────────────────────────────────────────── -->
+    <menuitem id="menu_edu_result_reports"
+              name="Reports"
+              parent="menu_edu_result_root"
+              sequence="60"
+              groups="edu_result.group_result_officer"/>
+
+    <menuitem id="menu_edu_result_backlog_report"
+              name="Backlog Report"
+              parent="menu_edu_result_reports"
+              action="action_edu_result_backlog_report"
+              sequence="10"
+              groups="edu_result.group_result_officer"/>
+
+    <menuitem id="menu_edu_result_pass_fail_summary"
+              name="Pass / Fail Summary"
+              parent="menu_edu_result_reports"
+              action="action_edu_result_student_pass_fail"
+              sequence="20"
+              groups="edu_result.group_result_officer"/>
+
+    <!-- ── Configuration sub-menu ────────────────────────────────────────── -->
+    <menuitem id="menu_edu_result_configuration"
+              name="Configuration"
+              parent="menu_edu_result_root"
+              sequence="90"
+              groups="edu_result.group_result_admin"/>
+
+    <menuitem id="menu_edu_assessment_schemes"
+              name="Assessment Schemes"
+              parent="menu_edu_result_configuration"
+              action="action_edu_assessment_scheme"
+              sequence="10"
+              groups="edu_result.group_result_admin"/>
+
+    <menuitem id="menu_edu_assessment_scheme_lines"
+              name="Scheme Lines"
+              parent="menu_edu_result_configuration"
+              action="action_edu_assessment_scheme_line"
+              sequence="20"
+              groups="edu_result.group_result_admin"/>
+
+    <menuitem id="menu_edu_grading_schemes"
+              name="Grading Schemes"
+              parent="menu_edu_result_configuration"
+              action="action_edu_grading_scheme"
+              sequence="30"
+              groups="edu_result.group_result_admin"/>
+
+    <menuitem id="menu_edu_result_rules"
+              name="Result Rules"
+              parent="menu_edu_result_configuration"
+              action="action_edu_result_rule"
+              sequence="40"
+              groups="edu_result.group_result_admin"/>
+
+    <menuitem id="menu_edu_back_exam_policies"
+              name="Back Exam Policies"
+              parent="menu_edu_result_configuration"
+              action="action_edu_back_exam_policy"
+              sequence="50"
+              groups="edu_result.group_result_admin"/>
+
+</odoo>

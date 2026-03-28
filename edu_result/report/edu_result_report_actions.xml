@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Result Sheet — per student, full subject breakdown
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_result_sheet" model="ir.actions.report">
+        <field name="name">Result Sheet</field>
+        <field name="model">edu.result.student</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_result.report_result_sheet</field>
+        <field name="report_file">edu_result.report_result_sheet</field>
+        <field name="binding_model_id" ref="model_edu_result_student"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Subject Tabulation — all students × subjects for a session
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_subject_tabulation" model="ir.actions.report">
+        <field name="name">Subject Tabulation Sheet</field>
+        <field name="model">edu.result.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_result.report_subject_tabulation</field>
+        <field name="report_file">edu_result.report_subject_tabulation</field>
+        <field name="binding_model_id" ref="model_edu_result_session"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Student Result Summary — condensed list for a session
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_result_summary" model="ir.actions.report">
+        <field name="name">Student Result Summary</field>
+        <field name="model">edu.result.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_result.report_student_result_summary</field>
+        <field name="report_file">edu_result.report_student_result_summary</field>
+        <field name="binding_model_id" ref="model_edu_result_session"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Backlog Report — failed/backlog subjects with eligibility info
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_backlog_report" model="ir.actions.report">
+        <field name="name">Backlog Report</field>
+        <field name="model">edu.result.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_result.report_backlog</field>
+        <field name="report_file">edu_result.report_backlog</field>
+        <field name="binding_model_id" ref="model_edu_result_session"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Back Exam Eligibility Report
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_back_exam_eligibility" model="ir.actions.report">
+        <field name="name">Back Exam Eligibility Report</field>
+        <field name="model">edu.result.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_result.report_back_exam_eligibility</field>
+        <field name="report_file">edu_result.report_back_exam_eligibility</field>
+        <field name="binding_model_id" ref="model_edu_result_session"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

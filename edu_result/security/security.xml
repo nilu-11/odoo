@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         PRIVILEGE
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="privilege_result_access" model="res.groups.privilege">
+        <field name="name">Results</field>
+        <field name="sequence">95</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         GROUPS  (hierarchical — each implies the one below it)
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Viewer: read-only access to all published results -->
+    <record id="group_result_viewer" model="res.groups">
+        <field name="name">Result Viewer</field>
+        <field name="privilege_id" ref="privilege_result_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Officer: compute/manage result sessions -->
+    <record id="group_result_officer" model="res.groups">
+        <field name="name">Result Officer</field>
+        <field name="privilege_id" ref="privilege_result_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_result_viewer'))]"/>
+    </record>
+
+    <!-- Publish Manager: verify/publish/lock result sessions -->
+    <record id="group_result_publish_manager" model="res.groups">
+        <field name="name">Result Publish Manager</field>
+        <field name="privilege_id" ref="privilege_result_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_result_officer'))]"/>
+    </record>
+
+    <!-- Admin: full reset/recompute authority -->
+    <record id="group_result_admin" model="res.groups">
+        <field name="name">Result Admin</field>
+        <field name="privilege_id" ref="privilege_result_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_result_publish_manager'))]"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         RECORD RULES
+    ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Result Session: Viewer sees only published/closed sessions -->
+    <record id="rule_result_session_viewer" model="ir.rule">
+        <field name="name">Result Session: Viewer sees published only</field>
+        <field name="model_id" ref="model_edu_result_session"/>
+        <field name="domain_force">[('state', 'in', ('published', 'closed'))]</field>
+        <field name="groups" eval="[(4, ref('group_result_viewer'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Result Session: Officer sees all sessions -->
+    <record id="rule_result_session_officer" model="ir.rule">
+        <field name="name">Result Session: Officer sees all</field>
+        <field name="model_id" ref="model_edu_result_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_result_officer'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Result Session: Admin full access including delete -->
+    <record id="rule_result_session_admin" model="ir.rule">
+        <field name="name">Result Session: Admin full access</field>
+        <field name="model_id" ref="model_edu_result_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_result_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Student Results: Viewer sees published only -->
+    <record id="rule_result_student_viewer" model="ir.rule">
+        <field name="name">Student Result: Viewer sees published only</field>
+        <field name="model_id" ref="model_edu_result_student"/>
+        <field name="domain_force">[('result_session_id.state', 'in', ('published', 'closed'))]</field>
+        <field name="groups" eval="[(4, ref('group_result_viewer'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Student Results: Officer sees all -->
+    <record id="rule_result_student_officer" model="ir.rule">
+        <field name="name">Student Result: Officer sees all</field>
+        <field name="model_id" ref="model_edu_result_student"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_result_officer'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>

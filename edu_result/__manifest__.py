@@ -1,0 +1,41 @@
+{
+    'name': 'Education Result Engine',
+    'version': '19.0.1.0.0',
+    'category': 'Education',
+    'summary': (
+        'Configurable result computation, grading, GPA/percentage, '
+        'backlog management, and promotion-readiness engine for EMIS'
+    ),
+    'author': 'EMIS',
+    'website': '',
+    'license': 'LGPL-3',
+    'depends': [
+        'mail',
+        'edu_academic_structure',
+        'edu_enrollment',
+        'edu_academic_progression',
+        'edu_classroom',
+        'edu_exam',
+        'edu_assessment',
+        'edu_attendance',
+    ],
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'views/edu_assessment_scheme_views.xml',
+        'views/edu_grading_scheme_views.xml',
+        'views/edu_result_rule_views.xml',
+        'views/edu_back_exam_policy_views.xml',
+        'views/edu_result_session_views.xml',
+        'views/edu_result_subject_line_views.xml',
+        'views/edu_result_student_views.xml',
+        'views/wizard_views.xml',
+        'report/edu_result_report_actions.xml',
+        'report/edu_result_report_templates.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+}
