@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Default assessment categories — institutions can add more via UI -->
+    <record id="category_assignment" model="edu.assessment.category">
+        <field name="name">Assignment</field>
+        <field name="code">ASGN</field>
+        <field name="category_type">assignment</field>
+        <field name="sequence">10</field>
+        <field name="default_max_marks">100.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_class_test" model="edu.assessment.category">
+        <field name="name">Class Test</field>
+        <field name="code">CT</field>
+        <field name="category_type">class_test</field>
+        <field name="sequence">20</field>
+        <field name="default_max_marks">25.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_project" model="edu.assessment.category">
+        <field name="name">Project</field>
+        <field name="code">PROJ</field>
+        <field name="category_type">project</field>
+        <field name="sequence">30</field>
+        <field name="default_max_marks">100.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_practical" model="edu.assessment.category">
+        <field name="name">Practical / Continuous</field>
+        <field name="code">PRAC</field>
+        <field name="category_type">practical_continuous</field>
+        <field name="sequence">40</field>
+        <field name="default_max_marks">50.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_class_performance" model="edu.assessment.category">
+        <field name="name">Class Performance</field>
+        <field name="code">PERF</field>
+        <field name="category_type">class_performance</field>
+        <field name="sequence">50</field>
+        <field name="default_max_marks">20.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_participation" model="edu.assessment.category">
+        <field name="name">Participation</field>
+        <field name="code">PART</field>
+        <field name="category_type">participation</field>
+        <field name="sequence">60</field>
+        <field name="default_max_marks">10.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_attendance_score" model="edu.assessment.category">
+        <field name="name">Attendance Score</field>
+        <field name="code">ATT</field>
+        <field name="category_type">attendance_score</field>
+        <field name="sequence">70</field>
+        <field name="default_max_marks">10.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+
+    <record id="category_observation" model="edu.assessment.category">
+        <field name="name">Observation</field>
+        <field name="code">OBS</field>
+        <field name="category_type">observation</field>
+        <field name="sequence">80</field>
+        <field name="default_max_marks">10.0</field>
+        <field name="contributes_to_result" eval="False"/>
+    </record>
+
+    <record id="category_manual" model="edu.assessment.category">
+        <field name="name">Manual / Internal</field>
+        <field name="code">MAN</field>
+        <field name="category_type">manual</field>
+        <field name="sequence">90</field>
+        <field name="default_max_marks">100.0</field>
+        <field name="contributes_to_result" eval="True"/>
+    </record>
+</odoo>

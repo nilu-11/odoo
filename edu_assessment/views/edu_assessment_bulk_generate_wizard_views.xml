@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_assessment_bulk_generate_wizard_form" model="ir.ui.view">
+        <field name="name">edu.assessment.bulk.generate.wizard.form</field>
+        <field name="model">edu.assessment.bulk.generate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Generate Assessment Records">
+                <group string="Classroom &amp; Category">
+                    <field name="classroom_id"/>
+                    <field name="category_id"/>
+                    <field name="teacher_id"/>
+                </group>
+                <group string="Context (from classroom)" invisible="not classroom_id">
+                    <field name="section_id" readonly="1"/>
+                    <field name="subject_id" readonly="1"/>
+                    <field name="program_term_id" readonly="1"/>
+                </group>
+                <group string="Assessment Details">
+                    <field name="assessment_name"
+                           placeholder="e.g. Assignment 1, Class Test 2"/>
+                    <field name="assessment_date"/>
+                    <field name="max_marks"/>
+                </group>
+                <group string="Options">
+                    <field name="avoid_duplicates"/>
+                </group>
+                <group invisible="not result_message">
+                    <field name="result_message" readonly="1"
+                           widget="char" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generate Records"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_edu_assessment_bulk_generate_wizard" model="ir.actions.act_window">
+        <field name="name">Bulk Generate Assessments</field>
+        <field name="res_model">edu.assessment.bulk.generate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

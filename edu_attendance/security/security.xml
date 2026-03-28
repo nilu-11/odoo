@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================
+         Privilege (res.groups.privilege)
+         Attendance access is a separate privilege under the
+         shared Education module category.
+    ====================================================== -->
+    <record id="privilege_attendance_access" model="res.groups.privilege">
+        <field name="name">Attendance</field>
+        <field name="sequence">80</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- ======================================================
+         Security Groups (res.groups)
+         Hierarchy: Admin → Teacher → Viewer
+    ====================================================== -->
+
+    <!-- Attendance Viewer: read-only -->
+    <record id="group_attendance_viewer" model="res.groups">
+        <field name="name">Viewer</field>
+        <field name="privilege_id" ref="privilege_attendance_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Read-only access to all attendance records.</field>
+    </record>
+
+    <!-- Attendance Teacher: manage own classroom attendance -->
+    <record id="group_attendance_teacher" model="res.groups">
+        <field name="name">Teacher</field>
+        <field name="privilege_id" ref="privilege_attendance_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_attendance_viewer'))]"/>
+        <field name="comment">Can create and manage attendance sheets for classrooms where they are the assigned teacher.</field>
+    </record>
+
+    <!-- Attendance Admin: full access -->
+    <record id="group_attendance_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_attendance_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_attendance_teacher'))]"/>
+        <field name="comment">Full access to all attendance records including register management and sheet resets.</field>
+    </record>
+
+    <!-- ======================================================
+         Record Rules
+    ====================================================== -->
+
+    <!-- Teachers see only registers for their classrooms -->
+    <record id="rule_attendance_register_teacher_own" model="ir.rule">
+        <field name="name">Attendance Register: teacher sees own classrooms only</field>
+        <field name="model_id" ref="model_edu_attendance_register"/>
+        <field name="domain_force">[('teacher_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Teachers see only sheets for their classrooms -->
+    <record id="rule_attendance_sheet_teacher_own" model="ir.rule">
+        <field name="name">Attendance Sheet: teacher sees own classrooms only</field>
+        <field name="model_id" ref="model_edu_attendance_sheet"/>
+        <field name="domain_force">[('teacher_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Teachers see only lines for their classrooms -->
+    <record id="rule_attendance_line_teacher_own" model="ir.rule">
+        <field name="name">Attendance Line: teacher sees own classrooms only</field>
+        <field name="model_id" ref="model_edu_attendance_sheet_line"/>
+        <field name="domain_force">[('classroom_id.teacher_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════
+         REPORT 1: Classroom Assessment Sheet
+         Context: docs = edu.continuous.assessment.record records
+         Groups by student, shows all assessments per student.
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_classroom_assessment_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h2>Classroom Assessment Sheet</h2>
+                                <h4 t-if="doc.classroom_id">
+                                    <t t-out="doc.classroom_id.name"/>
+                                    — <t t-out="doc.subject_id.name or ''"/>
+                                </h4>
+                                <p class="text-muted">
+                                    <span t-if="doc.section_id">
+                                        Section: <strong t-out="doc.section_id.name"/>
+                                    </span>
+                                    <span t-if="doc.program_term_id" class="ms-3">
+                                        Term: <strong t-out="doc.program_term_id.name"/>
+                                    </span>
+                                    <span t-if="doc.academic_year_id" class="ms-3">
+                                        Year: <strong t-out="doc.academic_year_id.name"/>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Assessment detail -->
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Assessment Title</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Student</th>
+                                    <th class="text-end">Max</th>
+                                    <th class="text-end">Obtained</th>
+                                    <th class="text-end">%</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td t-out="doc.name"/>
+                                    <td t-out="doc.category_id.name"/>
+                                    <td t-out="doc.assessment_date"/>
+                                    <td t-out="doc.student_id.display_name"/>
+                                    <td class="text-end" t-out="'%.1f' % doc.max_marks"/>
+                                    <td class="text-end" t-out="'%.1f' % doc.marks_obtained"/>
+                                    <td class="text-end" t-out="'%.1f%%' % doc.percentage"/>
+                                    <td t-out="dict(doc._fields['state'].selection).get(doc.state, doc.state)"/>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Remarks -->
+                        <div t-if="doc.remarks" class="mt-3">
+                            <strong>Remarks:</strong>
+                            <p t-out="doc.remarks"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         REPORT 2: Student Continuous Assessment Summary
+         Groups all selected records by student.
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_student_assessment_summary">
+        <t t-call="web.html_container">
+            <t t-set="students" t-value="docs.mapped('student_id')"/>
+            <t t-foreach="students" t-as="student">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center mb-4">
+                            <h2>Continuous Assessment Summary</h2>
+                            <h3 t-out="student.display_name"/>
+                        </div>
+
+                        <t t-set="student_records"
+                           t-value="docs.filtered(lambda r: r.student_id == student).sorted('assessment_date')"/>
+
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Subject</th>
+                                    <th class="text-end">Max</th>
+                                    <th class="text-end">Obtained</th>
+                                    <th class="text-end">%</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="student_records" t-as="rec">
+                                    <tr>
+                                        <td t-out="rec.assessment_date"/>
+                                        <td t-out="rec.name"/>
+                                        <td t-out="rec.category_id.name"/>
+                                        <td t-out="rec.subject_id.name or '—'"/>
+                                        <td class="text-end" t-out="'%.1f' % rec.max_marks"/>
+                                        <td class="text-end" t-out="'%.1f' % rec.marks_obtained"/>
+                                        <td class="text-end" t-out="'%.1f%%' % rec.percentage"/>
+                                        <td t-out="dict(rec._fields['state'].selection).get(rec.state, rec.state)"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="4"><strong>Total</strong></td>
+                                    <td class="text-end"><strong t-out="'%.1f' % sum(student_records.mapped('max_marks'))"/></td>
+                                    <td class="text-end"><strong t-out="'%.1f' % sum(student_records.mapped('marks_obtained'))"/></td>
+                                    <td colspan="2"/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         REPORT 3: Category-wise Assessment Summary
+         Groups selected records by category.
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_category_assessment_summary">
+        <t t-call="web.html_container">
+            <t t-set="categories" t-value="docs.mapped('category_id')"/>
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="text-center mb-4">
+                        <h2>Category-wise Assessment Summary</h2>
+                    </div>
+
+                    <t t-foreach="categories" t-as="cat">
+                        <h4 class="mt-3"><t t-out="cat.name"/> (<t t-out="cat.code or cat.category_type"/>)</h4>
+                        <t t-set="cat_records" t-value="docs.filtered(lambda r: r.category_id == cat)"/>
+                        <table class="table table-sm table-bordered mb-3">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Section</th>
+                                    <th class="text-end">Max</th>
+                                    <th class="text-end">Obtained</th>
+                                    <th class="text-end">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="cat_records" t-as="rec">
+                                    <tr>
+                                        <td t-out="rec.student_id.display_name"/>
+                                        <td t-out="rec.name"/>
+                                        <td t-out="rec.assessment_date"/>
+                                        <td t-out="rec.subject_id.name or '—'"/>
+                                        <td t-out="rec.section_id.name or '—'"/>
+                                        <td class="text-end" t-out="'%.1f' % rec.max_marks"/>
+                                        <td class="text-end" t-out="'%.1f' % rec.marks_obtained"/>
+                                        <td class="text-end" t-out="'%.1f%%' % rec.percentage"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="5"><strong>Category Total</strong></td>
+                                    <td class="text-end"><strong t-out="'%.1f' % sum(cat_records.mapped('max_marks'))"/></td>
+                                    <td class="text-end"><strong t-out="'%.1f' % sum(cat_records.mapped('marks_obtained'))"/></td>
+                                    <td/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         1. Exam Routine (Session → Papers)
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_exam_routine">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Exam Routine</h2>
+                        <h4 class="text-center">
+                            <t t-out="session.name"/>
+                            <t t-if="session.academic_year_id"> — <t t-out="session.academic_year_id.name"/></t>
+                        </h4>
+                        <p class="text-center text-muted">
+                            <t t-out="session.date_start"/> to <t t-out="session.date_end"/>
+                        </p>
+
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subject</th>
+                                    <th>Section</th>
+                                    <th>Teacher</th>
+                                    <th>Date</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Room</th>
+                                    <th>Max Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="papers" t-value="session.env['edu.exam.paper'].search([('exam_session_id', '=', session.id)], order='exam_date, section_id, subject_id')"/>
+                                <t t-foreach="papers" t-as="paper">
+                                    <tr>
+                                        <td><t t-out="paper_index + 1"/></td>
+                                        <td><t t-out="paper.subject_id.name or ''"/></td>
+                                        <td><t t-out="paper.section_id.name or ''"/></td>
+                                        <td><t t-out="paper.teacher_id.name or ''"/></td>
+                                        <td><t t-out="paper.exam_date or ''"/></td>
+                                        <td>
+                                            <t t-if="paper.time_from">
+                                                <t t-out="'%02d:%02d' % (int(paper.time_from), round((paper.time_from % 1) * 60))"/>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <t t-if="paper.time_to">
+                                                <t t-out="'%02d:%02d' % (int(paper.time_to), round((paper.time_to % 1) * 60))"/>
+                                            </t>
+                                        </td>
+                                        <td><t t-out="paper.room or ''"/></td>
+                                        <td class="text-end"><t t-out="paper.max_marks"/></td>
+                                    </tr>
+                                </t>
+                                <t t-if="not papers">
+                                    <tr><td colspan="9" class="text-center text-muted">No papers found for this session.</td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <p class="text-muted small mt-2">
+                            Total Papers: <t t-out="len(papers)"/>
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         2. Marks Entry Sheet (Paper → blank marks table)
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_marks_entry_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="paper">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Marks Entry Sheet</h2>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Session:</strong> <t t-out="paper.exam_session_id.name"/><br/>
+                                <strong>Subject:</strong> <t t-out="paper.subject_id.name or ''"/><br/>
+                                <strong>Section:</strong> <t t-out="paper.section_id.name or ''"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Date:</strong> <t t-out="paper.exam_date or ''"/><br/>
+                                <strong>Max Marks:</strong> <t t-out="paper.max_marks"/><br/>
+                                <strong>Pass Marks:</strong> <t t-out="paper.pass_marks"/><br/>
+                                <strong>Teacher:</strong> <t t-out="paper.teacher_id.name or ''"/><br/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width:5%">#</th>
+                                    <th style="width:35%">Student Name</th>
+                                    <th style="width:15%">Raw Marks</th>
+                                    <th style="width:15%">Grace</th>
+                                    <th style="width:15%">Final</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="marksheets" t-value="paper.env['edu.exam.marksheet'].search([('exam_paper_id', '=', paper.id), ('is_latest_attempt', '=', True)], order='student_id')"/>
+                                <t t-foreach="marksheets" t-as="ms">
+                                    <tr>
+                                        <td><t t-out="ms_index + 1"/></td>
+                                        <td><t t-out="ms.student_id.display_name"/></td>
+                                        <td>&#160;</td>
+                                        <td>&#160;</td>
+                                        <td>&#160;</td>
+                                        <td>&#160;</td>
+                                    </tr>
+                                </t>
+                                <t t-if="not marksheets">
+                                    <tr><td colspan="6" class="text-center text-muted">No students enrolled for this paper.</td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-4">
+                            <div class="col-6 text-center">
+                                <p>_________________________</p>
+                                <p>Examiner Signature</p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p>_________________________</p>
+                                <p>Controller of Examinations</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         3. Student Marksheet Print (Marksheet → student view)
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_student_marksheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="ms">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Student Marksheet</h2>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Student:</strong> <t t-out="ms.student_id.display_name"/><br/>
+                                <strong>Section:</strong> <t t-out="ms.section_id.name or ''"/><br/>
+                                <strong>Program Term:</strong> <t t-out="ms.program_term_id.name or ''"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Exam Session:</strong> <t t-out="ms.exam_session_id.name"/><br/>
+                                <strong>Academic Year:</strong> <t t-out="ms.academic_year_id.name or ''"/><br/>
+                                <strong>Attempt:</strong>
+                                <t t-out="ms.attempt_type"/> #<t t-out="ms.attempt_no"/><br/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Raw Marks</th>
+                                    <th>Grace</th>
+                                    <th>Final</th>
+                                    <th>Max</th>
+                                    <th>Pass</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><t t-out="ms.subject_id.name or ''"/></td>
+                                    <td><t t-out="ms.status"/></td>
+                                    <td class="text-end"><t t-out="ms.raw_marks"/></td>
+                                    <td class="text-end"><t t-out="ms.grace_marks"/></td>
+                                    <td class="text-end"><strong><t t-out="ms.final_marks"/></strong></td>
+                                    <td class="text-end"><t t-out="ms.max_marks"/></td>
+                                    <td class="text-end"><t t-out="ms.pass_marks"/></td>
+                                    <td>
+                                        <t t-if="ms.status == 'absent'">ABSENT</t>
+                                        <t t-elif="ms.status == 'exempt'">EXEMPT</t>
+                                        <t t-elif="ms.is_pass">
+                                            <span class="text-success fw-bold">PASS</span>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="text-danger fw-bold">FAIL</span>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="text-muted small mt-2">
+                            <t t-if="ms.attendance_percent_snapshot">
+                                Attendance: <t t-out="ms.attendance_percent_snapshot"/>%
+                            </t>
+                            <t t-if="ms.verified_by">
+                                | Verified by: <t t-out="ms.verified_by.name"/>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         4. Absent List (Paper → absent students)
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_absent_list">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="paper">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Absent List</h2>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Session:</strong> <t t-out="paper.exam_session_id.name"/><br/>
+                                <strong>Subject:</strong> <t t-out="paper.subject_id.name or ''"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Section:</strong> <t t-out="paper.section_id.name or ''"/><br/>
+                                <strong>Date:</strong> <t t-out="paper.exam_date or ''"/><br/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student Name</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="absent_ms" t-value="paper.env['edu.exam.marksheet'].search([('exam_paper_id', '=', paper.id), ('status', 'in', ('absent', 'withheld', 'malpractice')), ('is_latest_attempt', '=', True)], order='student_id')"/>
+                                <t t-foreach="absent_ms" t-as="ms">
+                                    <tr>
+                                        <td><t t-out="ms_index + 1"/></td>
+                                        <td><t t-out="ms.student_id.display_name"/></td>
+                                        <td><t t-out="ms.status"/></td>
+                                        <td><t t-out="ms.remarks or ''"/></td>
+                                    </tr>
+                                </t>
+                                <t t-if="not absent_ms">
+                                    <tr><td colspan="4" class="text-center text-muted">No absent/withheld students.</td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <p class="text-muted small mt-2">
+                            Total: <t t-out="len(absent_ms)"/> student(s)
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         5. Pending Marks Entry (Session → papers with missing entries)
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_pending_marks_entry">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="session">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Pending Marks Entry Report</h2>
+                        <h4 class="text-center"><t t-out="session.name"/></h4>
+
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subject</th>
+                                    <th>Section</th>
+                                    <th>Teacher</th>
+                                    <th>Paper State</th>
+                                    <th>Total Students</th>
+                                    <th>Marks Entered</th>
+                                    <th>Pending</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="papers" t-value="session.env['edu.exam.paper'].search([('exam_session_id', '=', session.id)], order='section_id, subject_id')"/>
+                                <t t-foreach="papers" t-as="paper">
+                                    <t t-set="total_ms" t-value="paper.env['edu.exam.marksheet'].search_count([('exam_paper_id', '=', paper.id), ('is_latest_attempt', '=', True)])"/>
+                                    <t t-set="entered_ms" t-value="paper.env['edu.exam.marksheet'].search_count([('exam_paper_id', '=', paper.id), ('is_latest_attempt', '=', True), ('status', '=', 'present'), ('raw_marks', '>', 0)])"/>
+                                    <t t-set="absent_ms" t-value="paper.env['edu.exam.marksheet'].search_count([('exam_paper_id', '=', paper.id), ('is_latest_attempt', '=', True), ('status', '!=', 'present')])"/>
+                                    <t t-set="effectively_entered" t-value="entered_ms + absent_ms"/>
+                                    <t t-set="pending" t-value="total_ms - effectively_entered"/>
+                                    <tr t-att-class="'table-warning' if pending > 0 else ''">
+                                        <td><t t-out="paper_index + 1"/></td>
+                                        <td><t t-out="paper.subject_id.name or ''"/></td>
+                                        <td><t t-out="paper.section_id.name or ''"/></td>
+                                        <td><t t-out="paper.teacher_id.name or ''"/></td>
+                                        <td><t t-out="paper.state"/></td>
+                                        <td class="text-end"><t t-out="total_ms"/></td>
+                                        <td class="text-end"><t t-out="effectively_entered"/></td>
+                                        <td class="text-end fw-bold">
+                                            <t t-if="pending > 0">
+                                                <span class="text-danger"><t t-out="pending"/></span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="text-success">0</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-if="not papers">
+                                    <tr><td colspan="8" class="text-center text-muted">No papers in this session.</td></tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

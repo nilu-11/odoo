@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Continuous Assessment — Root Menu
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_edu_assessment_root"
+              name="Continuous Assessment"
+              parent="edu_academic_structure.menu_education_root"
+              sequence="85"
+              groups="edu_assessment.group_assessment_viewer,edu_assessment.group_assessment_teacher,edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── All Assessment Records ─────────────────────────── -->
+    <menuitem id="menu_edu_assessment_records"
+              name="Assessment Records"
+              parent="menu_edu_assessment_root"
+              action="action_edu_continuous_assessment_record_all"
+              sequence="10"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── My Assessments (teacher) ──────────────────────── -->
+    <menuitem id="menu_edu_assessment_mine"
+              name="My Assessments"
+              parent="menu_edu_assessment_root"
+              action="action_edu_continuous_assessment_record_mine"
+              sequence="20"
+              groups="edu_assessment.group_assessment_teacher"/>
+
+    <!-- ── Pending Entries ────────────────────────────────── -->
+    <menuitem id="menu_edu_assessment_pending"
+              name="Pending Entries"
+              parent="menu_edu_assessment_root"
+              action="action_edu_continuous_assessment_record_pending"
+              sequence="30"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+
+    <!-- ── Reports ────────────────────────────────────────── -->
+    <!-- <menuitem id="menu_edu_assessment_reports"
+              name="Reports"
+              parent="menu_edu_assessment_root"
+              sequence="70"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_assessment_report_classroom_sheet"
+              name="Classroom Assessment Sheet"
+              parent="menu_edu_assessment_reports"
+              action="action_report_edu_assessment_classroom_sheet"
+              sequence="10"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_assessment_report_student_summary"
+              name="Student Assessment Summary"
+              parent="menu_edu_assessment_reports"
+              action="action_report_edu_assessment_student_summary"
+              sequence="20"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_assessment_report_category_summary"
+              name="Category Summary"
+              parent="menu_edu_assessment_reports"
+              action="action_report_edu_assessment_category_summary"
+              sequence="30"
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- ── Configuration ─────────────────────────────────── -->
+    <menuitem id="menu_edu_assessment_config"
+              name="Configuration"
+              parent="menu_edu_assessment_root"
+              sequence="90"
+              groups="edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_assessment_categories"
+              name="Assessment Categories"
+              parent="menu_edu_assessment_config"
+              action="action_edu_assessment_category"
+              sequence="10"
+              groups="edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+</odoo>

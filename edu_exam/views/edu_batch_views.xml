@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.batch form — inject Exam Sessions smart button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_batch_form_exam_button" model="ir.ui.view">
+        <field name="name">edu.batch.form.exam.button</field>
+        <field name="model">edu.batch</field>
+        <field name="inherit_id" ref="edu_academic_structure.view_edu_batch_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_exam_sessions"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-pencil-square-o"
+                        groups="edu_exam.group_exam_viewer,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer">
+                    <field name="exam_session_count" widget="statinfo" string="Exam Sessions"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

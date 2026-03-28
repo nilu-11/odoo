@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Defaulters Report — Pivot View
+         Shows attendance lines grouped by student so staff
+         can identify students below the configured threshold.
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_defaulters_pivot" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.line.pivot.defaulters</field>
+        <field name="model">edu.attendance.sheet.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Attendance Report">
+                <field name="student_id" type="row"/>
+                <field name="status" type="col"/>
+                <field name="session_date" type="row" invisible="1"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Defaulters Report — Graph View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_defaulters_graph" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.line.graph.defaulters</field>
+        <field name="model">edu.attendance.sheet.line</field>
+        <field name="arch" type="xml">
+            <graph string="Attendance Report" type="bar">
+                <field name="student_id" type="row"/>
+                <field name="status" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Defaulters Report — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_defaulters_list" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.line.list.defaulters</field>
+        <field name="model">edu.attendance.sheet.line</field>
+        <field name="arch" type="xml">
+            <list string="Attendance Lines" create="false" delete="false">
+                <field name="student_id"/>
+                <field name="roll_number" string="Roll No"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="session_date"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'present'"
+                       decoration-danger="status == 'absent'"
+                       decoration-warning="status == 'late'"
+                       decoration-info="status == 'excused'"/>
+                <field name="note" optional="show"/>
+                <field name="academic_year_id" optional="hide"/>
+                <field name="sheet_state" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Defaulters Report Action
+         Pre-filtered to submitted sheets, grouped by student
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_attendance_defaulters" model="ir.actions.act_window">
+        <field name="name">Attendance Report</field>
+        <field name="res_model">edu.attendance.sheet.line</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('sheet_state', '=', 'submitted')]</field>
+        <field name="context">{
+            'search_default_group_student': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No submitted attendance data yet.
+            </p>
+            <p>
+                Submit attendance sheets to see the attendance report here.
+                Use the pivot view to identify students below the threshold
+                set in Configuration → Settings.
+            </p>
+        </field>
+    </record>
+</odoo>

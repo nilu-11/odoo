@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Examinations Root Menu
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_edu_exam_root"
+              name="Examinations"
+              parent="edu_academic_structure.menu_education_root"
+              sequence="90"
+              groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── Exam Sessions ──────────────────────────────────── -->
+    <menuitem id="menu_edu_exam_sessions"
+              name="Exam Sessions"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_session_all"
+              sequence="10"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── Exam Papers ────────────────────────────────────── -->
+    <menuitem id="menu_edu_exam_papers"
+              name="Exam Papers"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_paper_all"
+              sequence="20"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── My Exam Papers (teacher) ──────────────────────── -->
+    <menuitem id="menu_edu_exam_my_papers"
+              name="My Exam Papers"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_paper_mine"
+              sequence="30"
+              groups="edu_exam.group_exam_teacher"/>
+
+    <!-- ── Marksheets ─────────────────────────────────────── -->
+    <menuitem id="menu_edu_exam_marksheets"
+              name="Marksheets"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_marksheet_all"
+              sequence="40"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- ── Back Exams ─────────────────────────────────────── -->
+    <menuitem id="menu_edu_exam_back_exams"
+              name="Back Exams"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_session_back"
+              sequence="50"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+
+    <!-- ── Reports ────────────────────────────────────────── -->
+    <!-- <menuitem id="menu_edu_exam_reports"
+              name="Reports"
+              parent="menu_edu_exam_root"
+              sequence="80"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- <menuitem id="menu_edu_exam_report_routine"
+              name="Exam Routine"
+              parent="menu_edu_exam_reports"
+              action="action_report_edu_exam_routine"
+              sequence="10"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- <menuitem id="menu_edu_exam_report_marks_entry_sheet"
+              name="Marks Entry Sheet"
+              parent="menu_edu_exam_reports"
+              action="action_report_edu_marks_entry_sheet"
+              sequence="20"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- <menuitem id="menu_edu_exam_report_student_marksheet"
+              name="Student Marksheet"
+              parent="menu_edu_exam_reports"
+              action="action_report_edu_student_marksheet"
+              sequence="30"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- <menuitem id="menu_edu_exam_report_absent_list"
+              name="Absent List"
+              parent="menu_edu_exam_reports"
+              action="action_report_edu_exam_absent_list"
+              sequence="40"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/> -->
+
+    <!-- ── Configuration ─────────────────────────────────── -->
+    <menuitem id="menu_edu_exam_config"
+              name="Configuration"
+              parent="menu_edu_exam_root"
+              sequence="90"
+              groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_assessment_schemes"
+              name="Assessment Schemes"
+              parent="menu_edu_exam_config"
+              action="action_edu_assessment_scheme"
+              sequence="10"
+              groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_back_exam_policies"
+              name="Back Exam Policies"
+              parent="menu_edu_exam_config"
+              action="action_edu_back_exam_policy"
+              sequence="20"
+              groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+</odoo>

@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_classroom_education_admin,edu.classroom education admin,model_edu_classroom,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_classroom_admin,edu.classroom classroom admin,model_edu_classroom,edu_classroom.group_classroom_admin,1,1,1,1
+access_edu_classroom_teacher,edu.classroom classroom teacher,model_edu_classroom,edu_classroom.group_classroom_teacher,1,1,0,0
+access_edu_classroom_viewer,edu.classroom classroom viewer,model_edu_classroom,edu_classroom.group_classroom_viewer,1,0,0,0
+access_edu_classroom_academic_officer,edu.classroom academic officer,model_edu_classroom,edu_academic_structure.group_academic_officer,1,1,1,0
+access_edu_classroom_academic_viewer,edu.classroom academic viewer,model_edu_classroom,edu_academic_structure.group_academic_viewer,1,0,0,0

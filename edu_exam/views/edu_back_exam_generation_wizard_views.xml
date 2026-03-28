@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.back.exam.generation.wizard — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_back_exam_generation_wizard_form" model="ir.ui.view">
+        <field name="name">edu.back.exam.generation.wizard.form</field>
+        <field name="model">edu.back.exam.generation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Back Exam">
+                <sheet>
+                    <group string="Mode">
+                        <field name="mode"/>
+                        <field name="existing_exam_session_id"
+                               invisible="mode != 'use_existing_session'"/>
+                        <field name="name"
+                               invisible="mode != 'create_new_session'"/>
+                    </group>
+
+                    <group string="References">
+                        <group>
+                            <field name="based_on_exam_session_id"/>
+                            <field name="based_on_result_session_id"/>
+                        </group>
+                        <group>
+                            <field name="back_exam_policy_id"/>
+                        </group>
+                    </group>
+
+                    <group string="Session Details">
+                        <group>
+                            <field name="attempt_type"/>
+                            <field name="academic_year_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+
+                    <separator string="Candidates"/>
+                    <field name="candidate_line_ids">
+                        <list editable="bottom">
+                            <field name="include"/>
+                            <field name="student_id"/>
+                            <field name="subject_id" readonly="1"/>
+                            <field name="curriculum_line_id"/>
+                            <field name="section_id"/>
+                            <field name="previous_marksheet_id"/>
+                            <field name="attempt_no"/>
+                            <field name="student_progression_history_id" optional="hide"/>
+                        </list>
+                    </field>
+
+                    <div invisible="not result_summary" class="alert alert-success mt-2">
+                        <field name="result_summary" readonly="1"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_generate" string="Generate Back Exam"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_edu_back_exam_generation_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Back Exam</field>
+        <field name="res_model">edu.back.exam.generation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

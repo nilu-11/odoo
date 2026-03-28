@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Classrooms — sub-menu under the Education root -->
+    <menuitem id="menu_edu_classroom_root" name="Classrooms" parent="edu_academic_structure.menu_education_root" sequence="20" groups="edu_classroom.group_classroom_admin,edu_classroom.group_classroom_teacher,edu_classroom.group_classroom_viewer,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
+    <menuitem id="menu_edu_classroom_all" name="All Classrooms" parent="menu_edu_classroom_root" action="action_edu_classroom_all" sequence="10" groups="edu_classroom.group_classroom_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
+    <menuitem id="menu_edu_classroom_mine" name="My Classrooms" parent="menu_edu_classroom_root" action="action_edu_classroom_mine" sequence="20" groups="edu_classroom.group_classroom_teacher"/>
+</odoo>

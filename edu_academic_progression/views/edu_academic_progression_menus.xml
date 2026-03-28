@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Academic Progression — menu items
+         Placed under the existing "Academic" sub-menu from
+         edu_academic_structure (menu_edu_academic).
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- Separator-level parent under Academic -->
+    <menuitem id="menu_edu_progression"
+              name="Progression"
+              parent="edu_academic_structure.menu_edu_academic"
+              sequence="50"
+              groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_progression_history"
+              name="Progression History"
+              parent="menu_edu_progression"
+              sequence="10"
+              action="edu_academic_progression.action_edu_progression_history"
+              groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+</odoo>

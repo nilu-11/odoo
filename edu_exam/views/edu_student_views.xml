@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.student form — inject Exam Marksheets smart button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form_exam_button" model="ir.ui.view">
+        <field name="name">edu.student.form.exam.button</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_exam_marksheets"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-pencil-square"
+                        groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_academic_structure.group_education_admin">
+                    <field name="exam_marksheet_count" widget="statinfo" string="Marksheets"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

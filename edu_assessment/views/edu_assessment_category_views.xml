@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.assessment.category — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_assessment_category_search" model="ir.ui.view">
+        <field name="name">edu.assessment.category.search</field>
+        <field name="model">edu.assessment.category</field>
+        <field name="arch" type="xml">
+            <search string="Search Categories">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="filter_contributes" string="Contributes to Result"
+                        domain="[('contributes_to_result', '=', True)]"/>
+                <filter name="filter_archived" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_category_type" string="Type"
+                            context="{'group_by': 'category_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.assessment.category — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_assessment_category_list" model="ir.ui.view">
+        <field name="name">edu.assessment.category.list</field>
+        <field name="model">edu.assessment.category</field>
+        <field name="arch" type="xml">
+            <list string="Assessment Categories">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category_type"/>
+                <field name="default_max_marks"/>
+                <field name="contributes_to_result"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.assessment.category — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_assessment_category_form" model="ir.ui.view">
+        <field name="name">edu.assessment.category.form</field>
+        <field name="model">edu.assessment.category</field>
+        <field name="arch" type="xml">
+            <form string="Assessment Category">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Category Name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="code"/>
+                            <field name="category_type"/>
+                            <field name="sequence"/>
+                            <field name="default_max_marks"/>
+                            <field name="contributes_to_result"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Company">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Description or usage notes..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_edu_assessment_category" model="ir.actions.act_window">
+        <field name="name">Assessment Categories</field>
+        <field name="res_model">edu.assessment.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

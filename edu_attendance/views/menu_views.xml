@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Attendance — Top-level menu (under Education root) -->
+    <menuitem id="menu_edu_attendance_root" name="Attendance" parent="edu_academic_structure.menu_education_root" sequence="80" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- Registers -->
+    <menuitem id="menu_edu_attendance_registers" name="Registers" parent="menu_edu_attendance_root" action="action_edu_attendance_register_all" sequence="10" groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- All Sheets -->
+    <menuitem id="menu_edu_attendance_sheets" name="Sheets" parent="menu_edu_attendance_root" action="action_edu_attendance_sheet_all" sequence="20" groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- My Sheets (for teachers) -->
+    <menuitem id="menu_edu_attendance_my_sheets" name="My Sheets" parent="menu_edu_attendance_root" action="action_edu_attendance_sheet_mine" sequence="30" groups="edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+
+    <!-- Attendance Report / Defaulters -->
+    <menuitem id="menu_edu_attendance_defaulters" name="Attendance Report" parent="menu_edu_attendance_root" action="action_edu_attendance_defaulters" sequence="40" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+</odoo>

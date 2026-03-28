@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.marksheet.generate.wizard — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_marksheet_generate_wizard_form" model="ir.ui.view">
+        <field name="name">edu.exam.marksheet.generate.wizard.form</field>
+        <field name="model">edu.exam.marksheet.generate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Marksheets">
+                <sheet>
+                    <group string="Session">
+                        <field name="exam_session_id"/>
+                    </group>
+                    <group string="Paper Filter">
+                        <field name="paper_ids" widget="many2many_tags"
+                               domain="[('exam_session_id', '=', exam_session_id)]"/>
+                        <field name="section_ids" widget="many2many_tags"/>
+                    </group>
+                    <group string="Attempt">
+                        <group>
+                            <field name="attempt_type"/>
+                            <field name="attempt_no"/>
+                        </group>
+                        <group>
+                            <field name="snapshot_attendance"/>
+                        </group>
+                    </group>
+
+                    <div invisible="not result_message" class="alert alert-success">
+                        <field name="result_message" readonly="1"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_generate" string="Generate Marksheets"
+                            type="object" class="btn-primary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_edu_exam_marksheet_generate_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Marksheets</field>
+        <field name="res_model">edu.exam.marksheet.generate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,59 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_assessment_scheme_viewer,edu.assessment.scheme viewer,model_edu_assessment_scheme,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_assessment_scheme_officer,edu.assessment.scheme officer,model_edu_assessment_scheme,edu_exam.group_exam_officer,1,1,1,0
+access_edu_assessment_scheme_admin,edu.assessment.scheme admin,model_edu_assessment_scheme,edu_exam.group_exam_admin,1,1,1,1
+access_edu_assessment_scheme_edu_admin,edu.assessment.scheme edu admin,model_edu_assessment_scheme,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_assessment_scheme_line_viewer,edu.assessment.scheme.line viewer,model_edu_assessment_scheme_line,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_assessment_scheme_line_officer,edu.assessment.scheme.line officer,model_edu_assessment_scheme_line,edu_exam.group_exam_officer,1,1,1,0
+access_edu_assessment_scheme_line_admin,edu.assessment.scheme.line admin,model_edu_assessment_scheme_line,edu_exam.group_exam_admin,1,1,1,1
+access_edu_assessment_scheme_line_edu_admin,edu.assessment.scheme.line edu admin,model_edu_assessment_scheme_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_result_session_viewer,edu.result.session viewer,model_edu_result_session,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_result_session_officer,edu.result.session officer,model_edu_result_session,edu_exam.group_exam_officer,1,1,1,0
+access_edu_result_session_admin,edu.result.session admin,model_edu_result_session,edu_exam.group_exam_admin,1,1,1,1
+access_edu_result_session_edu_admin,edu.result.session edu admin,model_edu_result_session,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_result_marksheet_viewer,edu.result.marksheet viewer,model_edu_result_marksheet,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_result_marksheet_officer,edu.result.marksheet officer,model_edu_result_marksheet,edu_exam.group_exam_officer,1,1,1,0
+access_edu_result_marksheet_admin,edu.result.marksheet admin,model_edu_result_marksheet,edu_exam.group_exam_admin,1,1,1,1
+access_edu_result_marksheet_edu_admin,edu.result.marksheet edu admin,model_edu_result_marksheet,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_back_exam_policy_viewer,edu.back.exam.policy viewer,model_edu_back_exam_policy,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_back_exam_policy_officer,edu.back.exam.policy officer,model_edu_back_exam_policy,edu_exam.group_exam_officer,1,1,1,0
+access_edu_back_exam_policy_admin,edu.back.exam.policy admin,model_edu_back_exam_policy,edu_exam.group_exam_admin,1,1,1,1
+access_edu_back_exam_policy_edu_admin,edu.back.exam.policy edu admin,model_edu_back_exam_policy,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_session_viewer,edu.exam.session viewer,model_edu_exam_session,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_exam_session_teacher,edu.exam.session teacher,model_edu_exam_session,edu_exam.group_exam_teacher,1,0,0,0
+access_edu_exam_session_officer,edu.exam.session officer,model_edu_exam_session,edu_exam.group_exam_officer,1,1,1,0
+access_edu_exam_session_publish_manager,edu.exam.session publish manager,model_edu_exam_session,edu_exam.group_exam_publish_manager,1,1,1,0
+access_edu_exam_session_admin,edu.exam.session admin,model_edu_exam_session,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_session_edu_admin,edu.exam.session edu admin,model_edu_exam_session,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_paper_viewer,edu.exam.paper viewer,model_edu_exam_paper,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_exam_paper_teacher,edu.exam.paper teacher,model_edu_exam_paper,edu_exam.group_exam_teacher,1,1,0,0
+access_edu_exam_paper_officer,edu.exam.paper officer,model_edu_exam_paper,edu_exam.group_exam_officer,1,1,1,0
+access_edu_exam_paper_publish_manager,edu.exam.paper publish manager,model_edu_exam_paper,edu_exam.group_exam_publish_manager,1,1,1,0
+access_edu_exam_paper_admin,edu.exam.paper admin,model_edu_exam_paper,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_paper_edu_admin,edu.exam.paper edu admin,model_edu_exam_paper,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_paper_component_viewer,edu.exam.paper.component viewer,model_edu_exam_paper_component,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_exam_paper_component_teacher,edu.exam.paper.component teacher,model_edu_exam_paper_component,edu_exam.group_exam_teacher,1,1,0,0
+access_edu_exam_paper_component_officer,edu.exam.paper.component officer,model_edu_exam_paper_component,edu_exam.group_exam_officer,1,1,1,0
+access_edu_exam_paper_component_admin,edu.exam.paper.component admin,model_edu_exam_paper_component,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_paper_component_edu_admin,edu.exam.paper.component edu admin,model_edu_exam_paper_component,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_marksheet_viewer,edu.exam.marksheet viewer,model_edu_exam_marksheet,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_exam_marksheet_teacher,edu.exam.marksheet teacher,model_edu_exam_marksheet,edu_exam.group_exam_teacher,1,1,0,0
+access_edu_exam_marksheet_officer,edu.exam.marksheet officer,model_edu_exam_marksheet,edu_exam.group_exam_officer,1,1,1,0
+access_edu_exam_marksheet_publish_manager,edu.exam.marksheet publish manager,model_edu_exam_marksheet,edu_exam.group_exam_publish_manager,1,1,1,0
+access_edu_exam_marksheet_admin,edu.exam.marksheet admin,model_edu_exam_marksheet,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_marksheet_edu_admin,edu.exam.marksheet edu admin,model_edu_exam_marksheet,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_marksheet_component_viewer,edu.exam.marksheet.component viewer,model_edu_exam_marksheet_component,edu_exam.group_exam_viewer,1,0,0,0
+access_edu_exam_marksheet_component_teacher,edu.exam.marksheet.component teacher,model_edu_exam_marksheet_component,edu_exam.group_exam_teacher,1,1,0,0
+access_edu_exam_marksheet_component_officer,edu.exam.marksheet.component officer,model_edu_exam_marksheet_component,edu_exam.group_exam_officer,1,1,1,0
+access_edu_exam_marksheet_component_admin,edu.exam.marksheet.component admin,model_edu_exam_marksheet_component,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_marksheet_component_edu_admin,edu.exam.marksheet.component edu admin,model_edu_exam_marksheet_component,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_paper_generate_wizard_officer,edu.exam.paper.generate.wizard officer,model_edu_exam_paper_generate_wizard,edu_exam.group_exam_officer,1,1,1,1
+access_edu_exam_paper_generate_wizard_edu_admin,edu.exam.paper.generate.wizard edu admin,model_edu_exam_paper_generate_wizard,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_paper_generate_wizard_line_officer,edu.exam.paper.generate.wizard.line officer,model_edu_exam_paper_generate_wizard_line,edu_exam.group_exam_officer,1,1,1,1
+access_edu_exam_paper_generate_wizard_line_edu_admin,edu.exam.paper.generate.wizard.line edu admin,model_edu_exam_paper_generate_wizard_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_marksheet_generate_wizard_officer,edu.exam.marksheet.generate.wizard officer,model_edu_exam_marksheet_generate_wizard,edu_exam.group_exam_officer,1,1,1,1
+access_edu_exam_marksheet_generate_wizard_edu_admin,edu.exam.marksheet.generate.wizard edu admin,model_edu_exam_marksheet_generate_wizard,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_back_exam_generation_wizard_officer,edu.back.exam.generation.wizard officer,model_edu_back_exam_generation_wizard,edu_exam.group_exam_officer,1,1,1,1
+access_edu_back_exam_generation_wizard_edu_admin,edu.back.exam.generation.wizard edu admin,model_edu_back_exam_generation_wizard,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_back_exam_candidate_line_officer,edu.back.exam.candidate.line officer,model_edu_back_exam_candidate_line,edu_exam.group_exam_officer,1,1,1,1
+access_edu_back_exam_candidate_line_edu_admin,edu.back.exam.candidate.line edu admin,model_edu_back_exam_candidate_line,edu_academic_structure.group_education_admin,1,1,1,1

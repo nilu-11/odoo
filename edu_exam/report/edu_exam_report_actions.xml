@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         1. Exam Routine / Schedule
+            Model: edu.exam.session  (prints all papers for a session)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_exam_routine" model="ir.actions.report">
+        <field name="name">Exam Routine</field>
+        <field name="model">edu.exam.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_exam_routine</field>
+        <field name="report_file">edu_exam.report_exam_routine</field>
+        <field name="binding_model_id" ref="model_edu_exam_session"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         2. Marks Entry Sheet
+            Model: edu.exam.paper  (blank sheet per paper — students listed)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_marks_entry_sheet" model="ir.actions.report">
+        <field name="name">Marks Entry Sheet</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_marks_entry_sheet</field>
+        <field name="report_file">edu_exam.report_marks_entry_sheet</field>
+        <field name="binding_model_id" ref="model_edu_exam_paper"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         3. Student Marksheet Print
+            Model: edu.exam.marksheet  (per student, all subjects in session)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_student_marksheet" model="ir.actions.report">
+        <field name="name">Student Marksheet</field>
+        <field name="model">edu.exam.marksheet</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_student_marksheet</field>
+        <field name="report_file">edu_exam.report_student_marksheet</field>
+        <field name="binding_model_id" ref="model_edu_exam_marksheet"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         4. Absent List
+            Model: edu.exam.paper  (list of absent students for each paper)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_exam_absent_list" model="ir.actions.report">
+        <field name="name">Absent List</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_absent_list</field>
+        <field name="report_file">edu_exam.report_absent_list</field>
+        <field name="binding_model_id" ref="model_edu_exam_paper"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         5. Pending Marks Entry
+            Model: edu.exam.session  (papers in marks_entry with missing entries)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_pending_marks_entry" model="ir.actions.report">
+        <field name="name">Pending Marks Entry</field>
+        <field name="model">edu.exam.session</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_pending_marks_entry</field>
+        <field name="report_file">edu_exam.report_pending_marks_entry</field>
+        <field name="binding_model_id" ref="model_edu_exam_session"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

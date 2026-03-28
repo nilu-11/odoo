@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Progression History — Search
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_progression_history_search" model="ir.ui.view">
+        <field name="name">edu.student.progression.history.search</field>
+        <field name="model">edu.student.progression.history</field>
+        <field name="arch" type="xml">
+            <search string="Progression History">
+                <field name="student_id"/>
+                <field name="batch_id"/>
+                <field name="program_id"/>
+                <field name="program_term_id"/>
+                <field name="academic_year_id"/>
+                <field name="section_id"/>
+                <field name="enrollment_id"/>
+                <separator/>
+                <filter string="Active"    name="state_active"
+                        domain="[('state', '=', 'active')]"/>
+                <filter string="Promoted"  name="state_promoted"
+                        domain="[('state', '=', 'promoted')]"/>
+                <filter string="Completed" name="state_completed"
+                        domain="[('state', '=', 'completed')]"/>
+                <filter string="Repeated"  name="state_repeated"
+                        domain="[('state', '=', 'repeated')]"/>
+                <filter string="Cancelled" name="state_cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="Closed" name="closed"
+                        domain="[('state', 'in', ['promoted', 'completed', 'repeated', 'cancelled'])]"/>
+                <group name="group_by">
+                    <filter string="State"         name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Batch"         name="group_batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter string="Program"       name="group_program"
+                            context="{'group_by': 'program_id'}"/>
+                    <filter string="Academic Year" name="group_year"
+                            context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Progression"   name="group_term"
+                            context="{'group_by': 'program_term_id'}"/>
+                    <filter string="Section"       name="group_section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter string="Department"    name="group_department"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter string="Start Month"   name="group_start_month"
+                            context="{'group_by': 'start_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Progression History — List
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_progression_history_list" model="ir.ui.view">
+        <field name="name">edu.student.progression.history.list</field>
+        <field name="model">edu.student.progression.history</field>
+        <field name="arch" type="xml">
+            <list string="Progression History"
+                  default_order="start_date desc"
+                  decoration-success="state == 'active'"
+                  decoration-info="state == 'completed'"
+                  decoration-muted="state in ('promoted', 'cancelled')"
+                  decoration-warning="state == 'repeated'">
+                <field name="student_id"/>
+                <field name="batch_id"/>
+                <field name="program_term_id" string="Progression"/>
+                <field name="progression_no"  optional="hide"/>
+                <field name="section_id"      optional="show"/>
+                <field name="academic_year_id"/>
+                <field name="start_date"/>
+                <field name="end_date"        optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'completed'"
+                       decoration-warning="state == 'repeated'"
+                       decoration-muted="state in ('promoted', 'cancelled')"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Progression History — Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_progression_history_form" model="ir.ui.view">
+        <field name="name">edu.student.progression.history.form</field>
+        <field name="model">edu.student.progression.history</field>
+        <field name="arch" type="xml">
+            <form string="Progression History">
+                <header>
+                    <button name="action_cancel"
+                            string="Cancel Progression"
+                            type="object"
+                            class="btn-danger"
+                            invisible="state != 'active'"
+                            confirm="Cancel this progression record? This action closes it without promotion."
+                            groups="edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,promoted,completed"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Student">
+                            <field name="student_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="enrollment_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                        </group>
+                        <group string="Period">
+                            <field name="start_date"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="end_date"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                        </group>
+                    </group>
+
+                    <group string="Academic Placement">
+                        <group>
+                            <field name="program_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="batch_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="program_term_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="progression_label" readonly="1"/>
+                            <field name="academic_year_id"
+                                   readonly="state in ('promoted','completed','repeated','cancelled')"/>
+                            <field name="section_id"
+                                   domain="[('batch_id', '=', batch_id)]"/>
+                        </group>
+                    </group>
+
+                    <group string="Notes">
+                        <field name="remarks" nolabel="1" colspan="2"
+                               placeholder="Optional remarks for this progression period…"/>
+                    </group>
+
+                    <group string="Audit" invisible="state == 'active'">
+                        <group>
+                            <field name="closed_by_user_id" readonly="1"/>
+                            <field name="closed_on"         readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="promoted_from_id" readonly="1"/>
+                            <field name="promoted_to_id"   readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Progression History — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_progression_history" model="ir.actions.act_window">
+        <field name="name">Progression History</field>
+        <field name="res_model">edu.student.progression.history</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_edu_progression_history_search"/>
+        <field name="context">{'search_default_state_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No progression records found.
+            </p>
+            <p>
+                Progression history records are created automatically when a
+                student is enrolled. Use the Batch Promotion Wizard to advance
+                a batch to the next semester or term.
+            </p>
+        </field>
+    </record>
+</odoo>

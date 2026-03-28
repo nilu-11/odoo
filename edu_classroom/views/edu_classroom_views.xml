@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Classroom — Search View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_search" model="ir.ui.view">
+        <field name="name">edu.classroom.search</field>
+        <field name="model">edu.classroom</field>
+        <field name="arch" type="xml">
+            <search string="Search Classrooms">
+                <field name="name" string="Classroom"/>
+                <field name="code"/>
+                <field name="batch_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="teacher_id"/>
+                <field name="program_term_id"/>
+
+                <!-- Filters -->
+                <filter name="filter_my_classrooms"
+                        string="My Classrooms"
+                        domain="[('teacher_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_draft"
+                        string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_active"
+                        string="Active"
+                        domain="[('state', '=', 'active')]"/>
+                <filter name="filter_closed"
+                        string="Closed"
+                        domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter name="filter_no_teacher"
+                        string="No Teacher Assigned"
+                        domain="[('teacher_id', '=', False)]"/>
+
+                <!-- Group By -->
+                <group name="group_by">
+                    <filter name="group_batch"
+                            string="Batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_section"
+                            string="Section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter name="group_program_term"
+                            string="Program Term"
+                            context="{'group_by': 'program_term_id'}"/>
+                    <filter name="group_subject"
+                            string="Subject"
+                            context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_teacher"
+                            string="Teacher"
+                            context="{'group_by': 'teacher_id'}"/>
+                    <filter name="group_state"
+                            string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Classroom — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_list" model="ir.ui.view">
+        <field name="name">edu.classroom.list</field>
+        <field name="model">edu.classroom</field>
+        <field name="arch" type="xml">
+            <list string="Classrooms" multi_edit="1">
+                <field name="name"/>
+                <field name="batch_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="program_term_id"/>
+                <field name="teacher_id"/>
+                <field name="student_count" string="Students"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-muted="state == 'closed'"/>
+                <!-- Optional columns -->
+                <field name="academic_year_id" optional="hide"/>
+                <field name="department_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Classroom — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_form" model="ir.ui.view">
+        <field name="name">edu.classroom.form</field>
+        <field name="model">edu.classroom</field>
+        <field name="arch" type="xml">
+            <form string="Classroom">
+                <header>
+                    <button name="action_activate"
+                            string="Activate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_classroom.group_classroom_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+                    <button name="action_close"
+                            string="Close"
+                            type="object"
+                            invisible="state != 'active'"
+                            groups="edu_classroom.group_classroom_admin,edu_academic_structure.group_education_admin"/>
+                    <button name="action_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'closed'"
+                            groups="edu_classroom.group_classroom_admin,edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,closed"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_students"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users">
+                            <field name="student_count"
+                                   widget="statinfo"
+                                   string="Students"/>
+                        </button>
+                        <button name="action_view_attendance_register"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar-check-o">
+                            <field name="attendance_count"
+                                   widget="statinfo"
+                                   string="Sessions"/>
+                        </button>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                   placeholder="Classroom name..."/>
+                        </h1>
+                        <h4>
+                            <field name="code"
+                                   placeholder="Code..."/>
+                        </h4>
+                    </div>
+
+                    <group>
+                        <group string="Academic Context">
+                            <field name="batch_id"/>
+                            <field name="section_id"/>
+                            <field name="program_term_id"/>
+                            <field name="curriculum_line_id"/>
+                            <field name="subject_id" readonly="1"/>
+                            <field name="academic_year_id" readonly="1"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="teacher_id"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="company_id"
+                                   readonly="1"
+                                   groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Notes">
+                            <field name="notes"
+                                   placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Window Actions
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- All Classrooms -->
+    <record id="action_edu_classroom_all" model="ir.actions.act_window">
+        <field name="name">Classrooms</field>
+        <field name="res_model">edu.classroom</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No classrooms found.
+            </p>
+            <p>
+                Create a classroom to link a subject, section, and teacher
+                for a program term.
+            </p>
+        </field>
+    </record>
+
+    <!-- My Classrooms (filtered to the current teacher) -->
+    <record id="action_edu_classroom_mine" model="ir.actions.act_window">
+        <field name="name">My Classrooms</field>
+        <field name="res_model">edu.classroom</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_classrooms': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No classrooms assigned to you yet.
+            </p>
+            <p>
+                Classrooms will appear here once an administrator assigns
+                you as the teacher.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Expose attendance_register_id on the classroom form (optional/hidden field).
+         The smart button is already present in edu_classroom; this just makes
+         the linked register browsable from the form if needed. -->
+    <record id="view_edu_classroom_form_attendance_inherit" model="ir.ui.view">
+        <field name="name">edu.classroom.form.attendance.inherit</field>
+        <field name="model">edu.classroom</field>
+        <field name="inherit_id" ref="edu_classroom.view_edu_classroom_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <group string="Attendance" invisible="not attendance_register_id">
+                    <field name="attendance_register_id" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

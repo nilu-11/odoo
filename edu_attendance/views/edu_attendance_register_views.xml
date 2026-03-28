@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Register — Search View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_register_search" model="ir.ui.view">
+        <field name="name">edu.attendance.register.search</field>
+        <field name="model">edu.attendance.register</field>
+        <field name="arch" type="xml">
+            <search string="Search Registers">
+                <field name="name"/>
+                <field name="classroom_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="batch_id"/>
+                <field name="teacher_id"/>
+
+                <filter name="filter_my_registers"
+                        string="My Registers"
+                        domain="[('teacher_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_open"
+                        string="Open"
+                        domain="[('state', '=', 'open')]"/>
+                <filter name="filter_closed"
+                        string="Closed"
+                        domain="[('state', '=', 'closed')]"/>
+
+                <group name="group_by">
+                    <filter name="group_batch"
+                            string="Batch"
+                            context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_section"
+                            string="Section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter name="group_subject"
+                            string="Subject"
+                            context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_teacher"
+                            string="Teacher"
+                            context="{'group_by': 'teacher_id'}"/>
+                    <filter name="group_state"
+                            string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Register — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_register_list" model="ir.ui.view">
+        <field name="name">edu.attendance.register.list</field>
+        <field name="model">edu.attendance.register</field>
+        <field name="arch" type="xml">
+            <list string="Attendance Registers">
+                <field name="name"/>
+                <field name="classroom_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="program_term_id"/>
+                <field name="teacher_id"/>
+                <field name="sheet_count" string="Sessions"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'open'"
+                       decoration-muted="state == 'closed'"/>
+                <field name="academic_year_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Register — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_register_form" model="ir.ui.view">
+        <field name="name">edu.attendance.register.form</field>
+        <field name="model">edu.attendance.register</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Register">
+                <header>
+                    <button name="action_close"
+                            string="Close Register"
+                            type="object"
+                            invisible="state != 'open'"
+                            groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                    <button name="action_reopen"
+                            string="Reopen"
+                            type="object"
+                            invisible="state != 'closed'"
+                            groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sheets"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="sheet_count"
+                                   widget="statinfo"
+                                   string="Sessions"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Register name..."/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Classroom">
+                            <field name="classroom_id"/>
+                            <field name="section_id" readonly="1"/>
+                            <field name="subject_id" readonly="1"/>
+                            <field name="program_term_id" readonly="1"/>
+                            <field name="academic_year_id" readonly="1"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="teacher_id" readonly="1"/>
+                            <field name="batch_id" readonly="1"/>
+                            <field name="company_id"
+                                   readonly="1"
+                                   groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Window Actions
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_attendance_register_all" model="ir.actions.act_window">
+        <field name="name">Attendance Registers</field>
+        <field name="res_model">edu.attendance.register</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No attendance registers found.
+            </p>
+            <p>
+                Registers are created automatically when a classroom is activated.
+            </p>
+        </field>
+    </record>
+</odoo>

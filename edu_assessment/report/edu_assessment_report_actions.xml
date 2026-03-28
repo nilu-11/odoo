@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Report: Classroom Assessment Sheet
+         Prints all assessment records for a classroom,
+         grouped by student — useful for parent/teacher
+         review meetings.
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_assessment_classroom_sheet" model="ir.actions.report">
+        <field name="name">Classroom Assessment Sheet</field>
+        <field name="model">edu.continuous.assessment.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_assessment.report_classroom_assessment_sheet</field>
+        <field name="report_file">edu_assessment.report_classroom_assessment_sheet</field>
+        <field name="print_report_name">'Classroom Assessment Sheet'</field>
+        <field name="binding_model_id" ref="model_edu_continuous_assessment_record"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Report: Student Continuous Assessment Summary
+         Per-student full assessment history.
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_assessment_student_summary" model="ir.actions.report">
+        <field name="name">Student Assessment Summary</field>
+        <field name="model">edu.continuous.assessment.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_assessment.report_student_assessment_summary</field>
+        <field name="report_file">edu_assessment.report_student_assessment_summary</field>
+        <field name="print_report_name">'Student Assessment Summary'</field>
+        <field name="binding_model_id" ref="model_edu_continuous_assessment_record"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Report: Category-wise Assessment Summary
+         All records grouped by category — useful for
+         result weightage review.
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_assessment_category_summary" model="ir.actions.report">
+        <field name="name">Category-wise Assessment Summary</field>
+        <field name="model">edu.continuous.assessment.record</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_assessment.report_category_assessment_summary</field>
+        <field name="report_file">edu_assessment.report_category_assessment_summary</field>
+        <field name="print_report_name">'Category Assessment Summary'</field>
+        <field name="binding_model_id" ref="model_edu_continuous_assessment_record"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

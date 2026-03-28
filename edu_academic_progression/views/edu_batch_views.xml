@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Batch Form — Promote button in header + smart buttons
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_batch_form_progression" model="ir.ui.view">
+        <field name="name">edu.batch.form.progression</field>
+        <field name="model">edu.batch</field>
+        <field name="inherit_id" ref="edu_academic_structure.view_edu_batch_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Promote Batch button in the header, beside existing state buttons -->
+            <xpath expr="//header/field[@name='state']" position="before">
+                <button name="action_open_promotion_wizard"
+                        string="Promote Batch"
+                        type="object"
+                        class="btn-success"
+                        invisible="state != 'active'"
+                        groups="edu_academic_progression.group_progression_promotion_manager,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+            </xpath>
+
+            <!-- Smart buttons for progression history -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_progression_history"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-history"
+                        groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="active_progression_count"/>
+                        </span>
+                        <span class="o_stat_text">Active</span>
+                    </div>
+                </button>
+
+                <button name="action_view_progression_history"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-graduation-cap"
+                        groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin">
+                    <field name="progression_history_count"
+                           string="All Progressions"
+                           widget="statinfo"/>
+                </button>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

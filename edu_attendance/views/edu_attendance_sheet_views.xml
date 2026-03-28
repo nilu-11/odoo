@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Sheet — Search View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_sheet_search" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.search</field>
+        <field name="model">edu.attendance.sheet</field>
+        <field name="arch" type="xml">
+            <search string="Search Sheets">
+                <field name="display_name" string="Sheet"/>
+                <field name="register_id"/>
+                <field name="classroom_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="taken_by"/>
+                <field name="session_date"/>
+
+                <filter name="filter_my_sheets"
+                        string="My Sheets"
+                        domain="[('teacher_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_draft"
+                        string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_in_progress"
+                        string="In Progress"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter name="filter_submitted"
+                        string="Submitted"
+                        domain="[('state', '=', 'submitted')]"/>
+                <separator/>
+                <filter name="filter_today"
+                        string="Today"
+                        domain="[('session_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+
+                <group name="group_by">
+                    <filter name="group_register"
+                            string="Register"
+                            context="{'group_by': 'register_id'}"/>
+                    <filter name="group_section"
+                            string="Section"
+                            context="{'group_by': 'section_id'}"/>
+                    <filter name="group_subject"
+                            string="Subject"
+                            context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_date"
+                            string="Session Date"
+                            context="{'group_by': 'session_date'}"/>
+                    <filter name="group_state"
+                            string="Status"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Sheet — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_sheet_list" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.list</field>
+        <field name="model">edu.attendance.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Attendance Sheets" default_order="session_date desc">
+                <field name="session_date"/>
+                <field name="time_from" widget="float_time" string="From"/>
+                <field name="time_to" widget="float_time" string="To"/>
+                <field name="register_id"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="taken_by"/>
+                <field name="line_count" string="Students"/>
+                <field name="present_count" string="Present"/>
+                <field name="absent_count" string="Absent"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'submitted'"/>
+                <field name="academic_year_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Sheet — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_sheet_form" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.form</field>
+        <field name="model">edu.attendance.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Sheet">
+                <header>
+                    <button name="action_start"
+                            string="Start Session"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_generate_lines"
+                            string="Reload Students"
+                            type="object"
+                            invisible="state != 'in_progress'"
+                            groups="edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                    <button name="action_submit"
+                            string="Submit"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_reset_to_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'submitted'"
+                            groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,submitted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Session">
+                            <field name="register_id"
+                                   readonly="state == 'submitted'"/>
+                            <field name="session_date"
+                                   readonly="state == 'submitted'"/>
+                            <field name="time_from"
+                                   widget="float_time"
+                                   readonly="state == 'submitted'"/>
+                            <field name="time_to"
+                                   widget="float_time"
+                                   readonly="state == 'submitted'"/>
+                            <field name="taken_by"
+                                   readonly="state == 'submitted'"/>
+                        </group>
+                        <group string="Context">
+                            <field name="classroom_id" readonly="1"/>
+                            <field name="subject_id" readonly="1"/>
+                            <field name="section_id" readonly="1"/>
+                            <field name="program_term_id" readonly="1"/>
+                            <field name="academic_year_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Summary bar when in_progress / submitted -->
+                    <group invisible="state == 'draft'">
+                        <group string="Summary">
+                            <field name="line_count" string="Total Students" readonly="1"/>
+                            <field name="present_count" readonly="1"/>
+                            <field name="absent_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Attendance lines -->
+                    <field name="line_ids"
+                           readonly="state == 'submitted'"
+                           invisible="state == 'draft'">
+                        <list editable="bottom" default_order="roll_number">
+                            <field name="roll_number" readonly="1" optional="show"/>
+                            <field name="student_id" readonly="1"/>
+                            <field name="status" widget="radio"
+                                   options="{'horizontal': true}"/>
+                            <field name="note" optional="show"/>
+                            <field name="student_progression_history_id"
+                                   optional="hide" readonly="1"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Window Actions
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- All sheets -->
+    <record id="action_edu_attendance_sheet_all" model="ir.actions.act_window">
+        <field name="name">Attendance Sheets</field>
+        <field name="res_model">edu.attendance.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No attendance sheets found.
+            </p>
+            <p>
+                Open an attendance register and create a new sheet to start
+                recording attendance.
+            </p>
+        </field>
+    </record>
+
+    <!-- My sheets (filtered to current teacher) -->
+    <record id="action_edu_attendance_sheet_mine" model="ir.actions.act_window">
+        <field name="name">My Attendance Sheets</field>
+        <field name="res_model">edu.attendance.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_sheets': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No attendance sheets for your classrooms yet.
+            </p>
+            <p>
+                Sheets appear here once you start a session from
+                one of your attendance registers.
+            </p>
+        </field>
+    </record>
+</odoo>

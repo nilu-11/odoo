@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.marksheet — Search View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_marksheet_search" model="ir.ui.view">
+        <field name="name">edu.exam.marksheet.search</field>
+        <field name="model">edu.exam.marksheet</field>
+        <field name="arch" type="xml">
+            <search string="Search Marksheets">
+                <field name="student_id"/>
+                <field name="exam_session_id"/>
+                <field name="exam_paper_id"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <!-- Filters -->
+                <filter name="filter_present" string="Present" domain="[('status', '=', 'present')]"/>
+                <filter name="filter_absent" string="Absent" domain="[('status', '=', 'absent')]"/>
+                <filter name="filter_pass" string="Pass" domain="[('is_pass', '=', True)]"/>
+                <filter name="filter_fail" string="Fail" domain="[('is_pass', '=', False), ('status', '=', 'present')]"/>
+                <filter name="filter_locked" string="Locked" domain="[('is_locked', '=', True)]"/>
+                <filter name="filter_latest" string="Latest Attempt" domain="[('is_latest_attempt', '=', True)]"/>
+                <separator/>
+                <filter name="filter_regular" string="Regular" domain="[('attempt_type', '=', 'regular')]"/>
+                <filter name="filter_back" string="Back/Makeup" domain="[('attempt_type', 'in', ('back', 'makeup', 'improvement', 'special'))]"/>
+                <!-- Group By -->
+                <group name="group_by">
+                    <filter name="group_session" string="Exam Session" context="{'group_by': 'exam_session_id'}"/>
+                    <filter name="group_paper" string="Exam Paper" context="{'group_by': 'exam_paper_id'}"/>
+                    <filter name="group_student" string="Student" context="{'group_by': 'student_id'}"/>
+                    <filter name="group_section" string="Section" context="{'group_by': 'section_id'}"/>
+                    <filter name="group_subject" string="Subject" context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_attempt_type" string="Attempt Type" context="{'group_by': 'attempt_type'}"/>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.marksheet — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_marksheet_list" model="ir.ui.view">
+        <field name="name">edu.exam.marksheet.list</field>
+        <field name="model">edu.exam.marksheet</field>
+        <field name="arch" type="xml">
+            <list string="Marksheets"
+                  decoration-danger="status == 'absent'"
+                  decoration-success="is_pass == True and status == 'present'"
+                  decoration-muted="is_locked == True">
+                <field name="student_id"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="attempt_type"/>
+                <field name="attempt_no"/>
+                <field name="status"/>
+                <field name="raw_marks"/>
+                <field name="grace_marks"/>
+                <field name="final_marks"/>
+                <field name="max_marks"/>
+                <field name="pass_marks"/>
+                <field name="is_pass"/>
+                <field name="is_locked" optional="show"/>
+                <field name="attendance_percent_snapshot" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.marksheet — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_marksheet_form" model="ir.ui.view">
+        <field name="name">edu.exam.marksheet.form</field>
+        <field name="model">edu.exam.marksheet</field>
+        <field name="arch" type="xml">
+            <form string="Marksheet">
+                <header>
+                    <button name="action_verify" string="Verify" type="object"
+                            class="btn-primary"
+                            invisible="verified_by != False"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_lock" string="Lock" type="object"
+                            invisible="is_locked == True"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_unlock" string="Unlock" type="object"
+                            invisible="is_locked == False"
+                            groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+                    <button name="action_snapshot_attendance" string="Snapshot Attendance" type="object"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <!-- Display lock/publish state info -->
+                    <field name="exam_paper_state" widget="badge"
+                           decoration-warning="exam_paper_state == 'marks_entry'"
+                           decoration-success="exam_paper_state == 'published'"
+                           decoration-muted="exam_paper_state == 'closed'"
+                           string="Paper State"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="display_name"/>
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Lock warning -->
+                    <div class="alert alert-warning" role="alert" invisible="is_locked == False">
+                        This marksheet is locked. Contact an administrator to unlock it.
+                    </div>
+
+                    <group>
+                        <group string="Student">
+                            <field name="student_id"/>
+                            <field name="enrollment_id"/>
+                        </group>
+                        <group string="Paper / Session">
+                            <field name="exam_paper_id"/>
+                            <field name="exam_session_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Marks" name="marks">
+                            <group>
+                                <group string="Entry">
+                                    <field name="status"/>
+                                    <field name="raw_marks"
+                                           readonly="is_locked == True or exam_paper_state in ('published', 'closed')"/>
+                                    <field name="grace_marks"
+                                           readonly="is_locked == True or exam_paper_state in ('published', 'closed')"/>
+                                </group>
+                                <group string="Result">
+                                    <field name="final_marks" readonly="1"/>
+                                    <field name="max_marks" readonly="1"/>
+                                    <field name="pass_marks" readonly="1"/>
+                                    <field name="is_pass" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Attendance" name="attendance">
+                            <group>
+                                <group>
+                                    <field name="attendance_percent_snapshot"/>
+                                    <field name="attendance_eligible"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Attempt" name="attempt">
+                            <group>
+                                <group>
+                                    <field name="attempt_type"/>
+                                    <field name="attempt_no"/>
+                                    <field name="is_latest_attempt" readonly="1"/>
+                                    <field name="is_back_attempt" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="previous_marksheet_id"/>
+                                    <field name="backlog_origin_result_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Academic Snapshot" name="snapshot">
+                            <group>
+                                <group>
+                                    <field name="student_progression_history_id" readonly="1"/>
+                                    <field name="batch_id" readonly="1"/>
+                                    <field name="section_id" readonly="1"/>
+                                    <field name="program_term_id" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="curriculum_line_id" readonly="1"/>
+                                    <field name="subject_id" readonly="1"/>
+                                    <field name="academic_year_id" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Audit" name="audit">
+                            <group>
+                                <group string="Entry">
+                                    <field name="entered_by" readonly="1"/>
+                                    <field name="entered_on" readonly="1"/>
+                                </group>
+                                <group string="Verification">
+                                    <field name="verified_by" readonly="1"/>
+                                    <field name="verified_on" readonly="1"/>
+                                    <field name="is_locked"/>
+                                </group>
+                            </group>
+                            <field name="remarks"/>
+                        </page>
+
+                        <page string="Component Marks" name="components"
+                              invisible="not component_mark_ids">
+                            <field name="component_mark_ids">
+                                <list editable="bottom">
+                                    <field name="component_name" readonly="1"/>
+                                    <field name="component_type" readonly="1"/>
+                                    <field name="status"/>
+                                    <field name="marks_obtained"/>
+                                    <field name="grace_marks"/>
+                                    <field name="final_marks" readonly="1"/>
+                                    <field name="max_marks" readonly="1"/>
+                                    <field name="pass_marks_component" readonly="1"/>
+                                    <field name="is_pass" readonly="1"/>
+                                    <field name="remarks"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Actions
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_exam_marksheet_all" model="ir.actions.act_window">
+        <field name="name">Marksheets</field>
+        <field name="res_model">edu.exam.marksheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_latest': 1}</field>
+    </record>
+</odoo>

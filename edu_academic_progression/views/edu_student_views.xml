@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Student Form — add Progression History smart button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_form_progression_button" model="ir.ui.view">
+        <field name="name">edu.student.form.progression.button</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_progression_history"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-graduation-cap"
+                        groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin">
+                    <field name="progression_history_count"
+                           string="Progressions"
+                           widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

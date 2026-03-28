@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.section form — inject Classrooms smart button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_section_form_classroom_inherit" model="ir.ui.view">
+        <field name="name">edu.section.form.classroom.inherit</field>
+        <field name="model">edu.section</field>
+        <field name="inherit_id" ref="edu_academic_structure.view_edu_section_form"/>
+        <field name="arch" type="xml">
+            <!-- The section form has no existing button_box, so we inject one
+                 before the group block. -->
+            <xpath expr="//sheet/group" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_classrooms"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-chalkboard-teacher"
+                            invisible="classroom_count == 0">
+                        <field name="classroom_count"
+                               widget="statinfo"
+                               string="Classrooms"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

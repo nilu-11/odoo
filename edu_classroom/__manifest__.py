@@ -1,0 +1,25 @@
+{
+    'name': 'Education: Classroom',
+    'version': '19.0.1.0.0',
+    'summary': 'Subject-section classroom hub — anchor for attendance, exams, and assignments.',
+    'author': 'Innovax Solutions',
+    'category': 'Education',
+    'license': 'LGPL-3',
+    'depends': [
+        'mail',
+        'edu_academic_structure',
+        'edu_student',
+        'edu_academic_progression',
+    ],
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'views/edu_classroom_views.xml',
+        'views/edu_batch_views.xml',
+        'views/edu_section_views.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+}

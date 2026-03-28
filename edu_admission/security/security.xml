@@ -11,7 +11,7 @@
         </field>
         <field name="placeholder">No admission access</field>
         <field name="sequence">40</field>
-        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+        <!-- <field name="privilege_id" ref="edu_academic_structure.module_category_education"/> -->
     </record>
 
     <!-- Admission Viewer: read-only access -->

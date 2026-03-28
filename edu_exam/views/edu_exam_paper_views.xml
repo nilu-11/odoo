@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.paper — Search View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_paper_search" model="ir.ui.view">
+        <field name="name">edu.exam.paper.search</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="arch" type="xml">
+            <search string="Search Exam Papers">
+                <field name="display_name" string="Paper"/>
+                <field name="exam_session_id"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="teacher_id"/>
+                <field name="batch_id"/>
+                <!-- Filters -->
+                <filter name="filter_my_papers" string="My Papers" domain="[('teacher_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_scheduled" string="Scheduled" domain="[('state', '=', 'scheduled')]"/>
+                <filter name="filter_marks_entry" string="Marks Entry" domain="[('state', '=', 'marks_entry')]"/>
+                <filter name="filter_submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter name="filter_published" string="Published" domain="[('state', '=', 'published')]"/>
+                <!-- Group By -->
+                <group name="group_by">
+                    <filter name="group_session" string="Exam Session" context="{'group_by': 'exam_session_id'}"/>
+                    <filter name="group_subject" string="Subject" context="{'group_by': 'subject_id'}"/>
+                    <filter name="group_section" string="Section" context="{'group_by': 'section_id'}"/>
+                    <filter name="group_teacher" string="Teacher" context="{'group_by': 'teacher_id'}"/>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_exam_date" string="Exam Date" context="{'group_by': 'exam_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.paper — List View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_paper_list" model="ir.ui.view">
+        <field name="name">edu.exam.paper.list</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="arch" type="xml">
+            <list string="Exam Papers" decoration-muted="state == 'closed'">
+                <field name="exam_session_id"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="teacher_id"/>
+                <field name="exam_date"/>
+                <field name="max_marks"/>
+                <field name="pass_marks"/>
+                <field name="marksheet_count" string="Marksheets"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('scheduled', 'in_progress')"
+                       decoration-warning="state == 'marks_entry'"
+                       decoration-primary="state == 'submitted'"
+                       decoration-success="state == 'published'"
+                       decoration-muted="state in ('draft', 'closed')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.paper — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_paper_form" model="ir.ui.view">
+        <field name="name">edu.exam.paper.form</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="arch" type="xml">
+            <form string="Exam Paper">
+                <header>
+                    <button name="action_schedule" string="Schedule" type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_start" string="Start" type="object"
+                            class="btn-primary"
+                            invisible="state != 'scheduled'"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_open_marks_entry" string="Open Marks Entry" type="object"
+                            class="btn-primary"
+                            invisible="state != 'in_progress'"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_submit" string="Submit" type="object"
+                            class="btn-primary"
+                            invisible="state != 'marks_entry'"
+                            groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_publish" string="Publish" type="object"
+                            class="btn-primary"
+                            invisible="state != 'submitted'"
+                            groups="edu_exam.group_exam_publish_manager,edu_academic_structure.group_education_admin"/>
+                    <button name="action_close" string="Close" type="object"
+                            invisible="state != 'published'"
+                            groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                            invisible="state not in ('submitted', 'scheduled')"
+                            groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,scheduled,in_progress,marks_entry,submitted,published,closed"/>
+                </header>
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_marksheets" type="object"
+                                class="oe_stat_button" icon="fa-list-alt">
+                            <field name="marksheet_count" widget="statinfo" string="Marksheets"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-puzzle-piece" name="action_view_marksheets">
+                            <field name="component_count" widget="statinfo" string="Components"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="display_name"/>
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <notebook>
+                        <page string="Paper Details" name="details">
+                            <group>
+                                <group string="Session">
+                                    <field name="exam_session_id"/>
+                                    <field name="academic_year_id" readonly="1"/>
+                                </group>
+                                <group string="Classroom">
+                                    <field name="classroom_id"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Academic">
+                                    <field name="curriculum_line_id"/>
+                                    <field name="subject_id" readonly="1"/>
+                                    <field name="program_term_id"/>
+                                </group>
+                                <group string="Assignment">
+                                    <field name="section_id"/>
+                                    <field name="batch_id" readonly="1"/>
+                                    <field name="teacher_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Schedule" name="schedule">
+                            <group>
+                                <group>
+                                    <field name="exam_date"/>
+                                    <field name="time_from" widget="float_time"/>
+                                    <field name="time_to" widget="float_time"/>
+                                </group>
+                                <group>
+                                    <field name="room"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Marks Config" name="marks_config">
+                            <group>
+                                <group>
+                                    <field name="max_marks"/>
+                                    <field name="pass_marks"/>
+                                    <field name="weightage_percent"/>
+                                </group>
+                            </group>
+                            <field name="note" placeholder="Notes..."/>
+                        </page>
+
+                        <page string="Components" name="components">
+                            <field name="component_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="component_type"/>
+                                    <field name="max_marks"/>
+                                    <field name="pass_marks"/>
+                                    <field name="weightage_percent"/>
+                                    <field name="is_mandatory"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Marksheets" name="marksheets">
+                            <field name="marksheet_ids" readonly="1">
+                                <list>
+                                    <field name="student_id"/>
+                                    <field name="status"/>
+                                    <field name="raw_marks"/>
+                                    <field name="grace_marks"/>
+                                    <field name="final_marks"/>
+                                    <field name="is_pass"/>
+                                    <field name="attempt_type"/>
+                                    <field name="is_locked"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Actions
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_exam_paper_all" model="ir.actions.act_window">
+        <field name="name">Exam Papers</field>
+        <field name="res_model">edu.exam.paper</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_edu_exam_paper_mine" model="ir.actions.act_window">
+        <field name="name">My Exam Papers</field>
+        <field name="res_model">edu.exam.paper</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_papers': 1}</field>
+    </record>
+</odoo>

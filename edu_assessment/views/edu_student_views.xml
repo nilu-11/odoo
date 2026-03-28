@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add continuous_assessment_count smart button to edu.student form -->
+    <record id="view_edu_student_form_assessment_button" model="ir.ui.view">
+        <field name="name">edu.student.form.assessment.button</field>
+        <field name="model">edu.student</field>
+        <field name="inherit_id" ref="edu_student.view_edu_student_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_assessments" type="object"
+                        class="oe_stat_button" icon="fa-bar-chart"
+                        groups="edu_assessment.group_assessment_viewer,edu_academic_structure.group_education_admin">
+                    <field name="continuous_assessment_count" widget="statinfo"
+                           string="Assessments"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
