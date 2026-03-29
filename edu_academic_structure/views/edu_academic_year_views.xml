@@ -94,7 +94,7 @@
                         <group string="Identity">
                             <field name="code" readonly="state == 'closed'"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Duration">
                             <field name="date_start" readonly="state == 'closed'"/>
@@ -115,7 +115,7 @@
                                     <field name="term_type"/>
                                     <field name="date_start"/>
                                     <field name="date_end"/>
-                                    <field name="active"/>
+                                    <field name="active" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>

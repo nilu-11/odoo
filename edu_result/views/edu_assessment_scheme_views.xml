@@ -41,7 +41,7 @@
                         <group string="Identity">
                             <field name="code"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Scope (optional)">
                             <field name="program_id"/>

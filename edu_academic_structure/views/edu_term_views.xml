@@ -60,7 +60,7 @@
                             <field name="academic_year_id"/>
                             <field name="term_type"/>
                             <field name="sequence"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Duration">
                             <field name="date_start"/>

@@ -18,7 +18,7 @@
                         <group string="Identity">
                             <field name="code"/>
                             <field name="result_system"/>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" invisible="1"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group string="Format">

@@ -65,7 +65,7 @@
                             <field name="department_id"/>
                             <field name="subject_type"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Academic Weight">
                             <field name="credit_hours"/>

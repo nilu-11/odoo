@@ -79,7 +79,7 @@
                         <group string="Program">
                             <field name="program_id"/>
                             <field name="department_id" readonly="1"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Progression">
                             <field name="progression_no"/>
@@ -100,7 +100,7 @@
                                     <field name="credit_hours"/>
                                     <field name="full_marks"/>
                                     <field name="pass_marks"/>
-                                    <field name="active"/>
+                                    <field name="active" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>

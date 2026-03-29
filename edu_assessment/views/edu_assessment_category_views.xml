@@ -61,7 +61,7 @@
                             <field name="sequence"/>
                             <field name="default_max_marks"/>
                             <field name="contributes_to_result"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Company">
                             <field name="company_id" groups="base.group_multi_company"/>
