@@ -18,7 +18,7 @@ class EduApplicantProfile(models.Model):
 
     _name = 'edu.applicant.profile'
     _description = 'Applicant Profile'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
     _order = 'last_name, first_name, id'
     _rec_name = 'full_name'
 

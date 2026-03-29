@@ -56,6 +56,9 @@
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
 
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_128'}"/>
+
                     <!-- Smart buttons -->
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_leads"
