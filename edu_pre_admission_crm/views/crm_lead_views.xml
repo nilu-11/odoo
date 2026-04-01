@@ -148,6 +148,7 @@
                         <field name="last_contact_date"/>
                         <field name="next_followup_date"/>
                         <field name="counselor_id"/>
+                        <field name="source_id"/>
                     </group>
                 </group>
 
