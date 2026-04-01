@@ -17,6 +17,12 @@
                         class="btn-success"
                         invisible="state != 'active'"
                         groups="edu_academic_progression.group_progression_promotion_manager,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+                <button name="action_open_section_assignment_wizard"
+                        string="Assign Sections"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'active'"
+                        groups="edu_academic_progression.group_section_assignment_officer,edu_academic_progression.group_section_assignment_admin,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
             </xpath>
 
             <!-- Smart buttons for progression history -->
