@@ -38,6 +38,8 @@ Key features:
         'views/edu_batch_promotion_wizard_views.xml',
         'views/edu_student_views.xml',
         'views/edu_batch_views.xml',
+        'views/edu_section_views_inherit.xml',
+        'views/edu_section_assignment_wizard_views.xml',
         'views/edu_academic_progression_menus.xml',
     ],
     'installable': True,

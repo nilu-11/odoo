@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -36,8 +38,8 @@ class EduAcademicYear(models.Model):
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
-            ('open', 'Open'),
-            ('closed', 'Closed'),
+            ('open', 'Active'),
+            ('closed', 'Inactive'),
         ],
         string='Status',
         default='draft',
@@ -47,6 +49,17 @@ class EduAcademicYear(models.Model):
     )
     active = fields.Boolean(default=True)
     description = fields.Text(string='Description')
+    default_term_type = fields.Selection(
+        selection=[
+            ('semester', 'Semester (2)'),
+            ('trimester', 'Trimester (3)'),
+            ('quarter', 'Quarter (4)'),
+            ('annual', 'Annual (1)'),
+        ],
+        string='Term Structure',
+        default='semester',
+        help='Used when auto-generating terms to split the academic year date range.',
+    )
     company_id = fields.Many2one(
         comodel_name='res.company',
         string='Company',
@@ -193,7 +206,7 @@ class EduAcademicYear(models.Model):
 
     def action_close(self):
         for rec in self:
-            active_batches = rec.batch_ids.filtered(lambda b: b.state == 'active')
+            active_batches = rec.batch_ids.filtered(lambda b: b.state == 'open')
             if active_batches:
                 raise UserError(
                     f'Cannot close "{rec.name}" — '
@@ -226,6 +239,74 @@ class EduAcademicYear(models.Model):
             'view_mode': 'list,form',
             'domain': [('academic_year_id', '=', self.id)],
             'context': {'default_academic_year_id': self.id},
+        }
+
+    # ── Generate terms ──────────────────────────────────────────────────────────
+    def action_generate_terms(self):
+        """
+        Auto-create academic terms by evenly splitting the year's date range
+        according to default_term_type (semester=2, trimester=3, quarter=4, annual=1).
+        Skips terms whose sequence already exists. Never deletes existing terms.
+        """
+        self.ensure_one()
+        if not self.date_start or not self.date_end:
+            raise UserError('Set start and end dates before generating terms.')
+        if not self.default_term_type:
+            raise UserError('Set a Term Structure before generating terms.')
+
+        count_map = {'semester': 2, 'trimester': 3, 'quarter': 4, 'annual': 1}
+        label_map = {'semester': 'Semester', 'trimester': 'Trimester',
+                     'quarter': 'Quarter', 'annual': 'Year'}
+        n = count_map[self.default_term_type]
+        label = label_map[self.default_term_type]
+        year_code = (self.code or self.name or '')[:6].replace(' ', '')
+
+        total_days = (self.date_end - self.date_start).days
+        chunk = total_days // n
+
+        existing_seqs = set(self.term_ids.mapped('sequence'))
+        to_create = []
+        for i in range(n):
+            seq = (i + 1) * 10
+            if seq in existing_seqs:
+                continue
+            t_start = self.date_start + timedelta(days=i * chunk)
+            t_end = (self.date_start + timedelta(days=(i + 1) * chunk - 1)
+                     if i < n - 1 else self.date_end)
+            code_candidate = f'{label[:3].upper()}{i + 1}-{year_code}'
+            # ensure code uniqueness by appending id suffix if needed
+            to_create.append({
+                'name': f'{label} {i + 1}',
+                'code': code_candidate,
+                'academic_year_id': self.id,
+                'term_type': self.default_term_type,
+                'sequence': seq,
+                'date_start': t_start,
+                'date_end': t_end,
+            })
+
+        if not to_create:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Nothing to Generate',
+                    'message': 'All terms already exist for this academic year.',
+                    'type': 'info',
+                    'sticky': False,
+                },
+            }
+
+        self.env['edu.term'].create(to_create)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Terms Generated',
+                'message': f'Created {len(to_create)} {label.lower()}(s) for "{self.name}".',
+                'type': 'success',
+                'sticky': False,
+            },
         }
 
     # ── Helper: get current open year ───────────────────────────────────────────

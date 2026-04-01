@@ -32,7 +32,6 @@
                 <field name="code"/>
                 <field name="department_id"/>
                 <field name="program_type"/>
-                <field name="level"/>
                 <field name="duration_value"/>
                 <field name="duration_unit"/>
                 <field name="total_terms"/>
@@ -84,9 +83,8 @@
                             <field name="code"/>
                             <field name="department_id"/>
                             <field name="program_type"/>
-                            <field name="level"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Duration &amp; Terms">
                             <field name="duration_value"/>
@@ -112,7 +110,7 @@
                                     <field name="progression_label"/>
                                     <field name="is_final_progression" widget="boolean_toggle"/>
                                     <field name="curriculum_count" string="Subjects"/>
-                                    <field name="active"/>
+                                    <field name="active" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>

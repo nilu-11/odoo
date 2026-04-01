@@ -62,12 +62,12 @@ class CrmLead(models.Model):
 
     # ── Counseling ────────────────────────────────────────────────────────────
     counselor_id = fields.Many2one(
-        comodel_name='res.users',
+        comodel_name='hr.employee',
         string='Counselor',
         tracking=True,
-        domain="[('share', '=', False)]",
         help='Internal user responsible for counseling this prospect.',
     )
+
     counseling_note = fields.Text(string='Counseling Notes')
     qualification_note = fields.Text(string='Qualification Notes')
 
@@ -158,6 +158,56 @@ class CrmLead(models.Model):
             or self.preferred_batch_id.academic_year_id != self.intended_academic_year_id
         ):
             self.preferred_batch_id = False
+
+    @api.onchange('applicant_profile_id')
+    def _onchange_applicant_profile_id_set_partner(self):
+        if self.applicant_profile_id and self.applicant_profile_id.partner_id:
+            self.partner_id = self.applicant_profile_id.partner_id
+
+    # ── Computed: call-only activity lists ─────────────────────────────────────
+    pending_call_activity_ids = fields.One2many(
+        comodel_name='mail.activity',
+        compute='_compute_call_activities',
+        string='Pending Call Activities',
+    )
+    done_call_message_ids = fields.One2many(
+        comodel_name='mail.message',
+        compute='_compute_call_activities',
+        string='Done Call Activities',
+    )
+
+    def _compute_call_activities(self):
+        call_type = self.env.ref('mail.mail_activity_data_call', raise_if_not_found=False)
+        for rec in self:
+            if call_type:
+                rec.pending_call_activity_ids = rec.activity_ids.filtered(
+                    lambda a: a.activity_type_id == call_type
+                )
+                rec.done_call_message_ids = rec.message_ids.filtered(
+                    lambda m: m.mail_activity_type_id == call_type
+                )
+            else:
+                rec.pending_call_activity_ids = self.env['mail.activity']
+                rec.done_call_message_ids = self.env['mail.message']
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            applicant_id = vals.get('applicant_profile_id')
+            if applicant_id:
+                applicant = self.env['edu.applicant.profile'].browse(applicant_id)
+                if applicant.exists() and applicant.partner_id:
+                    vals['partner_id'] = applicant.partner_id.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get('applicant_profile_id'):
+            applicant = self.env['edu.applicant.profile'].browse(
+                vals['applicant_profile_id']
+            )
+            if applicant.exists() and applicant.partner_id:
+                vals = dict(vals, partner_id=applicant.partner_id.id)
+        return super().write(vals)
 
     # ═════════════════════════════════════════════════════════════════════════
     # Education Status Transitions

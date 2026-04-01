@@ -31,13 +31,13 @@ class EduSubject(models.Model):
     )
     subject_type = fields.Selection(
         selection=[
-            ('theory', 'Theory'),
-            ('practical', 'Practical'),
-            ('both', 'Theory + Practical'),
+            ('practical_theory', 'Practical & Theory'),
+            ('simulation', 'Simulation'),
+            ('project', 'Project'),
         ],
         string='Subject Type',
         required=True,
-        default='theory',
+        default='practical_theory',
         tracking=True,
     )
     credit_hours = fields.Float(

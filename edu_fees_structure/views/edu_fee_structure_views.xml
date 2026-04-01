@@ -149,6 +149,14 @@
                              separately in the Payment Plans tab.
                         ─────────────────────────────────────────────────────────── -->
                         <page string="Fee Lines" name="fee_lines">
+                            <div class="mb-2">
+                                <button name="action_generate_fee_lines"
+                                        string="Generate Fee Lines"
+                                        type="object"
+                                        class="btn-secondary btn-sm"
+                                        invisible="state == 'closed'"
+                                        icon="fa-magic"/>
+                            </div>
                             <field name="line_ids"
                                    readonly="state == 'closed'"
                                    context="{'default_fee_structure_id': id}">
@@ -173,7 +181,7 @@
                                     <field name="note"        optional="hide"/>
                                     <!-- Hidden system fields -->
                                     <field name="progression_no" column_invisible="True"/>
-                                    <field name="currency_id"    column_invisible="True"/>
+                                    <field name="currency_id" optional="show"/>
                                 </list>
                             </field>
 

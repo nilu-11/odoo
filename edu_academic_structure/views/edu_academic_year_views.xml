@@ -10,8 +10,8 @@
             <search string="Academic Years">
                 <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
                 <filter string="Draft"  name="draft"  domain="[('state', '=', 'draft')]"/>
-                <filter string="Open"   name="open"   domain="[('state', '=', 'open')]"/>
-                <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                <filter string="Active"   name="open"   domain="[('state', '=', 'open')]"/>
+                <filter string="Inactive" name="closed" domain="[('state', '=', 'closed')]"/>
                 <separator/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
                 <group name="group_by">
@@ -53,13 +53,13 @@
             <form string="Academic Year">
                 <header>
                     <button name="action_open"
-                            string="Open Year"
+                            string="Set Active"
                             type="object"
                             class="btn-primary"
                             invisible="state != 'draft'"
                             groups="edu_academic_structure.group_education_admin"/>
                     <button name="action_close"
-                            string="Close Year"
+                            string="Set Inactive"
                             type="object"
                             invisible="state != 'open'"
                             groups="edu_academic_structure.group_education_admin"/>
@@ -94,8 +94,7 @@
                         <group string="Identity">
                             <field name="code" readonly="state == 'closed'"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
-                        </group>
+                            <field name="active" invisible="1"/>                            <field name="default_term_type"/>                        </group>
                         <group string="Duration">
                             <field name="date_start" readonly="state == 'closed'"/>
                             <field name="date_end" readonly="state == 'closed'"/>
@@ -106,6 +105,15 @@
                     </group>
                     <notebook>
                         <page string="Terms" name="terms">
+                            <div class="mb-2">
+                                <button name="action_generate_terms"
+                                        string="Generate Terms"
+                                        type="object"
+                                        class="btn-secondary btn-sm"
+                                        invisible="state == 'inactive'"
+                                        icon="fa-magic"
+                                        groups="edu_academic_structure.group_education_admin"/>
+                            </div>
                             <field name="term_ids" context="{'default_academic_year_id': id}"
                                    readonly="state == 'closed'">
                                 <list editable="bottom">
@@ -115,7 +123,7 @@
                                     <field name="term_type"/>
                                     <field name="date_start"/>
                                     <field name="date_end"/>
-                                    <field name="active"/>
+                                    <field name="active" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>
@@ -134,7 +142,7 @@
         <field name="res_model">edu.academic.year</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_edu_academic_year_search"/>
-        <field name="context">{'search_default_open': 1}</field>
+        <field name="context">{'search_default_open': 0}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create your first academic year

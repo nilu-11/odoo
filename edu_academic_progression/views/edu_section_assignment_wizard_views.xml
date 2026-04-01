@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Section Assignment Wizard — Form View
+         Two-step: config (wizard_state='config') → preview (wizard_state='preview')
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_section_assignment_wizard_form" model="ir.ui.view">
+        <field name="name">edu.section.assignment.wizard.form</field>
+        <field name="model">edu.section.assignment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Students to Sections">
+
+                <!-- ── State field (hidden, drives visibility) ── -->
+                <field name="wizard_state" invisible="1"/>
+                <field name="batch_program_id" invisible="1"/>
+
+                <!-- ══════════════════════════════════════════════
+                     STEP 1 — CONFIGURATION
+                ══════════════════════════════════════════════ -->
+
+                <!-- Batch info banner — always visible -->
+                <group string="Batch" invisible="wizard_state == 'preview'">
+                    <group>
+                        <field name="batch_id"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="batch_program_id" readonly="1" string="Program"/>
+                        <field name="program_term_id"
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <group>
+                        <field name="section_ids"
+                               widget="many2many_tags"
+                               options="{'no_create': True, 'no_open': True}"
+                               domain="[('batch_id', '=', batch_id)]"/>
+                    </group>
+                </group>
+
+                <group string="Assignment Method" invisible="wizard_state == 'preview'">
+                    <group>
+                        <field name="assignment_method" widget="radio"/>
+                    </group>
+                    <group>
+                        <field name="sort_order"
+                               widget="radio"
+                               invisible="assignment_method in ('round_robin', 'manual')"/>
+                    </group>
+                </group>
+
+                <group string="Options" invisible="wizard_state == 'preview'">
+                    <group>
+                        <field name="only_unassigned_students"/>
+                        <field name="clear_existing_section"
+                               invisible="only_unassigned_students"/>
+                    </group>
+                    <group>
+                        <field name="respect_capacity"
+                               invisible="assignment_method == 'manual'"/>
+                    </group>
+                </group>
+
+                <!-- ══════════════════════════════════════════════
+                     STEP 2 — PREVIEW
+                ══════════════════════════════════════════════ -->
+
+                <!-- Batch context reminder in preview -->
+                <group invisible="wizard_state == 'config'">
+                    <group string="Assignment Summary">
+                        <field name="batch_id" readonly="1"/>
+                        <field name="program_term_id" readonly="1"/>
+                        <field name="student_count" readonly="1"/>
+                        <field name="reassignment_count" readonly="1"
+                               invisible="reassignment_count == 0"/>
+                    </group>
+                    <group string="Sections">
+                        <field name="section_ids"
+                               widget="many2many_tags" readonly="1"/>
+                        <field name="assignment_method" readonly="1"/>
+                    </group>
+                </group>
+
+                <!-- Warning: reassignments with dependent records -->
+                <div class="alert alert-warning mb-2 mt-0"
+                     role="alert"
+                     invisible="wizard_state == 'config' or blocked_count == 0">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    <strong><field name="blocked_count" readonly="1"/> student(s)</strong>
+                    have existing attendance or exam records in their current section.
+                    Confirming this reassignment requires a
+                    <strong>Section Assignment Administrator</strong>.
+                </div>
+
+                <!-- Warning: manual method — remind user to fill sections -->
+                <div class="alert alert-info mb-2 mt-0"
+                     role="alert"
+                     invisible="wizard_state == 'config' or assignment_method != 'manual'">
+                    <i class="fa fa-info-circle me-1"/>
+                    <strong>Manual mode:</strong>
+                    Set the <em>Assigned Section</em> for each student in the table below,
+                    then click <strong>Confirm Assignment</strong>.
+                </div>
+
+                <!-- Preview lines -->
+                <field name="line_ids"
+                       invisible="wizard_state == 'config'"
+                       nolabel="1">
+                    <list string="Student Assignments"
+                          editable="bottom"
+                          decoration-warning="is_reassignment and not has_dependent_records"
+                          decoration-danger="is_reassignment and has_dependent_records"
+                          default_group_by="new_section_id">
+                        <field name="batch_id" column_invisible="1"/>
+                        <field name="sequence_no" string="Seq." readonly="1" width="60px"/>
+                        <field name="student_id" readonly="1"
+                               options="{'no_open': True}"/>
+                        <field name="roll_number" readonly="1" string="Roll No."/>
+                        <field name="old_section_id" readonly="1"
+                               string="Current Section"
+                               optional="show"/>
+                        <field name="new_section_id"
+                               string="Assigned Section"
+                               options="{'no_create': True, 'no_open': True}"
+                               domain="[('batch_id', '=', batch_id)]"/>
+                        <field name="is_reassignment" column_invisible="1"/>
+                        <field name="has_dependent_records"
+                               string="Has Records"
+                               readonly="1"
+                               optional="show"
+                               widget="boolean"/>
+                    </list>
+                </field>
+
+                <!-- ══════════════════════════════════════════════
+                     FOOTER BUTTONS — differ per step
+                ══════════════════════════════════════════════ -->
+                <footer>
+
+                    <!-- Step 1 buttons -->
+                    <button name="action_generate_preview"
+                            string="Generate Preview"
+                            type="object"
+                            class="btn-primary"
+                            invisible="wizard_state == 'preview'"/>
+                    <button special="cancel"
+                            string="Cancel"
+                            class="btn-secondary"
+                            invisible="wizard_state == 'preview'"/>
+
+                    <!-- Step 2 buttons -->
+                    <button name="action_apply"
+                            string="Confirm Assignment"
+                            type="object"
+                            class="btn-primary"
+                            invisible="wizard_state == 'config'"
+                            data-hotkey="v"/>
+                    <button name="action_back_to_config"
+                            string="← Back"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="wizard_state == 'config'"/>
+                    <button special="cancel"
+                            string="Cancel"
+                            class="btn-secondary"
+                            invisible="wizard_state == 'config'"/>
+
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Server Action — open wizard (used by the batch button)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_section_assignment_wizard" model="ir.actions.act_window">
+        <field name="name">Assign Students to Sections</field>
+        <field name="res_model">edu.section.assignment.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_edu_section_assignment_wizard_form"/>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Menu — Section Assignment (under Progression menu)
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_edu_section_assignment"
+              name="Assign Sections"
+              parent="edu_academic_progression.menu_edu_progression"
+              sequence="20"
+              action="action_edu_section_assignment_wizard"
+              groups="edu_academic_progression.group_section_assignment_officer,
+                      edu_academic_progression.group_section_assignment_admin,
+                      edu_academic_structure.group_education_admin"/>
+</odoo>

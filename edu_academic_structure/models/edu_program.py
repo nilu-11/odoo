@@ -43,18 +43,6 @@ class EduProgram(models.Model):
         default='undergraduate',
         tracking=True,
     )
-    level = fields.Selection(
-        selection=[
-            ('level_4', 'Level 4'),
-            ('level_5', 'Level 5'),
-            ('level_6', 'Level 6'),
-            ('level_7', 'Level 7'),
-            ('level_8', 'Level 8'),
-            ('other', 'Other'),
-        ],
-        string='Qualification Level',
-        tracking=True,
-    )
     duration_value = fields.Integer(
         string='Duration',
         required=True,

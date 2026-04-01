@@ -10,9 +10,9 @@
             <search string="Subjects">
                 <field name="name" string="Name/Code" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
                 <field name="department_id"/>
-                <filter string="Theory"      name="theory"     domain="[('subject_type', '=', 'theory')]"/>
-                <filter string="Practical"   name="practical"  domain="[('subject_type', '=', 'practical')]"/>
-                <filter string="Theory+Prac" name="both"       domain="[('subject_type', '=', 'both')]"/>
+                <filter string="Practical &amp; Theory" name="practical_theory" domain="[('subject_type', '=', 'practical_theory')]"/>
+                <filter string="Simulation"             name="simulation"       domain="[('subject_type', '=', 'simulation')]"/>
+                <filter string="Project"                name="project"          domain="[('subject_type', '=', 'project')]"/>
                 <separator/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
                 <group name="group_by">
@@ -65,7 +65,7 @@
                             <field name="department_id"/>
                             <field name="subject_type"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Academic Weight">
                             <field name="credit_hours"/>

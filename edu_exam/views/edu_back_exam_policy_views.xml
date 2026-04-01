@@ -57,7 +57,7 @@
                     <group>
                         <group string="Identification">
                             <field name="code"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Attempt Limits">
                             <field name="max_back_attempts"/>

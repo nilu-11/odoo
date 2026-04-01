@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ============================================================
+             res.partner — Applicants
+        ============================================================ -->
+        <record id="partner_applicant_ram" model="res.partner">
+            <field name="name">Ram Shrestha</field>
+            <field name="email">ram.shrestha@demo.edu</field>
+            <field name="phone">+977-9841234567</field>
+            <field name="customer_rank">0</field>
+        </record>
+        <record id="partner_applicant_sabina" model="res.partner">
+            <field name="name">Sabina Rai</field>
+            <field name="email">sabina.rai@demo.edu</field>
+            <field name="phone">+977-9851234568</field>
+            <field name="customer_rank">0</field>
+        </record>
+        <record id="partner_applicant_bikash" model="res.partner">
+            <field name="name">Bikash Thapa</field>
+            <field name="email">bikash.thapa@demo.edu</field>
+            <field name="phone">+977-9861234569</field>
+            <field name="customer_rank">0</field>
+        </record>
+        <record id="partner_applicant_anita" model="res.partner">
+            <field name="name">Anita Gurung</field>
+            <field name="email">anita.gurung@demo.edu</field>
+            <field name="phone">+977-9801234570</field>
+            <field name="customer_rank">0</field>
+        </record>
+        <record id="partner_applicant_sunita" model="res.partner">
+            <field name="name">Sunita Tamang</field>
+            <field name="email">sunita.tamang@demo.edu</field>
+            <field name="phone">+977-9841234571</field>
+            <field name="customer_rank">0</field>
+        </record>
+        <record id="partner_applicant_roshan" model="res.partner">
+            <field name="name">Roshan Adhikari</field>
+            <field name="email">roshan.adhikari@demo.edu</field>
+            <field name="phone">+977-9851234572</field>
+            <field name="customer_rank">0</field>
+        </record>
+
+        <!-- ============================================================
+             res.partner — Guardians
+        ============================================================ -->
+        <record id="partner_guardian_hari" model="res.partner">
+            <field name="name">Hari Prasad Shrestha</field>
+            <field name="email">hari.shrestha@demo.edu</field>
+            <field name="phone">+977-9841111001</field>
+        </record>
+        <record id="partner_guardian_gita" model="res.partner">
+            <field name="name">Gita Shrestha</field>
+            <field name="email">gita.shrestha@demo.edu</field>
+            <field name="phone">+977-9841111002</field>
+        </record>
+        <record id="partner_guardian_bir_bahadur" model="res.partner">
+            <field name="name">Bir Bahadur Rai</field>
+            <field name="email">birbahadur.rai@demo.edu</field>
+            <field name="phone">+977-9851111003</field>
+        </record>
+        <record id="partner_guardian_dhan_bahadur" model="res.partner">
+            <field name="name">Dhan Bahadur Thapa</field>
+            <field name="email">dhanbahadur.thapa@demo.edu</field>
+            <field name="phone">+977-9861111004</field>
+        </record>
+        <record id="partner_guardian_mohan" model="res.partner">
+            <field name="name">Mohan Gurung</field>
+            <field name="email">mohan.gurung@demo.edu</field>
+            <field name="phone">+977-9801111005</field>
+        </record>
+        <record id="partner_guardian_kiran" model="res.partner">
+            <field name="name">Kiran Tamang</field>
+            <field name="email">kiran.tamang@demo.edu</field>
+            <field name="phone">+977-9841111006</field>
+        </record>
+        <record id="partner_guardian_gopal" model="res.partner">
+            <field name="name">Gopal Adhikari</field>
+            <field name="email">gopal.adhikari@demo.edu</field>
+            <field name="phone">+977-9851111007</field>
+        </record>
+
+        <!-- ============================================================
+             edu.guardian
+        ============================================================ -->
+        <record id="guardian_hari_shrestha" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_hari"/>
+            <field name="first_name">Hari Prasad</field>
+            <field name="last_name">Shrestha</field>
+            <field name="occupation">Civil Engineer</field>
+            <field name="organization">Department of Roads, Nepal</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+        <record id="guardian_gita_shrestha" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_gita"/>
+            <field name="first_name">Gita</field>
+            <field name="last_name">Shrestha</field>
+            <field name="occupation">School Teacher</field>
+            <field name="organization">Shree Janajyoti Secondary School</field>
+            <field name="is_emergency_contact" eval="True"/>
+        </record>
+        <record id="guardian_bir_bahadur_rai" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_bir_bahadur"/>
+            <field name="first_name">Bir Bahadur</field>
+            <field name="last_name">Rai</field>
+            <field name="occupation">Business Owner</field>
+            <field name="organization">Rai General Store, Dharan</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+        <record id="guardian_dhan_bahadur_thapa" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_dhan_bahadur"/>
+            <field name="first_name">Dhan Bahadur</field>
+            <field name="last_name">Thapa</field>
+            <field name="occupation">Accountant</field>
+            <field name="organization">Nepal Rastra Bank</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+        <record id="guardian_mohan_gurung" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_mohan"/>
+            <field name="first_name">Mohan</field>
+            <field name="last_name">Gurung</field>
+            <field name="occupation">Medical Officer</field>
+            <field name="organization">Gandaki Provincial Hospital</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+        <record id="guardian_kiran_tamang" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_kiran"/>
+            <field name="first_name">Kiran</field>
+            <field name="last_name">Tamang</field>
+            <field name="occupation">Government Officer</field>
+            <field name="organization">Ministry of Finance, Nepal</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+        <record id="guardian_gopal_adhikari" model="edu.guardian">
+            <field name="partner_id" ref="partner_guardian_gopal"/>
+            <field name="first_name">Gopal</field>
+            <field name="last_name">Adhikari</field>
+            <field name="occupation">Retired Army Officer</field>
+            <field name="organization">Nepal Army (Retired)</field>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="is_legal_guardian" eval="True"/>
+        </record>
+
+        <!-- ============================================================
+             edu.applicant.profile
+        ============================================================ -->
+        <record id="profile_ram_shrestha" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_ram"/>
+            <field name="first_name">Ram</field>
+            <field name="last_name">Shrestha</field>
+            <field name="gender">male</field>
+            <field name="date_of_birth">2004-03-15</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Interested in the BCS program. Strong interest in programming and mathematics. Eager to learn software development.</field>
+        </record>
+        <record id="profile_sabina_rai" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_sabina"/>
+            <field name="first_name">Sabina</field>
+            <field name="last_name">Rai</field>
+            <field name="gender">female</field>
+            <field name="date_of_birth">2003-07-22</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Excellent science student from Dharan. Exploring BCS program. Interested in hostel accommodation as she is an outstation student.</field>
+        </record>
+        <record id="profile_bikash_thapa" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_bikash"/>
+            <field name="first_name">Bikash</field>
+            <field name="last_name">Thapa</field>
+            <field name="gender">male</field>
+            <field name="date_of_birth">2003-11-10</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Commerce background applicant targeting the MBA program. Interested in finance and banking specialisation. Has prior work experience at a co-operative.</field>
+        </record>
+        <record id="profile_anita_gurung" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_anita"/>
+            <field name="first_name">Anita</field>
+            <field name="last_name">Gurung</field>
+            <field name="gender">female</field>
+            <field name="date_of_birth">2004-01-05</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Strong management candidate for MBA. All documents submitted. Pending application fee payment to proceed to formal admission.</field>
+        </record>
+        <record id="profile_sunita_tamang" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_sunita"/>
+            <field name="first_name">Sunita</field>
+            <field name="last_name">Tamang</field>
+            <field name="gender">female</field>
+            <field name="date_of_birth">2003-09-18</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Top-scoring applicant this cycle. Eligible for full merit scholarship. Application successfully converted to formal admission.</field>
+        </record>
+        <record id="profile_roshan_adhikari" model="edu.applicant.profile">
+            <field name="partner_id" ref="partner_applicant_roshan"/>
+            <field name="first_name">Roshan</field>
+            <field name="last_name">Adhikari</field>
+            <field name="gender">male</field>
+            <field name="date_of_birth">2004-06-12</field>
+            <field name="nationality_id" ref="base.np"/>
+            <field name="note">Fresh inquiry for BCS through the college website. Waiting for a follow-up call from the counselor to schedule a campus visit.</field>
+        </record>
+
+        <!-- ============================================================
+             edu.applicant.academic.history
+             Each applicant has SLC/SEE + Plus Two records
+        ============================================================ -->
+
+        <!-- Ram Shrestha -->
+        <record id="acad_ram_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
+            <field name="institution_name">Shree Janajyoti Secondary School, Lalitpur</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2021</field>
+            <field name="score">3.70</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_ram_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
+            <field name="institution_name">Kathmandu Model Higher Secondary School</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Science</field>
+            <field name="passed_year">2023</field>
+            <field name="score">75.50</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- Sabina Rai -->
+        <record id="acad_sabina_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_sabina_rai"/>
+            <field name="institution_name">Shree Saraswati Secondary School, Dharan</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2020</field>
+            <field name="score">3.85</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_sabina_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_sabina_rai"/>
+            <field name="institution_name">Dharan Campus, TU</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Science</field>
+            <field name="passed_year">2022</field>
+            <field name="score">82.00</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- Bikash Thapa -->
+        <record id="acad_bikash_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_bikash_thapa"/>
+            <field name="institution_name">Shree Bhanu Secondary School, Tanahun</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2020</field>
+            <field name="score">3.60</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_bikash_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_bikash_thapa"/>
+            <field name="institution_name">Prithvi Narayan Campus, Pokhara</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Management</field>
+            <field name="passed_year">2022</field>
+            <field name="score">78.25</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- Anita Gurung -->
+        <record id="acad_anita_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_anita_gurung"/>
+            <field name="institution_name">Shree Siddhartha Secondary School, Butwal</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2021</field>
+            <field name="score">3.90</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_anita_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_anita_gurung"/>
+            <field name="institution_name">Butwal Multiple Campus</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Management</field>
+            <field name="passed_year">2023</field>
+            <field name="score">85.75</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- Sunita Tamang -->
+        <record id="acad_sunita_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_sunita_tamang"/>
+            <field name="institution_name">Shree Mahendra Secondary School, Sindhupalchok</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2021</field>
+            <field name="score">4.00</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_sunita_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_sunita_tamang"/>
+            <field name="institution_name">Tri-Chandra Multiple Campus, Kathmandu</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Science</field>
+            <field name="passed_year">2023</field>
+            <field name="score">90.00</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- Roshan Adhikari -->
+        <record id="acad_roshan_slc" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_roshan_adhikari"/>
+            <field name="institution_name">Shree Bhimkali Secondary School, Dang</field>
+            <field name="qualification_level">slc_see</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">General</field>
+            <field name="passed_year">2022</field>
+            <field name="score">3.55</field>
+            <field name="score_type">gpa</field>
+        </record>
+        <record id="acad_roshan_plus_two" model="edu.applicant.academic.history">
+            <field name="applicant_profile_id" ref="profile_roshan_adhikari"/>
+            <field name="institution_name">Tulsipur Campus, Dang</field>
+            <field name="qualification_level">plus_two</field>
+            <field name="board_university">National Examination Board (NEB)</field>
+            <field name="program_stream">Science</field>
+            <field name="passed_year">2024</field>
+            <field name="score">71.00</field>
+            <field name="score_type">percentage</field>
+            <field name="is_highest_completed" eval="True"/>
+        </record>
+
+        <!-- ============================================================
+             edu.applicant.guardian.rel
+        ============================================================ -->
+
+        <!-- Ram: Father (primary) + Mother -->
+        <record id="rel_ram_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
+            <field name="guardian_id" ref="guardian_hari_shrestha"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+        <record id="rel_ram_mother" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
+            <field name="guardian_id" ref="guardian_gita_shrestha"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_mother"/>
+            <field name="is_primary" eval="False"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">2</field>
+        </record>
+
+        <!-- Sabina: Father (primary) -->
+        <record id="rel_sabina_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_sabina_rai"/>
+            <field name="guardian_id" ref="guardian_bir_bahadur_rai"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Bikash: Father (primary) -->
+        <record id="rel_bikash_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_bikash_thapa"/>
+            <field name="guardian_id" ref="guardian_dhan_bahadur_thapa"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Anita: Father (primary) -->
+        <record id="rel_anita_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_anita_gurung"/>
+            <field name="guardian_id" ref="guardian_mohan_gurung"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Sunita: Father (primary) -->
+        <record id="rel_sunita_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_sunita_tamang"/>
+            <field name="guardian_id" ref="guardian_kiran_tamang"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Roshan: Father (primary) -->
+        <record id="rel_roshan_father" model="edu.applicant.guardian.rel">
+            <field name="applicant_profile_id" ref="profile_roshan_adhikari"/>
+            <field name="guardian_id" ref="guardian_gopal_adhikari"/>
+            <field name="relationship_type_id" ref="edu_pre_admission_crm.rel_type_father"/>
+            <field name="is_primary" eval="True"/>
+            <field name="is_emergency_contact" eval="True"/>
+            <field name="is_financial_contact" eval="True"/>
+            <field name="lives_with_applicant" eval="True"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- ============================================================
+             crm.lead — one per pipeline stage, covering the full funnel
+        ============================================================ -->
+
+        <!-- Stage: inquiry -->
+        <record id="lead_ram_shrestha" model="crm.lead">
+            <field name="name">BCS Inquiry – Ram Shrestha</field>
+            <field name="partner_id" ref="partner_applicant_ram"/>
+            <field name="email_from">ram.shrestha@demo.edu</field>
+            <field name="phone">+977-9841234567</field>
+            <field name="lead_education_status">inquiry</field>
+            <field name="inquiry_date" eval="(datetime.today() - timedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_bcs"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
+            <field name="preferred_term_id" ref="edu_academic_structure.term_sem1_2425"/>
+            <field name="scholarship_interest" eval="True"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
+            <field name="counseling_note">Walked in at the front desk with his father. Interested in the BCS program. Requires detailed information about the curriculum, career prospects, and scholarship eligibility. Campus tour requested.</field>
+        </record>
+
+        <!-- Stage: prospect -->
+        <record id="lead_sabina_rai" model="crm.lead">
+            <field name="name">BCS Prospect – Sabina Rai</field>
+            <field name="partner_id" ref="partner_applicant_sabina"/>
+            <field name="email_from">sabina.rai@demo.edu</field>
+            <field name="phone">+977-9851234568</field>
+            <field name="lead_education_status">prospect</field>
+            <field name="inquiry_date" eval="(datetime.today() - timedelta(days=18)).strftime('%Y-%m-%d')"/>
+            <field name="last_contact_date" eval="(datetime.today() - timedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="next_followup_date" eval="(datetime.today() + timedelta(days=3)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_bcs"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
+            <field name="hostel_interest" eval="True"/>
+            <field name="transport_interest" eval="False"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_sabina_rai"/>
+            <field name="counseling_note">Strong science background (82% in +2 from Dharan). Showed genuine interest after the initial counseling call. Hostel availability confirmed. Follow-up call scheduled to discuss required documentation for admission.</field>
+        </record>
+
+        <!-- Stage: qualified -->
+        <record id="lead_bikash_thapa" model="crm.lead">
+            <field name="name">MBA Qualified – Bikash Thapa</field>
+            <field name="partner_id" ref="partner_applicant_bikash"/>
+            <field name="email_from">bikash.thapa@demo.edu</field>
+            <field name="phone">+977-9861234569</field>
+            <field name="lead_education_status">qualified</field>
+            <field name="inquiry_date" eval="(datetime.today() - timedelta(days=35)).strftime('%Y-%m-%d')"/>
+            <field name="last_contact_date" eval="(datetime.today() - timedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="next_followup_date" eval="(datetime.today() + timedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_mba"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="preferred_batch_id" ref="edu_academic_structure.batch_mba_2425"/>
+            <field name="scholarship_interest" eval="True"/>
+            <field name="transport_interest" eval="True"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_bikash_thapa"/>
+            <field name="counseling_note">Management background with 78.25% in +2. Meets MBA eligibility requirements. Has prior co-operative work experience which strengthens his application. Documents collected and verified.</field>
+            <field name="qualification_note">Passed academic eligibility check. Prior work experience noted. Recommended for MBA – Finance and Banking specialisation. Proceed to application stage after fee clearance.</field>
+        </record>
+
+        <!-- Stage: ready_for_application -->
+        <record id="lead_anita_gurung" model="crm.lead">
+            <field name="name">MBA Application Ready – Anita Gurung</field>
+            <field name="partner_id" ref="partner_applicant_anita"/>
+            <field name="email_from">anita.gurung@demo.edu</field>
+            <field name="phone">+977-9801234570</field>
+            <field name="lead_education_status">ready_for_application</field>
+            <field name="inquiry_date" eval="(datetime.today() - timedelta(days=50)).strftime('%Y-%m-%d')"/>
+            <field name="last_contact_date" eval="(datetime.today() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="next_followup_date" eval="(datetime.today() + timedelta(days=1)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_mba"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="preferred_batch_id" ref="edu_academic_structure.batch_mba_2425"/>
+            <field name="hostel_interest" eval="True"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_anita_gurung"/>
+            <field name="counseling_note">All academic documents submitted and verified. Application fee payment is the only remaining step before the formal admission application is created. Will proceed by end of this week.</field>
+            <field name="qualification_note">Strong management background (85.75% in +2 from Butwal Campus). Fully meets MBA entry requirements. Hostel allocation confirmed pending fee payment.</field>
+        </record>
+
+        <!-- Stage: converted -->
+        <record id="lead_sunita_tamang" model="crm.lead">
+            <field name="name">BCS Application – Sunita Tamang (Converted)</field>
+            <field name="partner_id" ref="partner_applicant_sunita"/>
+            <field name="email_from">sunita.tamang@demo.edu</field>
+            <field name="phone">+977-9841234571</field>
+            <field name="lead_education_status">converted</field>
+            <field name="is_converted_to_application" eval="True"/>
+            <field name="inquiry_date" eval="(datetime.today() - timedelta(days=65)).strftime('%Y-%m-%d')"/>
+            <field name="last_contact_date" eval="(datetime.today() - timedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_bcs"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
+            <field name="preferred_term_id" ref="edu_academic_structure.term_sem1_2425"/>
+            <field name="scholarship_interest" eval="True"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_sunita_tamang"/>
+            <field name="counseling_note">Outstanding academic record — 90% in science from Tri-Chandra Campus and GPA 4.00 in SEE. Top candidate for the full merit scholarship. All formalities completed without delay. Highly motivated student.</field>
+            <field name="qualification_note">Highest scoring applicant this cycle. Full merit scholarship recommended and approved. Admission application successfully submitted and accepted.</field>
+        </record>
+
+        <!-- Stage: inquiry (fresh) -->
+        <record id="lead_roshan_adhikari" model="crm.lead">
+            <field name="name">BCS Inquiry – Roshan Adhikari</field>
+            <field name="partner_id" ref="partner_applicant_roshan"/>
+            <field name="email_from">roshan.adhikari@demo.edu</field>
+            <field name="phone">+977-9851234572</field>
+            <field name="lead_education_status">inquiry</field>
+            <field name="inquiry_date" eval="datetime.today().strftime('%Y-%m-%d')"/>
+            <field name="next_followup_date" eval="(datetime.today() + timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="interested_program_id" ref="edu_academic_structure.prog_bcs"/>
+            <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
+            <field name="scholarship_interest" eval="False"/>
+            <field name="hostel_interest" eval="True"/>
+            <field name="counselor_id" ref="base.user_admin"/>
+            <field name="applicant_profile_id" ref="profile_roshan_adhikari"/>
+            <field name="counseling_note">Submitted an online enquiry form via the college website. His father, a retired army officer, called the office to enquire. Initial contact made. Counselor to call Roshan within 2 days to schedule an in-person campus visit.</field>
+        </record>
+
+    </data>
+</odoo>

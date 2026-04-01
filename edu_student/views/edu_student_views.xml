@@ -132,6 +132,9 @@
                 </header>
 
                 <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_128'}"/>
+
                     <!-- ── Smart Buttons ── -->
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_applicant_profile"
@@ -274,12 +277,81 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════
+         Student — Kanban
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_student_kanban" model="ir.ui.view">
+        <field name="name">edu.student.kanban</field>
+        <field name="model">edu.student</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="student_no"/>
+                <field name="roll_number"/>
+                <field name="partner_id"/>
+                <field name="program_id"/>
+                <field name="batch_id"/>
+                <field name="current_program_term_id"/>
+                <field name="admission_date"/>
+                <field name="state"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <!-- Full-height image panel on the left -->
+                        <aside class="o_kanban_aside_full">
+                            <t t-if="record.image_128.raw_value">
+                                <img t-att-src="'/web/image/edu.student/' + record.id.raw_value + '/image_128'"
+                                     class="w-100 h-100 object-fit-cover"
+                                     t-att-alt="record.partner_id.value"/>
+                            </t>
+                            <t t-else="">
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-100">
+                                    <i class="fa fa-user-circle fa-4x text-400"/>
+                                </div>
+                            </t>
+                        </aside>
+
+                        <!-- All content — right -->
+                        <main class="overflow-hidden ms-2 py-1">
+                            <strong class="d-block text-truncate fs-6">
+                                <field name="partner_id"/>
+                            </strong>
+                            <small class="text-muted d-block text-truncate mb-2">
+                                <field name="student_no"/>
+                            </small>
+                            <div class="small text-muted text-truncate mb-1">
+                                <i class="fa fa-graduation-cap me-1"/>
+                                <field name="program_id"/>
+                            </div>
+                            <div class="small text-muted text-truncate mb-1">
+                                <i class="fa fa-users me-1"/>
+                                <field name="batch_id"/>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted">
+                                    <i class="fa fa-calendar me-1"/>
+                                    <field name="admission_date"/>
+                                </small>
+                                <field name="state" widget="badge"
+                                       decoration-success="state == 'active'"
+                                       decoration-primary="state == 'graduated'"
+                                       decoration-info="state == 'alumni'"
+                                       decoration-warning="state in ('on_leave', 'suspended')"
+                                       decoration-danger="state == 'withdrawn'"
+                                       decoration-secondary="state == 'inactive'"/>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
          Student — Action
     ══════════════════════════════════════════════════════ -->
     <record id="action_edu_student" model="ir.actions.act_window">
         <field name="name">Students</field>
         <field name="res_model">edu.student</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_edu_student_search"/>
         <field name="context">{'search_default_state_active': 1}</field>
         <field name="help" type="html">

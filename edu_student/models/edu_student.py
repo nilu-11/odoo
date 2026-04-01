@@ -86,6 +86,14 @@ class EduStudent(models.Model):
         related='current_enrollment_id.crm_lead_id', string='CRM Lead',
         store=True, readonly=True,
     )
+    image_1920 = fields.Image(
+        related='applicant_profile_id.image_1920',
+        string='Photo', readonly=False,
+    )
+    image_128 = fields.Image(
+        related='applicant_profile_id.image_128',
+        string='Photo (Thumbnail)', readonly=True,
+    )
 
     # ═══════════════════════════════════════════════════════
     #  Academic Placement (current status — snapshotted from enrollment,

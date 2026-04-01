@@ -28,6 +28,7 @@
         'crm',
         'mail',
         'contacts',
+        'hr',
         'edu_academic_structure',
     ],
     # edu_admission is an optional downstream dependency.
@@ -40,8 +41,12 @@
         'views/edu_relationship_type_views.xml',
         'views/edu_applicant_profile_views.xml',
         'views/edu_guardian_views.xml',
+        # 'views/hr_employee_views.xml',
         'views/crm_lead_views.xml',
         'views/menu_views.xml',
+    ],
+    'demo': [
+        # 'data/demo_data.xml',
     ],
     'installable': True,
     'application': False,

@@ -9,7 +9,7 @@
         <field name="inherit_id" ref="edu_fees_structure.view_edu_fee_head_form"/>
         <field name="arch" type="xml">
             <!-- Add accounting fields section -->
-            <xpath expr="//field[@name='description']" position="before">
+            <xpath expr="//group[@name='description_group']" position="before">
                 <separator string="Accounting Integration"/>
                 <group>
                     <group string="Product &amp; Accounts">

@@ -179,7 +179,7 @@
                                 <group string="Flags">
                                     <field name="is_board_exam"/>
                                     <field name="is_external_exam"/>
-                                    <field name="active"/>
+                                    <field name="active" invisible="1"/>
                                 </group>
                             </group>
                         </page>

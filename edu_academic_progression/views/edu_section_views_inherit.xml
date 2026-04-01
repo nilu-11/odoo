@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Section Form — add current_student_count (read-only)
+         Added by edu_academic_progression so it shows the
+         live headcount derived from active progression history.
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_section_form_progression" model="ir.ui.view">
+        <field name="name">edu.section.form.progression</field>
+        <field name="model">edu.section</field>
+        <field name="inherit_id" ref="edu_academic_structure.view_edu_section_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert enrolled student count beside capacity -->
+            <field name="capacity" position="after">
+                <field name="current_student_count"
+                       string="Enrolled Students"
+                       readonly="1"
+                       help="Students with an active progression history in this section."/>
+            </field>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Section List — add current_student_count column
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_section_list_progression" model="ir.ui.view">
+        <field name="name">edu.section.list.progression</field>
+        <field name="model">edu.section</field>
+        <field name="inherit_id" ref="edu_academic_structure.view_edu_section_list"/>
+        <field name="arch" type="xml">
+            <field name="capacity" position="after">
+                <field name="current_student_count"
+                       string="Enrolled"
+                       readonly="1"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

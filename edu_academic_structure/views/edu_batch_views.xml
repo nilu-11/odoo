@@ -102,9 +102,9 @@
                             <field name="capacity"
                                    readonly="state == 'closed'"/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
-                        <group string="Progression &amp; Period">
+                        <group string="Semester &amp; Period">
                             <field name="current_program_term_id"
                                    readonly="state == 'closed'"/>
                             <field name="start_date"
@@ -124,7 +124,7 @@
                                     <field name="name"/>
                                     <field name="code"/>
                                     <field name="capacity"/>
-                                    <field name="active"/>
+                                    <field name="active" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>

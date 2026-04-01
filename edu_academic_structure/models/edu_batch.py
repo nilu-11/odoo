@@ -46,11 +46,11 @@ class EduBatch(models.Model):
     # ── Progression tracking ─────────────────────────────────────────────────
     current_program_term_id = fields.Many2one(
         comodel_name='edu.program.term',
-        string='Current Progression',
+        string='Current Semester',
         ondelete='restrict',
         tracking=True,
         domain="[('program_id', '=', program_id)]",
-        help='The progression stage this batch is currently in '
+        help='The Semester stage this batch is currently in '
              '(e.g. Semester 3 of BCS).',
     )
 
@@ -262,6 +262,30 @@ class EduBatch(models.Model):
         return super().unlink()
 
     # ── State transitions ──────────────────────────────────────────────────────
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('current_program_term_id') and vals.get('program_id'):
+                first_term = self.env['edu.program.term'].search(
+                    [
+                        ('program_id', '=', vals['program_id']),
+                        ('progression_no', '=', 1),
+                    ],
+                    limit=1,
+                )
+                if first_term:
+                    vals['current_program_term_id'] = first_term.id
+        batches = super().create(vals_list)
+        for batch in batches:
+            self.env['edu.section'].create({
+                'batch_id': batch.id,
+                'name': 'A',
+                'code': 'SEC-A',
+                'capacity': 0,
+            })
+        return batches
+
     def action_activate(self):
         for rec in self:
             if rec.academic_year_id.state != 'open':

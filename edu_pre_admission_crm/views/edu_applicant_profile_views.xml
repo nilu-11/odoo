@@ -56,6 +56,9 @@
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
 
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_128'}"/>
+
                     <!-- Smart buttons -->
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_leads"
@@ -82,8 +85,9 @@
                     <group>
                         <group string="Identity">
                             <field name="partner_id"
-                                   options="{'no_create': False}"
-                                   help="Link to an existing contact or create a new one."/>
+                                   readonly="1"
+                                   invisible="not id"
+                                   help="Auto-created and linked when the applicant is saved."/>
                             <field name="gender"/>
                             <field name="date_of_birth"/>
                             <field name="age" readonly="1"/>

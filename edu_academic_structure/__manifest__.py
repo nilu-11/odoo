@@ -28,7 +28,7 @@
         'views/menu_views.xml',
     ],
     'demo': [
-        'data/demo_data.xml',
+        # 'data/demo_data.xml',
     ],
     'installable': True,
     'application': True,

@@ -70,4 +70,39 @@
             Implies Progression Officer access.
         </field>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Section Assignment Groups
+         Officer  — can run section assignments for unassigned students.
+         Admin    — can override reassignment of students who have existing
+                    attendance or exam records; implies Officer.
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="group_section_assignment_officer" model="res.groups">
+        <field name="name">Section Assignment Officer</field>
+        <field name="privilege_id" ref="privilege_progression_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_progression_viewer'))
+        ]"/>
+        <field name="comment">
+            Can open and run the Bulk Section Assignment wizard.
+            Cannot reassign students who already have attendance or exam records;
+            that requires the Section Assignment Administrator group.
+        </field>
+    </record>
+
+    <record id="group_section_assignment_admin" model="res.groups">
+        <field name="name">Section Assignment Administrator</field>
+        <field name="privilege_id" ref="privilege_progression_access"/>
+        <field name="implied_ids" eval="[
+            (4, ref('base.group_user')),
+            (4, ref('group_section_assignment_officer'))
+        ]"/>
+        <field name="comment">
+            Full section assignment authority, including reassignment of students
+            who already have attendance or exam records linked to their current section.
+            Implies Section Assignment Officer access.
+        </field>
+    </record>
 </odoo>

@@ -61,8 +61,14 @@ class EduFeeHead(models.Model):
             'Used as the default when this head is assigned to a structure line.'
         ),
     )
+    currency_id = fields.Many2one(
+        comodel_name='res.currency',
+        string='Currency',
+        required=True,
+        default=lambda self: self.env.company.currency_id,
+        help='Currency used when this fee head appears in a fee structure line.',
+    )
     active = fields.Boolean(default=True)
-    description = fields.Text(string='Description')
     company_id = fields.Many2one(
         comodel_name='res.company',
         string='Company',
@@ -70,6 +76,8 @@ class EduFeeHead(models.Model):
         default=lambda self: self.env.company,
         index=True,
     )
+    description = fields.Text(string='Description')
+
 
     # ── SQL constraints ──────────────────────────────────────────────────────────
     _sql_constraints = [

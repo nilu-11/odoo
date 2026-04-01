@@ -67,7 +67,7 @@
                             <field name="subject_type" readonly="1"/>
                             <field name="subject_category"/>
                             <field name="sequence"/>
-                            <field name="active"/>
+                            <field name="active" invisible="1"/>
                         </group>
                         <group string="Marks &amp; Credits">
                             <field name="credit_hours"/>
