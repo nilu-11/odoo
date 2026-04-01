@@ -65,7 +65,6 @@ class CrmLead(models.Model):
         comodel_name='hr.employee',
         string='Counselor',
         tracking=True,
-        domain="[('is_counselor', '=', True)]",
         help='Internal user responsible for counseling this prospect.',
     )
 
