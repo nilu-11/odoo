@@ -13,7 +13,6 @@
                 <filter string="Practical &amp; Theory" name="practical_theory" domain="[('subject_type', '=', 'practical_theory')]"/>
                 <filter string="Simulation"             name="simulation"       domain="[('subject_type', '=', 'simulation')]"/>
                 <filter string="Project"                name="project"          domain="[('subject_type', '=', 'project')]"/>
-                <filter string="Theory &amp; Practical" name="theory_practical" domain="[('subject_type', '=', 'theory_practical')]"/>
                 <separator/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
                 <group name="group_by">

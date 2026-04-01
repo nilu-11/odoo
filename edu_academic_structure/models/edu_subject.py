@@ -34,11 +34,10 @@ class EduSubject(models.Model):
             ('practical_theory', 'Practical & Theory'),
             ('simulation', 'Simulation'),
             ('project', 'Project'),
-            ('theory_practical', 'Theory & Practical'),
         ],
         string='Subject Type',
         required=True,
-        default='theory_practical',
+        default='practical_theory',
         tracking=True,
     )
     credit_hours = fields.Float(
