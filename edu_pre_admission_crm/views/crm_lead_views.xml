@@ -145,7 +145,7 @@
                 <group>
                     <group string="Status">
                         <field name="inquiry_date"/>
-                        <field name="last_contact_date"/>
+                        <field name="last_contact_date" invisible = "1"/>
                         <field name="next_followup_date"/>
                         <field name="counselor_id"/>
                         <field name="source_id"/>
