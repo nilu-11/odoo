@@ -32,7 +32,6 @@
                 <field name="code"/>
                 <field name="department_id"/>
                 <field name="program_type"/>
-                <field name="level"/>
                 <field name="duration_value"/>
                 <field name="duration_unit"/>
                 <field name="total_terms"/>
@@ -84,7 +83,6 @@
                             <field name="code"/>
                             <field name="department_id"/>
                             <field name="program_type"/>
-                            <field name="level"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="active" invisible="1"/>
                         </group>

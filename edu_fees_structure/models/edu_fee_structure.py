@@ -256,6 +256,73 @@ class EduFeeStructure(models.Model):
     def action_reset_draft(self):
         self.write({'state': 'draft'})
 
+    def action_generate_fee_lines(self):
+        """Create one fee-line stub per program term that does not yet have one."""
+        self.ensure_one()
+        if self.state == 'closed':
+            raise UserError('Cannot modify a closed fee structure.')
+        if not self.program_id:
+            raise UserError('Select a program before generating fee lines.')
+
+        program_terms = self.env['edu.program.term'].search(
+            [('program_id', '=', self.program_id.id)],
+            order='progression_no',
+        )
+        if not program_terms:
+            raise UserError(
+                f'No program terms found for "{self.program_id.name}". '
+                'Generate them from the Program form first.'
+            )
+
+        default_head = self.env['edu.fee.head'].search(
+            [
+                ('fee_type', '=', 'tuition'),
+                ('company_id', '=', self.company_id.id),
+                ('active', '=', True),
+            ],
+            limit=1,
+        )
+        if not default_head:
+            raise UserError(
+                'No tuition fee head found. '
+                'Create at least one tuition fee head before generating lines.'
+            )
+
+        existing_term_ids = set(self.line_ids.mapped('program_term_id').ids)
+        new_terms = program_terms.filtered(lambda t: t.id not in existing_term_ids)
+
+        if not new_terms:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Nothing to Generate',
+                    'message': 'Fee lines for all program terms already exist.',
+                    'type': 'info',
+                    'sticky': False,
+                },
+            }
+
+        self.env['edu.fee.structure.line'].create([
+            {
+                'fee_structure_id': self.id,
+                'program_term_id': pt.id,
+                'fee_head_id': default_head.id,
+                'amount': 0.0,
+            }
+            for pt in new_terms
+        ])
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Fee Lines Generated',
+                'message': f'Created {len(new_terms)} fee line(s) for "{self.name}".',
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
     # ── Smart buttons ─────────────────────────────────────────────────────────────
     def action_view_lines(self):
         self.ensure_one()

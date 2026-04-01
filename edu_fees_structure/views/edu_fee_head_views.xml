@@ -71,7 +71,7 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
-                    <group string="Description">
+                    <group string="Description" invisible="1" name="description_group">
                         <field name="description" nolabel="1" placeholder="Optional description..."/>
                     </group>
                 </sheet>
