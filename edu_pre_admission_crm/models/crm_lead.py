@@ -62,7 +62,7 @@ class CrmLead(models.Model):
 
     # ── Counseling ────────────────────────────────────────────────────────────
     counselor_id = fields.Many2one(
-        comodel_name='hr.employee',
+        comodel_name='res.users',
         string='Counselor',
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
