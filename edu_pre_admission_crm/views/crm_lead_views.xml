@@ -29,6 +29,32 @@
             </xpath>
 
             <xpath expr="//header" position="inside">
+                <button name="action_set_prospect"
+                        type="object"
+                        string="Mark as Prospect"
+                        class="btn-secondary"
+                        invisible="lead_education_status != 'inquiry'"/>
+                <button name="action_set_qualified"
+                        type="object"
+                        string="Mark as Qualified"
+                        class="btn-secondary"
+                        invisible="lead_education_status not in ['inquiry', 'prospect']"/>
+                <button name="action_set_ready_for_application"
+                        type="object"
+                        string="Ready for Application"
+                        class="btn-secondary"
+                        invisible="lead_education_status not in ['inquiry', 'prospect', 'qualified']"/>
+                <button name="action_check_duplicate_applicants"
+                        type="object"
+                        string="Check Duplicates"
+                        class="btn-secondary"
+                        invisible="is_converted_to_application"/>
+                <button name="action_convert_to_admission_application"
+                        type="object"
+                        string="Convert to Application"
+                        class="btn-primary"
+                        invisible="lead_education_status != 'ready_for_application' or is_converted_to_application"
+                        confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
                 <field name="lead_education_status"
                        widget="statusbar"
                        statusbar_visible="inquiry,prospect,qualified,ready_for_application,converted"/>
@@ -125,36 +151,6 @@
                     </group>
                 </group>
 
-                <!-- Status transition buttons -->
-                <div class="o_row mt-2 mb-3">
-                    <button name="action_set_prospect"
-                            type="object"
-                            string="Mark as Prospect"
-                            class="btn-secondary btn-sm me-2"
-                            invisible="lead_education_status != 'inquiry'"/>
-                    <button name="action_set_qualified"
-                            type="object"
-                            string="Mark as Qualified"
-                            class="btn-secondary btn-sm me-2"
-                            invisible="lead_education_status not in ['inquiry', 'prospect']"/>
-                    <button name="action_set_ready_for_application"
-                            type="object"
-                            string="Ready for Application"
-                            class="btn-secondary btn-sm me-2"
-                            invisible="lead_education_status not in ['inquiry', 'prospect', 'qualified']"/>
-                    <button name="action_check_duplicate_applicants"
-                            type="object"
-                            string="Check Duplicates"
-                            class="btn-secondary btn-sm me-2"
-                            invisible="is_converted_to_application"/>
-                    <button name="action_convert_to_admission_application"
-                            type="object"
-                            string="Convert to Application"
-                            class="btn-primary btn-sm"
-                            invisible="lead_education_status != 'ready_for_application' or is_converted_to_application"
-                            confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
-                </div>
-
                 <!-- Conversion indicator -->
                 <div class="alert alert-success mb-3"
                      invisible="not is_converted_to_application">
@@ -186,7 +182,31 @@
                            <field name="transport_interest"/>
                           </group>
                       </group>
-
+                <group>
+                <group string="Pending Call Activities" colspan="1">
+                    <field name="pending_call_activity_ids" nolabel="1" mode="list" readonly="1" width="600px">
+                        <list string="Pending Call Activities" create="0" edit="0" delete="0">
+                            <field name="summary" string="Activity Type"/>
+                            <field name="date_deadline" string="Due Date"
+                                decoration-danger="date_deadline &lt; today"
+                                decoration-warning="date_deadline == today"/>
+                            <field name="note" string="Notes"/>
+                            <field name="user_id" string="Assigned To"/>
+                        </list>
+                    </field>
+                </group>
+                <group string="Done Call Activities" colspan="1">
+                    <field name="done_call_message_ids" nolabel="1" mode="list" readonly="1" width="300px">
+                        <list string="Done Call Activities" create="0" edit="0" delete="0">
+                            <field name="date" string="Date"/>
+                            <field name="call_feedback" string="Feedback"/>
+                            <field name="author_id" string="Done By"/>
+                        </list>
+                    </field>
+                </group>
+                </group>
+                
+              
                 <div class="o_horizontal_separator mt-4 mb-3">Counseling</div>
 
                 <group>

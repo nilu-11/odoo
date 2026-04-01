@@ -164,6 +164,32 @@ class CrmLead(models.Model):
         if self.applicant_profile_id and self.applicant_profile_id.partner_id:
             self.partner_id = self.applicant_profile_id.partner_id
 
+    # ── Computed: call-only activity lists ─────────────────────────────────────
+    pending_call_activity_ids = fields.One2many(
+        comodel_name='mail.activity',
+        compute='_compute_call_activities',
+        string='Pending Call Activities',
+    )
+    done_call_message_ids = fields.One2many(
+        comodel_name='mail.message',
+        compute='_compute_call_activities',
+        string='Done Call Activities',
+    )
+
+    def _compute_call_activities(self):
+        call_type = self.env.ref('mail.mail_activity_data_call', raise_if_not_found=False)
+        for rec in self:
+            if call_type:
+                rec.pending_call_activity_ids = rec.activity_ids.filtered(
+                    lambda a: a.activity_type_id == call_type
+                )
+                rec.done_call_message_ids = rec.message_ids.filtered(
+                    lambda m: m.mail_activity_type_id == call_type
+                )
+            else:
+                rec.pending_call_activity_ids = self.env['mail.activity']
+                rec.done_call_message_ids = self.env['mail.message']
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
