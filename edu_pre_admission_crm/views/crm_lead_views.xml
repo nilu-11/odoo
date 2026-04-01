@@ -43,8 +43,7 @@
                         type="action"
                         class="oe_stat_button"
                         icon="fa-user-circle"
-                        invisible="not applicant_profile_id"
-                        context="{'default_partner_id': partner_id}">
+                    invisible="not applicant_profile_id">
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">Applicant</span>
                         <field name="applicant_profile_id" class="o_stat_value" readonly="1"/>
@@ -71,9 +70,113 @@
             <xpath expr="//sheet/group[1]" position="before">
                 <group>
                     <group>
-                        <field name="partner_id" widget="res_partner_many2one" string="Contact"/>
+                        <field name="partner_id" widget="res_partner_many2one" string="Contact" invisible="1"/>
                     </group>
                     <group/>
+                </group>
+            </xpath>
+
+            <!-- Render pre-admission fields directly in form (no custom notebook page) -->
+            <xpath expr="//sheet/notebook" position="before">
+
+                <div class="o_horizontal_separator mt-4 mb-3">Applicant Profile</div>
+
+                <group>
+                    <group>
+                        <field name="applicant_profile_id"
+                               options="{'no_create': False}"
+                               readonly="is_converted_to_application"
+                               help="Link or create the structured applicant profile. Required before conversion."/>
+                    </group>
+                </group>
+
+                <div class="o_horizontal_separator mt-4 mb-3">Education Workflow</div>
+
+                <!-- Status + quick progression buttons -->
+                <group>
+                    <group string="Status">
+                        <field name="lead_education_status" widget="statusbar"
+                               statusbar_visible="inquiry,prospect,qualified,ready_for_application,converted"/>
+                        <field name="inquiry_date"/>
+                        <field name="last_contact_date"/>
+                        <field name="next_followup_date"/>
+                        <field name="counselor_id"/>
+                    </group>
+                </group>
+
+                <!-- Status transition buttons -->
+                <div class="o_row mt-2 mb-3">
+                    <button name="action_set_prospect"
+                            type="object"
+                            string="Mark as Prospect"
+                            class="btn-secondary btn-sm me-2"
+                            invisible="lead_education_status != 'inquiry'"/>
+                    <button name="action_set_qualified"
+                            type="object"
+                            string="Mark as Qualified"
+                            class="btn-secondary btn-sm me-2"
+                            invisible="lead_education_status not in ['inquiry', 'prospect']"/>
+                    <button name="action_set_ready_for_application"
+                            type="object"
+                            string="Ready for Application"
+                            class="btn-secondary btn-sm me-2"
+                            invisible="lead_education_status not in ['inquiry', 'prospect', 'qualified']"/>
+                    <button name="action_check_duplicate_applicants"
+                            type="object"
+                            string="Check Duplicates"
+                            class="btn-secondary btn-sm me-2"
+                            invisible="is_converted_to_application"/>
+                    <button name="action_convert_to_admission_application"
+                            type="object"
+                            string="Convert to Application"
+                            class="btn-primary btn-sm"
+                            invisible="lead_education_status != 'ready_for_application' or is_converted_to_application"
+                            confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
+                </div>
+
+                <!-- Conversion indicator -->
+                <div class="alert alert-success mb-3"
+                     invisible="not is_converted_to_application">
+                    <i class="fa fa-check-circle me-2"/>
+                    Converted to an admission application on
+                    <field name="conversion_date" readonly="1" nolabel="1" class="d-inline"/>
+                </div>
+
+                      <div class="o_horizontal_separator mt-4 mb-3">Academic Interest</div>
+
+                      <group>
+                          <group string="Program &amp; Intake">
+                           <field name="interested_program_id"
+                               readonly="is_converted_to_application"/>
+                           <field name="intended_academic_year_id"
+                               string="Intended Intake Year"
+                               readonly="is_converted_to_application"/>
+                           <field name="preferred_batch_id"
+                               domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
+                               options="{'no_create': True}"
+                               readonly="is_converted_to_application"/>
+                           <field name="preferred_term_id"
+                               options="{'no_create': True}"
+                               readonly="is_converted_to_application"/>
+                          </group>
+                          <group string="Additional Interests">
+                           <field name="scholarship_interest"/>
+                           <field name="hostel_interest"/>
+                           <field name="transport_interest"/>
+                          </group>
+                      </group>
+
+                <div class="o_horizontal_separator mt-4 mb-3">Counseling</div>
+
+                <group>
+                    <group string="Counseling Notes">
+                        <field name="counseling_note" nolabel="1"
+                               placeholder="Record counseling session notes, discussion points, concerns..."/>
+                    </group>
+                    <group string="Qualification Notes">
+                        <field name="qualification_note" nolabel="1"
+                               placeholder="Eligibility check notes, document status, academic qualification summary..."/>
+                    </group>
                 </group>
             </xpath>
 
@@ -97,112 +200,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <xpath expr="//notebook" position="inside">
-                <page string="Pre-Admission" name="pre_admission">
 
-                    <div class="o_horizontal_separator mt-4 mb-3">Education Workflow</div>
-
-                    <!-- Status + quick progression buttons -->
-                    <group>
-                        <group string="Status">
-                            <field name="lead_education_status" widget="statusbar"
-                                   statusbar_visible="inquiry,prospect,qualified,ready_for_application,converted"/>
-                            <field name="inquiry_date"/>
-                            <field name="last_contact_date"/>
-                            <field name="next_followup_date"/>
-                            <field name="counselor_id"/>
-                        </group>
-                    </group>
-
-                    <!-- Status transition buttons -->
-                    <div class="o_row mt-2 mb-3">
-                        <button name="action_set_prospect"
-                                type="object"
-                                string="Mark as Prospect"
-                                class="btn-secondary btn-sm me-2"
-                                invisible="lead_education_status != 'inquiry'"/>
-                        <button name="action_set_qualified"
-                                type="object"
-                                string="Mark as Qualified"
-                                class="btn-secondary btn-sm me-2"
-                                invisible="lead_education_status not in ['inquiry', 'prospect']"/>
-                        <button name="action_set_ready_for_application"
-                                type="object"
-                                string="Ready for Application"
-                                class="btn-secondary btn-sm me-2"
-                                invisible="lead_education_status not in ['inquiry', 'prospect', 'qualified']"/>
-                        <button name="action_check_duplicate_applicants"
-                                type="object"
-                                string="Check Duplicates"
-                                class="btn-secondary btn-sm me-2"
-                                invisible="is_converted_to_application"/>
-                        <button name="action_convert_to_admission_application"
-                                type="object"
-                                string="Convert to Application"
-                                class="btn-primary btn-sm"
-                                invisible="lead_education_status != 'ready_for_application' or is_converted_to_application"
-                                confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
-                    </div>
-
-                    <!-- Conversion indicator -->
-                    <div class="alert alert-success mb-3"
-                         invisible="not is_converted_to_application">
-                        <i class="fa fa-check-circle me-2"/>
-                        Converted to an admission application on
-                        <field name="conversion_date" readonly="1" nolabel="1" class="d-inline"/>
-                    </div>
-
-                    <div class="o_horizontal_separator mt-4 mb-3">Academic Interest</div>
-
-                    <group>
-                        <group string="Program &amp; Intake">
-                            <field name="interested_program_id"
-                                   readonly="is_converted_to_application"/>
-                            <field name="intended_academic_year_id"
-                                   string="Intended Intake Year"
-                                   readonly="is_converted_to_application"/>
-                            <field name="preferred_batch_id"
-                                   domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
-                                   options="{'no_create': True}"
-                                   readonly="is_converted_to_application"/>
-                            <field name="preferred_term_id"
-                                   options="{'no_create': True}"
-                                   readonly="is_converted_to_application"/>
-                        </group>
-                        <group string="Additional Interests">
-                            <field name="scholarship_interest"/>
-                            <field name="hostel_interest"/>
-                            <field name="transport_interest"/>
-                        </group>
-                    </group>
-
-                    <div class="o_horizontal_separator mt-4 mb-3">Applicant Profile</div>
-
-                    <group>
-                        <group>
-                            <field name="applicant_profile_id"
-                                   options="{'no_create': False}"
-                                   readonly="is_converted_to_application"
-                                   context="{'default_partner_id': partner_id}"
-                                   help="Link or create the structured applicant profile. Required before conversion."/>
-                        </group>
-                    </group>
-
-                    <div class="o_horizontal_separator mt-4 mb-3">Counseling</div>
-
-                    <group>
-                        <group string="Counseling Notes">
-                            <field name="counseling_note" nolabel="1"
-                                   placeholder="Record counseling session notes, discussion points, concerns..."/>
-                        </group>
-                        <group string="Qualification Notes">
-                            <field name="qualification_note" nolabel="1"
-                                   placeholder="Eligibility check notes, document status, academic qualification summary..."/>
-                        </group>
-                    </group>
-
-                </page>
-            </xpath>
 
         </field>
     </record>

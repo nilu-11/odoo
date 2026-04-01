@@ -137,10 +137,21 @@ class EduApplicantProfile(models.Model):
     # ── Partner sync ──────────────────────────────────────────────────────────
     @api.model_create_multi
     def create(self, vals_list):
+        partner_model = self.env['res.partner'].sudo()
+        for vals in vals_list:
+            # Always create a dedicated new contact for each applicant.
+            name_parts = [
+                vals.get('first_name'),
+                vals.get('middle_name'),
+                vals.get('last_name'),
+            ]
+            partner_name = ' '.join(p for p in name_parts if p) or 'Applicant'
+            partner = partner_model.create({
+                'name': partner_name,
+                'company_type': 'person',
+            })
+            vals['partner_id'] = partner.id
         records = super().create(vals_list)
-        for rec in records:
-            if rec.partner_id and rec.full_name:
-                rec.partner_id.sudo().write({'name': rec.full_name})
         return records
 
     def write(self, vals):
@@ -152,6 +163,24 @@ class EduApplicantProfile(models.Model):
         return res
 
     # ── Python constraints ────────────────────────────────────────────────────
+    @api.constrains('partner_id')
+    def _check_partner_unique(self):
+        for rec in self:
+            if not rec.partner_id:
+                raise ValidationError(
+                    f'Applicant "{rec.full_name}" must have a linked contact.'
+                )
+            duplicate = self.search([
+                ('partner_id', '=', rec.partner_id.id),
+                ('id', '!=', rec.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(
+                    f'Contact "{rec.partner_id.name}" is already linked to '
+                    f'applicant "{duplicate.full_name}". '
+                    'Each applicant must have a dedicated contact.'
+                )
+
     @api.constrains('date_of_birth')
     def _check_date_of_birth(self):
         today = date.today()

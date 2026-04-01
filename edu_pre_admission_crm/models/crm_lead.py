@@ -159,6 +159,30 @@ class CrmLead(models.Model):
         ):
             self.preferred_batch_id = False
 
+    @api.onchange('applicant_profile_id')
+    def _onchange_applicant_profile_id_set_partner(self):
+        if self.applicant_profile_id and self.applicant_profile_id.partner_id:
+            self.partner_id = self.applicant_profile_id.partner_id
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            applicant_id = vals.get('applicant_profile_id')
+            if applicant_id:
+                applicant = self.env['edu.applicant.profile'].browse(applicant_id)
+                if applicant.exists() and applicant.partner_id:
+                    vals['partner_id'] = applicant.partner_id.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get('applicant_profile_id'):
+            applicant = self.env['edu.applicant.profile'].browse(
+                vals['applicant_profile_id']
+            )
+            if applicant.exists() and applicant.partner_id:
+                vals = dict(vals, partner_id=applicant.partner_id.id)
+        return super().write(vals)
+
     # ═════════════════════════════════════════════════════════════════════════
     # Education Status Transitions
     # ═════════════════════════════════════════════════════════════════════════
