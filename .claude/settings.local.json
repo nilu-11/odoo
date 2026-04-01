@@ -69,7 +69,9 @@
       "Bash(echo \"Fixed: $f\")",
       "Bash(grep -n 'type=\"\"\"\"object\"\"\"\"' /opt/custom_addons/education/edu_result/views/*.xml)",
       "Bash(grep:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(xargs -I {} ls {})",
+      "Bash(ls -d /opt/custom_addons/education/edu_*/)"
     ]
   }
 }

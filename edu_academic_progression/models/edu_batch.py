@@ -73,3 +73,21 @@ class EduBatch(models.Model):
             'target': 'new',
             'context': {'default_batch_id': self.id},
         }
+
+    def action_open_section_assignment_wizard(self):
+        """Open the Bulk Section Assignment Wizard for this batch."""
+        self.ensure_one()
+        if self.state != 'active':
+            raise UserError(_(
+                'Section assignment is only available for active batches.'
+            ))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Assign Students to Sections — %s') % self.name,
+            'res_model': 'edu.section.assignment.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_batch_id': self.id,
+            },
+        }
