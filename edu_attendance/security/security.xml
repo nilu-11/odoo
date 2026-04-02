@@ -44,6 +44,42 @@
          Record Rules
     ====================================================== -->
 
+    <!-- Admins see all registers (overrides teacher restriction via OR) -->
+    <record id="rule_attendance_register_admin_all" model="ir.rule">
+        <field name="name">Attendance Register: admin sees all</field>
+        <field name="model_id" ref="model_edu_attendance_register"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Admins see all sheets -->
+    <record id="rule_attendance_sheet_admin_all" model="ir.rule">
+        <field name="name">Attendance Sheet: admin sees all</field>
+        <field name="model_id" ref="model_edu_attendance_sheet"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- Admins see all lines -->
+    <record id="rule_attendance_line_admin_all" model="ir.rule">
+        <field name="name">Attendance Line: admin sees all</field>
+        <field name="model_id" ref="model_edu_attendance_sheet_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_attendance_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
     <!-- Teachers see only registers for their classrooms -->
     <record id="rule_attendance_register_teacher_own" model="ir.rule">
         <field name="name">Attendance Register: teacher sees own classrooms only</field>

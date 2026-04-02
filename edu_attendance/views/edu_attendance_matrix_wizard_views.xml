@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Attendance Matrix Report — Wizard Form
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_matrix_wizard_form" model="ir.ui.view">
+        <field name="name">edu.attendance.matrix.report.wizard.form</field>
+        <field name="model">edu.attendance.matrix.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Matrix Report">
+                <!-- ── Config state ─────────────────────────────────── -->
+                <div invisible="state != 'config'">
+                    <group>
+                        <group string="Date Range">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="Display">
+                            <field name="status_display" widget="radio"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Filters (optional)">
+                            <field name="classroom_id"/>
+                            <field name="batch_id"/>
+                            <field name="section_id"
+                                   domain="[('batch_id', '=', batch_id)]"/>
+                            <field name="program_term_id"/>
+                        </group>
+                        <group string="Student Filter (optional)">
+                            <field name="student_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button name="action_generate"
+                                string="Generate Report"
+                                type="object"
+                                class="btn-primary"/>
+                        <button string="Cancel" special="cancel"/>
+                    </footer>
+                </div>
+
+                <!-- ── Result state ─────────────────────────────────── -->
+                <div invisible="state != 'result'">
+                    <field name="html_content" readonly="1"/>
+
+                    <footer>
+                        <button name="action_download_xlsx"
+                                string="Download Excel"
+                                type="object"
+                                class="btn-primary"
+                                icon="fa-download"/>
+                        <button name="action_back"
+                                string="Back"
+                                type="object"
+                                class="btn-secondary"/>
+                        <button string="Close" special="cancel"/>
+                    </footer>
+                </div>
+
+                <field name="state" invisible="1"/>
+                <field name="xlsx_file" invisible="1"/>
+                <field name="xlsx_filename" invisible="1"/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Attendance Matrix Report — Window Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_attendance_matrix_wizard" model="ir.actions.act_window">
+        <field name="name">Attendance Matrix</field>
+        <field name="res_model">edu.attendance.matrix.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

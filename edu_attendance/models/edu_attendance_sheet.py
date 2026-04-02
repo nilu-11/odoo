@@ -222,17 +222,20 @@ class EduAttendanceSheet(models.Model):
                 rec.action_generate_lines()
 
     def action_generate_lines(self):
-        """Populate lines from active progression histories for the section."""
+        """Populate lines from active progression histories for the section/term."""
         self.ensure_one()
         if self.state == 'submitted':
             raise UserError(_(
                 'Cannot regenerate lines on a submitted sheet "%s".'
             ) % self.display_name)
 
-        histories = self.env['edu.student.progression.history'].search([
+        domain = [
             ('section_id', '=', self.section_id.id),
             ('state', '=', 'active'),
-        ])
+        ]
+        if self.program_term_id:
+            domain.append(('program_term_id', '=', self.program_term_id.id))
+        histories = self.env['edu.student.progression.history'].search(domain)
         if not histories:
             return
 
@@ -263,6 +266,18 @@ class EduAttendanceSheet(models.Model):
                     'Cannot submit sheet "%s" — no attendance lines recorded.'
                 ) % rec.display_name)
         self.write({'state': 'submitted'})
+
+    def action_mark_all_present(self):
+        """Set all attendance lines to 'present' (quick reset)."""
+        for rec in self:
+            if rec.state == 'submitted':
+                raise UserError(_(
+                    'Cannot modify submitted sheet "%s". '
+                    'Reset it to draft first.'
+                ) % rec.display_name)
+            lines = rec.line_ids.filtered(lambda l: l.status != 'present')
+            if lines:
+                lines.write({'status': 'present'})
 
     def action_reset_to_draft(self):
         """Admin only: submitted → draft."""
