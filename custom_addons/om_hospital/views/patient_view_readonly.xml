@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_hospital_readonly_patient" model="ir.actions.act_window"> <!-- same action we defined on menu.xml -->
+        <field name="name">View Patients</field>
+        <field name="res_model">hospital.patient</field>  <!--which model the action will open-->
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'create': False}</field>  <!--removes the "new" button from View Patients-->
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">  <!--text shown when there are no records-->
+            No patients to display
+            </p>
+        </field>
+    </record>
+
+    <record id="view_hospital_patient_readonly_kanban" model="ir.ui.view">
+         <field name="name">hospital.patient.readonly.kanban</field>
+         <field name="model">hospital.patient</field>
+         <field name="arch" type="xml">
+             <kanban string="Patients">
+                <field name="name"/>
+                <field name="gender"/>
+                <field name="date_of_birth"/>
+                 <templates>
+                    <t t-name="kanban-card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <strong><field name="name"/></strong>
+                                <div>Gender: <field name="gender"/></div>
+                                <div>DOB: <field name="date_of_birth"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_hospital_patient_readonly_list" model="ir.ui.view">
+         <field name="name">hospital.patient.readonly.list</field>
+         <field name="model">hospital.patient</field>
+         <field name="arch" type="xml">
+             <list string="Patients">
+                <field name="name"/>
+                <field name="date_of_birth" optional="hide"/>
+                <field name="gender" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hospital_patient_readonly_form" model="ir.ui.view">
+         <field name="name">hospital.patient.readonly.form</field>
+         <field name="model">hospital.patient</field>
+         <field name="arch" type="xml">
+             <form string="Patients">
+                <sheet>              <!--sheets creates a box for the group-->
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="date_of_birth"/>    <!--nested group to keep fields in the same horizontal row-->
+                        </group>
+                        <group>
+                            <field name="gender"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+</odoo>

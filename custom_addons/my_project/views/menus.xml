@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Top-level menu item -->
+    <menuitem id="menu_my_project_root"
+              name="My Projects"
+              sequence="10"/>
+
+    <!-- Sub-menus -->
+    <menuitem id="menu_my_project"
+              name="Projects"
+              parent="menu_my_project_root"
+              action="action_my_project"
+              sequence="1"/>
+
+    <menuitem id="menu_my_task"
+              name="Tasks"
+              parent="menu_my_project_root"
+              action="action_my_task"
+              sequence="2"/>
+
+</odoo>
