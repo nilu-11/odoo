@@ -243,7 +243,7 @@
 
                 <!-- Status + quick progression buttons -->
                 <group>
-                    <group string="Status &amp; Tracking" colspan="2">
+                    <group string="Status &amp; Tracking">
                         <field name="inquiry_date"/>
                         <field name="last_contact_date" invisible="1"/>
                         <field name="next_followup_date"/>
@@ -252,6 +252,8 @@
                         <field name="medium_id"/>
                         <field name="source_id"/>
                         <field name="referred_by_id"/>
+                    </group>
+                    <group>
                     </group>
                 </group>
 
