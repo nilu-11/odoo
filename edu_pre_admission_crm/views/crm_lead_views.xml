@@ -130,11 +130,9 @@
                             </div>
                         </div>
                         <field name="qualification"
-                               placeholder="e.g. A-Levels, Bachelor of Science"
-                               readonly="is_converted_to_application"/>
+                               placeholder="e.g. A-Levels, Bachelor of Science"/>
                         <field name="cgpa_percentage"
-                               string="CGPA / Percentage"
-                               readonly="is_converted_to_application"/>
+                               string="CGPA / Percentage"/>
                     </group>
                     <group string="Academic Information" >
                         <field name="interested_program_id"
@@ -156,10 +154,13 @@
                 <group>
                     <group string="Status &amp; Tracking" colspan="2">
                         <field name="inquiry_date"/>
-                        <field name="last_contact_date" invisible = "1"/>
+                        <field name="last_contact_date" invisible="1"/>
                         <field name="next_followup_date"/>
                         <field name="counselor_id"/>
+                        <field name="campaign_id"/>
+                        <field name="medium_id"/>
                         <field name="source_id"/>
+                        <field name="referred_by_id"/>
                     </group>
                 </group>
 

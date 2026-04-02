@@ -66,8 +66,14 @@ class CrmLead(models.Model):
         string='Counselor',
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
+    )    
+    referred_by_id = fields.Many2one(
+        comodel_name='res.partner',
+        string='Referred By',
+        tracking=True,
+        ondelete='restrict',
+        help='Contact who referred this applicant.',
     )
-
     counseling_note = fields.Text(string='Counseling Notes')
     qualification_note = fields.Text(string='Qualification Notes')
 
