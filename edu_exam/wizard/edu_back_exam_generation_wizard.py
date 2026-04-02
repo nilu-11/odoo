@@ -133,18 +133,28 @@ class EduBackExamGenerationWizard(models.TransientModel):
         created_marksheets = 0
 
         for line in candidates:
-            # Find or create paper for (session, curriculum_line, section)
+            # Determine batch for this candidate
+            batch = (
+                line.student_progression_history_id.batch_id
+                if line.student_progression_history_id
+                else False
+            )
+            if not batch:
+                _logger.warning('Skipping candidate %s — no batch found.', line.student_id.name)
+                continue
+
+            # Find or create paper for (session, curriculum_line, batch)
             paper = self.env['edu.exam.paper'].search([
                 ('exam_session_id', '=', session.id),
                 ('curriculum_line_id', '=', line.curriculum_line_id.id),
-                ('section_id', '=', line.section_id.id if line.section_id else False),
+                ('batch_id', '=', batch.id),
             ], limit=1)
 
             if not paper:
                 paper_vals = {
                     'exam_session_id': session.id,
                     'curriculum_line_id': line.curriculum_line_id.id,
-                    'section_id': line.section_id.id if line.section_id else False,
+                    'batch_id': batch.id,
                     'program_term_id': (
                         line.student_progression_history_id.program_term_id.id
                         if line.student_progression_history_id

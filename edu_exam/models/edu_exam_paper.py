@@ -21,7 +21,7 @@ class EduExamPaper(models.Model):
     _name = 'edu.exam.paper'
     _description = 'Exam Paper'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'exam_session_id, section_id, subject_id'
+    _order = 'exam_session_id, batch_id, subject_id'
     _rec_name = 'display_name'
 
     # ── Computed display name ─────────────────────────────────────────────────
@@ -85,19 +85,21 @@ class EduExamPaper(models.Model):
         ondelete='set null',
         tracking=True,
     )
+    batch_id = fields.Many2one(
+        comodel_name='edu.batch',
+        string='Batch',
+        required=True,
+        ondelete='restrict',
+        tracking=True,
+        index=True,
+    )
     section_id = fields.Many2one(
         comodel_name='edu.section',
         string='Section',
         ondelete='restrict',
         tracking=True,
         index=True,
-    )
-    batch_id = fields.Many2one(
-        comodel_name='edu.batch',
-        string='Batch',
-        related='section_id.batch_id',
-        store=True,
-        index=True,
+        help='Optional. The whole batch sits for this exam; section is informational only.',
     )
     program_term_id = fields.Many2one(
         comodel_name='edu.program.term',
@@ -212,9 +214,9 @@ class EduExamPaper(models.Model):
 
     _sql_constraints = [
         (
-            'unique_session_curriculum_section',
-            'UNIQUE(exam_session_id, curriculum_line_id, section_id)',
-            'A paper for this subject and section already exists in this exam session.',
+            'unique_session_curriculum_batch',
+            'UNIQUE(exam_session_id, curriculum_line_id, batch_id)',
+            'A paper for this subject and batch already exists in this exam session.',
         ),
         (
             'check_max_marks_positive',
@@ -236,12 +238,12 @@ class EduExamPaper(models.Model):
 
     # ── Computed ──────────────────────────────────────────────────────────────
 
-    @api.depends('subject_id', 'section_id', 'exam_session_id')
+    @api.depends('subject_id', 'batch_id', 'exam_session_id')
     def _compute_display_name(self):
         for rec in self:
             parts = filter(None, [
                 rec.subject_id.name,
-                rec.section_id.name,
+                rec.batch_id.name,
                 rec.exam_session_id.name,
             ])
             rec.display_name = ' / '.join(parts) or 'New Paper'
@@ -271,7 +273,7 @@ class EduExamPaper(models.Model):
     @api.onchange('classroom_id')
     def _onchange_classroom_id(self):
         if self.classroom_id:
-            self.section_id = self.classroom_id.section_id
+            self.batch_id = self.classroom_id.batch_id
             self.program_term_id = self.classroom_id.program_term_id
             if not self.curriculum_line_id:
                 self.curriculum_line_id = self.classroom_id.curriculum_line_id
@@ -280,30 +282,24 @@ class EduExamPaper(models.Model):
 
     # ── Constraints ───────────────────────────────────────────────────────────
 
-    @api.constrains('classroom_id', 'section_id', 'exam_session_id')
+    @api.constrains('classroom_id', 'batch_id', 'exam_session_id')
     def _check_classroom_context_match(self):
         for rec in self:
             if not rec.classroom_id:
                 continue
-            session = rec.exam_session_id
             cl = rec.classroom_id
-            if session.batch_id and cl.batch_id and session.batch_id != cl.batch_id:
+            if rec.batch_id and cl.batch_id and rec.batch_id != cl.batch_id:
                 raise ValidationError(
                     _(
-                        'Classroom "%s" batch "%s" does not match session batch "%s".'
-                    ) % (cl.name, cl.batch_id.name, session.batch_id.name)
+                        'Classroom "%s" batch "%s" does not match paper batch "%s".'
+                    ) % (cl.name, cl.batch_id.name, rec.batch_id.name)
                 )
+            session = rec.exam_session_id
             if session.program_term_id and cl.program_term_id and session.program_term_id != cl.program_term_id:
                 raise ValidationError(
                     _(
                         'Classroom "%s" program term "%s" does not match session program term "%s".'
                     ) % (cl.name, cl.program_term_id.name, session.program_term_id.name)
-                )
-            if rec.section_id and cl.section_id and rec.section_id != cl.section_id:
-                raise ValidationError(
-                    _(
-                        'Section "%s" on this paper does not match classroom "%s" section "%s".'
-                    ) % (rec.section_id.name, cl.name, cl.section_id.name)
                 )
 
     # ── State transitions ────────────────────────────────────────────────────

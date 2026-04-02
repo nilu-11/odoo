@@ -95,8 +95,10 @@
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="subject_id"/>
-                                    <field name="subject_type" readonly="1"/>
-                                    <field name="subject_category"/>
+                                    <field name="subject_type" readonly="1" widget="badge"/>
+                                    <field name="subject_category" widget="badge"
+                                           decoration-info="subject_category == 'elective'"
+                                           decoration-warning="subject_category == 'optional'"/>
                                     <field name="credit_hours"/>
                                     <field name="full_marks"/>
                                     <field name="pass_marks"/>
