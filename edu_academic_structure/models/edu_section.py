@@ -78,6 +78,20 @@ class EduSection(models.Model):
             if rec.capacity < 0:
                 raise ValidationError('Section capacity cannot be negative.')
 
+    @api.constrains('capacity', 'batch_id')
+    def _check_section_capacity_vs_batch(self):
+        for rec in self:
+            batch = rec.batch_id
+            if not batch or batch.capacity == 0:
+                continue
+            total = sum(batch.section_ids.mapped('capacity'))
+            if total > batch.capacity:
+                raise ValidationError(
+                    f'Total section capacity ({total}) exceeds the batch '
+                    f'capacity ({batch.capacity}) for batch "{batch.name}". '
+                    'Please reduce the section capacity or increase the batch capacity.'
+                )
+
     # ── State-based locking via parent ──────────────────────────────────────────
     UNLOCKED_FIELDS = frozenset({
         'active', 'message_follower_ids', 'message_ids',
