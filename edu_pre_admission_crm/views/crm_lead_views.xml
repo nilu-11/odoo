@@ -1,6 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
+         Pre-Admission Kanban
+         Columns = all 5 lead_education_status values (always visible).
+         No js_class="crm_kanban" — avoids CRM pipeline JS overriding grouping.
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_pre_admission_lead_kanban" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.pre_admission</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="lead_education_status"
+                    group_create="false"
+                    group_delete="false"
+                    group_edit="false"
+                    archivable="false"
+                    sample="1">
+                <field name="lead_education_status"/>
+                <field name="priority"/>
+                <field name="color"/>
+                <field name="activity_state"/>
+                <field name="activity_ids"/>
+                <field name="partner_id"/>
+                <field name="phone"/>
+                <field name="email_from"/>
+                <field name="interested_program_id"/>
+                <field name="tag_ids"/>
+                <field name="next_followup_date"/>
+                <field name="counselor_id"/>
+                <progressbar field="activity_state"
+                             colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <field name="name" class="fw-bold flex-grow-1"/>
+                            <field name="priority" widget="priority" class="ms-1 flex-shrink-0"/>
+                        </div>
+                        <div class="text-muted small">
+                            <field name="partner_id"/>
+                        </div>
+                        <div class="d-flex gap-2 mt-1 flex-wrap small">
+                            <field name="phone" widget="phone"/>
+                            <field name="email_from" widget="email"/>
+                        </div>
+                        <div t-if="record.interested_program_id.value" class="mt-1 small">
+                            <field name="interested_program_id"/>
+                        </div>
+                        <field name="tag_ids" widget="many2many_tags"
+                               options="{'color_field': 'color'}" class="mt-1"/>
+                        <footer class="d-flex align-items-center justify-content-between mt-2 pt-1">
+                            <span t-if="record.next_followup_date.value" class="text-muted small">
+                                <i class="fa fa-calendar me-1"/><field name="next_followup_date"/>
+                            </span>
+                            <span class="ms-auto d-flex align-items-center gap-1">
+                                <field name="activity_ids" widget="activity"/>
+                                <field name="counselor_id" widget="many2one_avatar_user"/>
+                            </span>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Pre-Admission Pipeline — Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_pre_admission_pipeline" model="ir.actions.act_window">
+        <field name="name">Inquiries &amp; Leads</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="domain">['|', ('type', '=', 'lead'), ('type', '=', False)]</field>
+        <field name="context">{'default_type': 'lead'}</field>
+        <field name="search_view_id" ref="crm.view_crm_case_leads_filter"/>
+    </record>
+
+    <record id="action_pre_admission_pipeline_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="0"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_pre_admission_lead_kanban"/>
+        <field name="act_window_id" ref="action_pre_admission_pipeline"/>
+    </record>
+
+    <record id="action_pre_admission_pipeline_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="crm.crm_case_tree_view_leads"/>
+        <field name="act_window_id" ref="action_pre_admission_pipeline"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
          CRM Lead — Form Extension (Pre-Admission tab + smart button)
     ══════════════════════════════════════════════════════ -->
     <record id="view_crm_lead_form_pre_admission" model="ir.ui.view">
@@ -18,11 +106,12 @@
             <xpath expr="//header/button[@name='%(crm.action_crm_lead2opportunity_partner)d']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <!-- Restore Lost/Mark as Lost buttons — kept at CRM default visibility -->
             <xpath expr="//header/button[@name='action_restore']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//header/button[@name='%(crm.crm_lead_lost_action)d']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="invisible">0</attribute>
             </xpath>
             <xpath expr="//header/field[@name='stage_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -84,10 +173,14 @@
             </xpath>
 
             <!-- ══════════════════════════════════════════════════════════════
-                 TITLE: Hide revenue / probability row, keep lead name
+                 TITLE: Hide revenue/probability row; inject priority stars
             ══════════════════════════════════════════════════════════════ -->
             <xpath expr="//div[hasclass('oe_title')]//h2" position="attributes">
                 <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Add priority stars next to the lead name (h1) -->
+            <xpath expr="//div[hasclass('oe_title')]//div[hasclass('d-flex')]" position="inside">
+                <field name="priority" widget="priority" class="ms-2 align-self-center"/>
             </xpath>
 
             <!-- ══════════════════════════════════════════════════════════════
@@ -317,4 +410,5 @@
             </xpath>
         </field>
     </record>
+
 </odoo>

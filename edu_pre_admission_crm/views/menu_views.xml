@@ -18,7 +18,7 @@
     <menuitem id="menu_crm_leads_pre_admission"
               name="Inquiries &amp; Leads"
               parent="menu_pre_admission_main"
-              action="crm.crm_lead_all_leads"
+              action="action_pre_admission_pipeline"
               sequence="10"/>
 
     <menuitem id="menu_applicant_profiles"

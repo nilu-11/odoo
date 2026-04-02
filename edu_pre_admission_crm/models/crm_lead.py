@@ -38,6 +38,7 @@ class CrmLead(models.Model):
         tracking=True,
         index=True,
         copy=False,
+        group_expand='_group_expand_lead_education_status',
         help=(
             'Education workflow stage, independent of CRM pipeline stage. '
             'Tracks pre-admission progression from first contact to application.'
@@ -243,8 +244,15 @@ class CrmLead(models.Model):
                 vals = dict(vals, partner_id=applicant.partner_id.id)
         return super().write(vals)
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # Education Status Transitions
+    # ═════════════════════════════════════════════════════════════════════════    # Group Expand — always show all status columns in kanban
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    @api.model
+    def _group_expand_lead_education_status(self, statuses, domain):
+        """Return all selection values so kanban always shows every column."""
+        return [key for key, _label in self._fields['lead_education_status'].selection]
+
+    # ═══════════════════════════════════════════════════════════════════════════    # Education Status Transitions
     # ═════════════════════════════════════════════════════════════════════════
 
     def action_set_prospect(self):
