@@ -219,9 +219,6 @@
                 </group>
                 </group>
                 
-              
-                <div class="o_horizontal_separator mt-4 mb-3">Counseling</div>
-
                 <group>
                     <group string="Counseling Notes">
                         <field name="counseling_note" nolabel="1"
