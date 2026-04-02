@@ -45,8 +45,29 @@
          Record Rules
     ====================================================== -->
 
-    <!-- Teachers can only read/write classrooms where they are assigned.
-         Does NOT apply to Classroom Admins (who get unrestricted access). -->
+    <!-- Admins and academic officers see all classrooms (explicit allow-all).
+         Required because group_classroom_admin implies group_classroom_teacher,
+         which would otherwise apply the teacher restriction to admins too. -->
+    <record id="rule_classroom_admin_all" model="ir.rule">
+        <field name="name">Classroom: admin sees all</field>
+        <field name="model_id" ref="model_edu_classroom"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_classroom_admin'))]"/>
+    </record>
+    <record id="rule_classroom_edu_admin_all" model="ir.rule">
+        <field name="name">Classroom: education admin sees all</field>
+        <field name="model_id" ref="model_edu_classroom"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('edu_academic_structure.group_education_admin'))]"/>
+    </record>
+    <record id="rule_classroom_academic_officer_all" model="ir.rule">
+        <field name="name">Classroom: academic officer sees all</field>
+        <field name="model_id" ref="model_edu_classroom"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('edu_academic_structure.group_academic_officer'))]"/>
+    </record>
+
+    <!-- Teachers can only read/write classrooms where they are assigned. -->
     <record id="rule_classroom_teacher_own" model="ir.rule">
         <field name="name">Classroom: teacher sees own classrooms only</field>
         <field name="model_id" ref="model_edu_classroom"/>

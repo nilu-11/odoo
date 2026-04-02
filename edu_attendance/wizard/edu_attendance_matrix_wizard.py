@@ -212,7 +212,7 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
             if sid not in students:
                 students[sid] = {
                     'id': sid,
-                    'name': line.student_id.name,
+                    'name': line.student_id.display_name,
                     'roll_number': line.roll_number or '',
                 }
             dates.add(line.session_date)

@@ -6,12 +6,30 @@ class EduSection(models.Model):
 
     _inherit = 'edu.section'
 
-    # ── Students in this section (via student.section_id inverse) ────────────
+    # ── Students (computed from progression history — the authoritative source)
 
-    student_ids = fields.One2many(
-        'edu.student', 'section_id',
+    student_ids = fields.Many2many(
+        'edu.student',
         string='Students',
+        compute='_compute_student_ids',
+        store=False,
     )
+
+    def _compute_student_ids(self):
+        if not self.ids:
+            for rec in self:
+                rec.student_ids = False
+            return
+        histories = self.env['edu.student.progression.history'].search([
+            ('section_id', 'in', self.ids),
+            ('state', '=', 'active'),
+        ])
+        # group by section
+        section_map = {}
+        for h in histories:
+            section_map.setdefault(h.section_id.id, []).append(h.student_id.id)
+        for rec in self:
+            rec.student_ids = section_map.get(rec.id, [])
 
     # ── Live student count (via progression history — authoritative) ──────────
 
@@ -28,7 +46,6 @@ class EduSection(models.Model):
             for rec in self:
                 rec.current_student_count = 0
             return
-
         data = self.env['edu.student.progression.history']._read_group(
             domain=[
                 ('section_id', 'in', self.ids),
@@ -44,15 +61,19 @@ class EduSection(models.Model):
     # ── Actions ───────────────────────────────────────────────────────────────
 
     def action_view_students(self):
-        """Open the student list filtered to students in this section."""
+        """Open student list for this section via progression history."""
         self.ensure_one()
-        # Student records carry section_id directly (updated by progression)
+        histories = self.env['edu.student.progression.history'].search([
+            ('section_id', '=', self.id),
+            ('state', '=', 'active'),
+        ])
+        student_ids = histories.mapped('student_id').ids
         return {
             'type': 'ir.actions.act_window',
             'name': _('Students — %s') % self.full_label,
             'res_model': 'edu.student',
             'view_mode': 'list,form',
-            'domain': [('section_id', '=', self.id)],
+            'domain': [('id', 'in', student_ids)],
         }
 
     def action_view_progression_history(self):

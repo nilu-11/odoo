@@ -187,6 +187,38 @@ class EduAttendanceSheet(models.Model):
 
     # ── Constraints ───────────────────────────────────────────────────────────
 
+    _sql_constraints = [
+        (
+            'register_date_time_unique',
+            'UNIQUE(register_id, session_date, time_from)',
+            'An attendance sheet already exists for this classroom on this '
+            'date and time slot. Use the existing sheet instead.',
+        ),
+    ]
+
+    @api.constrains('register_id', 'session_date', 'time_from')
+    def _check_duplicate_sheet(self):
+        """Prevent duplicate sheets for the same register + date (+ time slot)."""
+        for rec in self:
+            domain = [
+                ('register_id', '=', rec.register_id.id),
+                ('session_date', '=', rec.session_date),
+                ('id', '!=', rec.id),
+            ]
+            if rec.time_from:
+                domain.append(('time_from', '=', rec.time_from))
+            else:
+                domain.append(('time_from', '=', False))
+            if self.env['edu.attendance.sheet'].search_count(domain):
+                raise ValidationError(_(
+                    'An attendance sheet already exists for "%s" on %s%s. '
+                    'Please use the existing sheet instead of creating a new one.'
+                ) % (
+                    rec.register_id.name,
+                    rec.session_date,
+                    (' at %.2f' % rec.time_from) if rec.time_from else '',
+                ))
+
     @api.constrains('time_from', 'time_to')
     def _check_times(self):
         for rec in self:
