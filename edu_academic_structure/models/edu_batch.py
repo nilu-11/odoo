@@ -170,6 +170,19 @@ class EduBatch(models.Model):
             if rec.capacity < 0:
                 raise ValidationError('Capacity cannot be negative.')
 
+    @api.constrains('capacity', 'section_ids')
+    def _check_batch_capacity_vs_sections(self):
+        for rec in self:
+            if rec.capacity == 0:
+                continue
+            total = sum(rec.section_ids.mapped('capacity'))
+            if total > rec.capacity:
+                raise ValidationError(
+                    f'Batch capacity ({rec.capacity}) is less than the combined '
+                    f'section capacity ({total}) for batch "{rec.name}". '
+                    'Increase the batch capacity or reduce section capacities.'
+                )
+
     @api.constrains('current_program_term_id', 'program_id')
     def _check_program_term_belongs_to_program(self):
         for rec in self:
