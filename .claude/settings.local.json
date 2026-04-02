@@ -71,7 +71,8 @@
       "Bash(grep:*)",
       "Bash(pip install:*)",
       "Bash(xargs -I {} ls {})",
-      "Bash(ls -d /opt/custom_addons/education/edu_*/)"
+      "Bash(ls -d /opt/custom_addons/education/edu_*/)",
+      "Bash(pip3 install:*)"
     ]
   }
 }

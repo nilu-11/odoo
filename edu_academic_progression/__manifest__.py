@@ -40,6 +40,7 @@ Key features:
         'views/edu_batch_views.xml',
         'views/edu_section_views_inherit.xml',
         'views/edu_section_assignment_wizard_views.xml',
+        'views/edu_progression_backfill_wizard_views.xml',
         'views/edu_academic_progression_menus.xml',
     ],
     'installable': True,

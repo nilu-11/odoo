@@ -16,6 +16,20 @@ class EduBatch(models.Model):
         string='Active Progressions',
     )
 
+    student_count = fields.Integer(
+        compute='_compute_student_count',
+        string='Students',
+    )
+
+    def _compute_student_count(self):
+        data = self.env['edu.student']._read_group(
+            [('batch_id', 'in', self.ids)],
+            ['batch_id'], ['__count'],
+        )
+        mapped = {batch.id: count for batch, count in data}
+        for batch in self:
+            batch.student_count = mapped.get(batch.id, 0)
+
     def _compute_progression_counts(self):
         ProgressionHistory = self.env['edu.student.progression.history']
         for batch in self:
@@ -43,6 +57,17 @@ class EduBatch(models.Model):
         ])
 
     # ── Smart Button Actions ──────────────────────────────────────────────────
+
+    def action_view_students(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Students — %s') % self.name,
+            'res_model': 'edu.student',
+            'view_mode': 'list,form',
+            'domain': [('batch_id', '=', self.id)],
+            'context': {'default_batch_id': self.id},
+        }
 
     def action_view_progression_history(self):
         self.ensure_one()
