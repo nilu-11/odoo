@@ -31,7 +31,11 @@
               parent="menu_admission_main"
               action="action_edu_admission_scholarship_review"
               sequence="30"/>
-
+    <menuitem id="menu_admission_guardians"
+              name="Guardians"
+              parent="menu_admission_main"
+              action="edu_pre_admission_crm.action_edu_guardian"
+              sequence="40"/>
     <!-- ── Configuration ─────────────────────────────────────────── -->
     <menuitem id="menu_admission_config"
               name="Configuration"
@@ -50,4 +54,10 @@
               parent="menu_admission_config"
               action="action_edu_scholarship_stacking_group"
               sequence="20"/>
+
+    <menuitem id="menu_admission_relationship_types"
+              name="Relationship Types"
+              parent="menu_admission_config"
+              action="edu_pre_admission_crm.action_edu_relationship_type"
+              sequence="30"/>
 </odoo>

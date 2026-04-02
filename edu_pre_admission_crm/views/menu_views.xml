@@ -27,22 +27,4 @@
               action="action_edu_applicant_profile"
               sequence="20"/>
 
-    <menuitem id="menu_guardians"
-              name="Guardians"
-              parent="menu_pre_admission_main"
-              sequence="30"
-              action="action_edu_guardian"/>
-
-    <!-- ── Configuration ───────────────────────────────────────────────── -->
-    <menuitem id="menu_pre_admission_config"
-              name="Configuration"
-              parent="menu_pre_admission_root"
-              sequence="90"
-              groups="edu_academic_structure.group_education_admin"/>
-
-    <menuitem id="menu_relationship_types"
-              name="Relationship Types"
-              parent="menu_pre_admission_config"
-              action="action_edu_relationship_type"
-              sequence="10"/>
 </odoo>
