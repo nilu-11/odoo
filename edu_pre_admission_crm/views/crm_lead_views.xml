@@ -110,23 +110,16 @@
 
             <!-- Render pre-admission fields directly in form (no custom notebook page) -->
             <xpath expr="//sheet/notebook" position="before">
-
-                <div class="o_horizontal_separator mt-4 mb-3">Applicant Profile</div>
-
                 <group>
-                    <group>
+                    <group string="Profile Information" >
                         <field name="applicant_profile_id"
-                               options="{'no_create': False}"
-                               readonly="is_converted_to_application"
-                               help="Link or create the structured applicant profile. Required before conversion."/>
-                
-                    <!-- <group string="Contact"> -->
+                                options="{'no_create': False}"
+                                readonly="is_converted_to_application"
+                                help="Link or create the structured applicant profile. Required before conversion." invisible="is_converted_to_application"/>
                         <field name="phone" widget="phone"/>
                         <field name="email_from" widget="email"/>
-                    </group>
-                    <group>
-                    <label for="street" string="Address"/>
-                    <div class="o_address_format">
+                        <label for="street" string="Address"/>
+                        <div class="o_address_format">
                             <field name="street" placeholder="Street..." class="o_address_street"/>
                             <field name="street2" placeholder="Street 2..." class="o_address_street"/>
                             <field name="city" placeholder="City" class="o_address_city"/>
@@ -136,14 +129,32 @@
                                 <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
                             </div>
                         </div>
-                        </group>
+                        <field name="qualification"
+                               placeholder="e.g. A-Levels, Bachelor of Science"
+                               readonly="is_converted_to_application"/>
+                        <field name="cgpa_percentage"
+                               string="CGPA / Percentage"
+                               readonly="is_converted_to_application"/>
+                    </group>
+                    <group string="Academic Information" >
+                        <field name="interested_program_id"
+                            readonly="is_converted_to_application"/>
+                        <field name="intended_academic_year_id"
+                            string="Intended Intake Year"
+                            readonly="is_converted_to_application"/>
+                        <field name="preferred_batch_id"
+                            domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
+                            options="{'no_create': True}"
+                            readonly="is_converted_to_application"/>
+                        <field name="preferred_term_id"
+                            options="{'no_create': True}"
+                            readonly="is_converted_to_application"/>
+                    </group>
                 </group>
-
-                <div class="o_horizontal_separator mt-4 mb-3">Education Workflow</div>
 
                 <!-- Status + quick progression buttons -->
                 <group>
-                    <group string="Status">
+                    <group string="Status &amp; Tracking" colspan="2">
                         <field name="inquiry_date"/>
                         <field name="last_contact_date" invisible = "1"/>
                         <field name="next_followup_date"/>
@@ -153,7 +164,7 @@
                 </group>
 
                 <!-- Conversion indicator -->
-                <div class="alert alert-success mb-3"
+                <!-- <div class="alert alert-success mb-3"
                      invisible="not is_converted_to_application">
                     <i class="fa fa-check-circle me-2"/>
                     Converted to an admission application on
@@ -182,7 +193,7 @@
                            <field name="hostel_interest"/>
                            <field name="transport_interest"/>
                           </group>
-                      </group>
+                      </group> -->
                 <group>
                 <group string="Pending Call Activities" colspan="1">
                     <field name="pending_call_activity_ids" nolabel="1" mode="list" readonly="1" width="600px">

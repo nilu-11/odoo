@@ -105,6 +105,19 @@ class CrmLead(models.Model):
         ondelete='restrict',
         help='Preferred enrollment term (e.g. Semester 1 2026).',
     )
+    # ── Academic Background ────────────────────────────────────────────────────
+    qualification = fields.Char(
+        string='Qualification',
+        tracking=True,
+        help='Highest qualification of the applicant, e.g. A-Levels, Bachelor of Science.',
+    )
+    cgpa_percentage = fields.Float(
+        string='CGPA / Percentage',
+        digits=(5, 2),
+        tracking=True,
+        help='CGPA (e.g. 3.75) or percentage (e.g. 82.50) from the last qualification.',
+    )
+
     scholarship_interest = fields.Boolean(
         string='Scholarship Interest',
         default=False,
