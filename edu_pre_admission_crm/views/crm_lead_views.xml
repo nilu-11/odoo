@@ -208,7 +208,7 @@
                         <field name="applicant_profile_id"
                                 options="{'no_create': False}"
                                 readonly="is_converted_to_application"
-                                help="Link or create the structured applicant profile. Required before conversion." invisible="is_converted_to_application"/>
+                                help="Link or create the structured applicant profile. Required before conversion."/>
                         <field name="phone" widget="phone"/>
                         <field name="email_from" widget="email"/>
                         <label for="street" string="Address"/>
