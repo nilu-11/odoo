@@ -135,11 +135,9 @@
                                string="CGPA / Percentage"/>
                     </group>
                     <group string="Academic Information" >
-                        <field name="interested_program_id"
-                            readonly="is_converted_to_application"/>
-                        <field name="intended_academic_year_id"
-                            string="Intended Intake Year"
-                            readonly="is_converted_to_application"/>
+                        <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
+                        <field name="other_interested_program_ids" readonly="is_converted_to_application" widget="many2many_tags"/>
+                        <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
                             options="{'no_create': True}"

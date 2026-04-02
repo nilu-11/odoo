@@ -80,12 +80,27 @@ class CrmLead(models.Model):
     # ── Academic Interest ─────────────────────────────────────────────────────
     interested_program_id = fields.Many2one(
         comodel_name='edu.program',
-        string='Interested Program',
+        string='Enrolled Program',
         tracking=True,
         ondelete='restrict',
         index=True,
         help='The program the applicant is inquiring about.',
     )
+    other_interested_program_ids = fields.Many2many(
+        comodel_name='edu.program',
+        string='Other Interested Programs',
+        tracking=True,
+        ondelete='restrict',
+        index=True,
+        help=(
+            'Other programs the applicant has expressed interest in. '
+            'For example, if they are interested in both BCA and BBA'
+        ),
+    )
+
+
+
+
     intended_academic_year_id = fields.Many2one(
         comodel_name='edu.academic.year',
         string='Intended Intake Year',
