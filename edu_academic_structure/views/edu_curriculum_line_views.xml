@@ -39,8 +39,10 @@
                 <field name="program_id" optional="hide"/>
                 <field name="progression_no" optional="show"/>
                 <field name="subject_id"/>
-                <field name="subject_type"/>
-                <field name="subject_category"/>
+                <field name="subject_type" readonly="1" widget="badge"/>
+                <field name="subject_category" widget="badge"
+                       decoration-info="subject_category == 'elective'"
+                       decoration-warning="subject_category == 'optional'"/>
                 <field name="credit_hours"/>
                 <field name="full_marks"/>
                 <field name="pass_marks"/>
@@ -64,7 +66,8 @@
                             <field name="program_id" readonly="1"/>
                             <field name="progression_no" readonly="1"/>
                             <field name="subject_id"/>
-                            <field name="subject_type" readonly="1"/>
+                            <field name="subject_type" readonly="1"
+                                   invisible="not subject_id"/>
                             <field name="subject_category"/>
                             <field name="sequence"/>
                             <field name="active" invisible="1"/>

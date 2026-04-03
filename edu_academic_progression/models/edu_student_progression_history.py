@@ -129,7 +129,28 @@ class EduStudentProgressionHistory(models.Model):
         string='Closed On',
         readonly=True, copy=False,
     )
+    # ── Elective Subject Choices ───────────────────────────────────────────
 
+    elected_curriculum_line_ids = fields.Many2many(
+        comodel_name='edu.curriculum.line',
+        relation='edu_progression_elected_curriculum_rel',
+        column1='progression_history_id',
+        column2='curriculum_line_id',
+        string='Elected Subjects',
+        domain="[('program_term_id', '=', program_term_id), ('subject_category', 'in', ('elective', 'optional'))]",
+        help='Elective and optional subjects the student has chosen for this term. '
+             'Mandatory subjects are always included automatically.',
+    )
+
+    effective_curriculum_line_ids = fields.Many2many(
+        comodel_name='edu.curriculum.line',
+        relation='edu_progression_effective_curriculum_rel',
+        column1='progression_history_id',
+        column2='curriculum_line_id',
+        string='Effective Subjects (Mandatory + Elected)',
+        compute='_compute_effective_curriculum_lines',
+        store=True,
+    )
     # ── Notes ─────────────────────────────────────────────────────────────────
 
     remarks = fields.Text(string='Remarks')
@@ -148,6 +169,7 @@ class EduStudentProgressionHistory(models.Model):
     _FROZEN_FIELDS = frozenset({
         'student_id', 'enrollment_id', 'batch_id', 'program_id',
         'academic_year_id', 'program_term_id', 'start_date', 'end_date',
+        'elected_curriculum_line_ids',
     })
 
     # ── Computed ──────────────────────────────────────────────────────────────
@@ -170,7 +192,18 @@ class EduStudentProgressionHistory(models.Model):
             rec.display_name = (
                 '[%s] %s' % (rec.state, label) if label else _('Progression Record')
             )
-
+    @api.depends('program_term_id', 'elected_curriculum_line_ids')
+    def _compute_effective_curriculum_lines(self):
+        CurriculumLine = self.env['edu.curriculum.line']
+        for rec in self:
+            if not rec.program_term_id:
+                rec.effective_curriculum_line_ids = CurriculumLine
+                continue
+            mandatory = CurriculumLine.search([
+                ('program_term_id', '=', rec.program_term_id.id),
+                ('subject_category', '=', 'compulsory'),
+            ])
+            rec.effective_curriculum_line_ids = mandatory | rec.elected_curriculum_line_ids
     # ── ORM Overrides ─────────────────────────────────────────────────────────
 
     def write(self, vals):
@@ -239,6 +272,21 @@ class EduStudentProgressionHistory(models.Model):
                     raise ValidationError(_(
                         'Batch "%s" does not belong to program "%s".'
                     ) % (rec.batch_id.name, rec.program_id.name))
+
+    @api.constrains('elected_curriculum_line_ids', 'program_term_id')
+    def _check_elected_belong_to_term(self):
+        for rec in self:
+            for line in rec.elected_curriculum_line_ids:
+                if line.program_term_id != rec.program_term_id:
+                    raise ValidationError(
+                        _('Subject "%s" does not belong to the selected program term.')
+                        % line.subject_id.name
+                    )
+                if line.subject_category == 'compulsory':
+                    raise ValidationError(
+                        _('Subject "%s" is compulsory and cannot be added as an elective choice.')
+                        % line.subject_id.name
+                    )
 
     @api.constrains('section_id', 'batch_id')
     def _check_section_belongs_to_batch(self):

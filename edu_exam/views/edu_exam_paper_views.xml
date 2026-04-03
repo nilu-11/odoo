@@ -11,9 +11,8 @@
                 <field name="display_name" string="Paper"/>
                 <field name="exam_session_id"/>
                 <field name="subject_id"/>
-                <field name="section_id"/>
-                <field name="teacher_id"/>
                 <field name="batch_id"/>
+                <field name="teacher_id"/>
                 <!-- Filters -->
                 <filter name="filter_my_papers" string="My Papers" domain="[('teacher_id', '=', uid)]"/>
                 <separator/>
@@ -26,7 +25,7 @@
                 <group name="group_by">
                     <filter name="group_session" string="Exam Session" context="{'group_by': 'exam_session_id'}"/>
                     <filter name="group_subject" string="Subject" context="{'group_by': 'subject_id'}"/>
-                    <filter name="group_section" string="Section" context="{'group_by': 'section_id'}"/>
+                    <filter name="group_batch" string="Batch" context="{'group_by': 'batch_id'}"/>
                     <filter name="group_teacher" string="Teacher" context="{'group_by': 'teacher_id'}"/>
                     <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
                     <filter name="group_exam_date" string="Exam Date" context="{'group_by': 'exam_date'}"/>
@@ -45,7 +44,7 @@
             <list string="Exam Papers" decoration-muted="state == 'closed'">
                 <field name="exam_session_id"/>
                 <field name="subject_id"/>
-                <field name="section_id"/>
+                <field name="batch_id"/>
                 <field name="teacher_id"/>
                 <field name="exam_date"/>
                 <field name="max_marks"/>
@@ -136,9 +135,9 @@
                                     <field name="program_term_id"/>
                                 </group>
                                 <group string="Assignment">
-                                    <field name="section_id"/>
-                                    <field name="batch_id" readonly="1"/>
+                                    <field name="batch_id"/>
                                     <field name="teacher_id"/>
+                                    <field name="section_id"/>
                                 </group>
                             </group>
                         </page>
@@ -186,6 +185,7 @@
                             <field name="marksheet_ids" readonly="1">
                                 <list>
                                     <field name="student_id"/>
+                                    <field name="section_id" string="Section"/>
                                     <field name="status"/>
                                     <field name="raw_marks"/>
                                     <field name="grace_marks"/>

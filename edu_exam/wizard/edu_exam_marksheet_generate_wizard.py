@@ -9,12 +9,12 @@ class EduExamMarksheetGenerateWizard(models.TransientModel):
     """Wizard — generate edu.exam.marksheet records for an exam session.
 
     For each paper in scope, queries edu.student.progression.history for
-    students with state='active' in the paper's section, then creates
-    marksheets for students that don't already have one for that paper /
-    attempt_type / attempt_no combination.
+    ALL students with state='active' in the paper's batch (across all sections),
+    then creates marksheets for students that don't already have one for that
+    paper / attempt_type / attempt_no combination.
 
-    Optionally snapshots attendance percentage from the attendance register
-    at generation time.
+    Optionally snapshots attendance percentage from each student's own
+    classroom (their section × curriculum line) at generation time.
     """
 
     _name = 'edu.exam.marksheet.generate.wizard'
@@ -33,14 +33,6 @@ class EduExamMarksheetGenerateWizard(models.TransientModel):
         string='Papers',
         domain="[('exam_session_id', '=', exam_session_id)]",
         help='Leave empty to generate for all papers in the session.',
-    )
-    section_ids = fields.Many2many(
-        comodel_name='edu.section',
-        relation='exam_ms_gen_wiz_section_rel',
-        column1='wizard_id',
-        column2='section_id',
-        string='Filter Sections',
-        help='Optionally restrict generation to specific sections.',
     )
     attempt_type = fields.Selection(
         selection=[
@@ -69,7 +61,7 @@ class EduExamMarksheetGenerateWizard(models.TransientModel):
     )
 
     def action_generate(self):
-        """Generate marksheets for all active students in each paper's section."""
+        """Generate marksheets for all active students in each paper's batch."""
         self.ensure_one()
         session = self.exam_session_id
 
@@ -81,36 +73,49 @@ class EduExamMarksheetGenerateWizard(models.TransientModel):
                 ('exam_session_id', '=', session.id),
             ])
 
-        if self.section_ids:
-            papers = papers.filtered(lambda p: p.section_id in self.section_ids)
-
         if not papers:
-            raise UserError(_('No exam papers found for the selected session/sections.'))
+            raise UserError(_('No exam papers found for the selected session.'))
 
-        # Build attendance summary cache keyed by classroom_id
-        attendance_cache = {}
+        # Build attendance cache keyed by (section_id, curriculum_line_id)
+        # Each student's attendance comes from their own section's classroom
+        # for that specific subject.
+        attendance_cache = {}  # (section_id, curriculum_line_id) -> {student_id: {percent, ...}}
         if self.snapshot_attendance and 'edu.attendance.register' in self.env:
-            classroom_ids = papers.mapped('classroom_id').ids
-            if classroom_ids:
+            batch_ids = papers.mapped('batch_id').ids
+            curriculum_line_ids = papers.mapped('curriculum_line_id').ids
+            if batch_ids and curriculum_line_ids:
+                classrooms = self.env['edu.classroom'].search([
+                    ('batch_id', 'in', batch_ids),
+                    ('curriculum_line_id', 'in', curriculum_line_ids),
+                ])
+                classroom_ids = classrooms.ids
                 registers = self.env['edu.attendance.register'].search([
                     ('classroom_id', 'in', classroom_ids),
                 ])
                 for reg in registers:
-                    attendance_cache[reg.classroom_id.id] = reg.get_student_attendance_summary()
+                    cl = reg.classroom_id
+                    key = (cl.section_id.id, cl.curriculum_line_id.id)
+                    attendance_cache[key] = reg.get_student_attendance_summary()
 
         vals_list = []
         skipped = 0
         created = 0
 
         for paper in papers:
-            if not paper.section_id:
+            if not paper.batch_id:
                 continue
 
-            # Fetch active students via progression history
-            histories = self.env['edu.student.progression.history'].search([
-                ('section_id', '=', paper.section_id.id),
+            # Fetch active students in the batch who are taking this subject.
+            # Students with no elected subjects set are treated as taking all subjects
+            # (backwards compatibility for records created before electives were introduced).
+            all_histories = self.env['edu.student.progression.history'].search([
+                ('batch_id', '=', paper.batch_id.id),
                 ('state', '=', 'active'),
             ])
+            histories = all_histories.filtered(
+                lambda h: not h.effective_curriculum_line_ids
+                or paper.curriculum_line_id in h.effective_curriculum_line_ids
+            )
 
             # Build set of already-existing student ids for this paper
             existing_records = self.env['edu.exam.marksheet'].search_read(
@@ -123,25 +128,24 @@ class EduExamMarksheetGenerateWizard(models.TransientModel):
             )
             existing_student_ids = {r['student_id'][0] for r in existing_records}
 
-            # Attendance summary for this paper's classroom (if any)
-            att_summary = {}
-            if self.snapshot_attendance and paper.classroom_id:
-                att_summary = attendance_cache.get(paper.classroom_id.id, {})
-
             for history in histories:
                 student = history.student_id
                 if student.id in existing_student_ids:
                     skipped += 1
                     continue
 
+                # Look up attendance from the student's own classroom for this subject
                 att_pct = 0.0
                 att_eligible = True
-                if att_summary:
-                    student_att = att_summary.get(student.id)
-                    if student_att:
-                        att_pct = student_att.get('percent', 0.0)
-                    else:
-                        att_eligible = False
+                if self.snapshot_attendance:
+                    key = (history.section_id.id, paper.curriculum_line_id.id)
+                    att_summary = attendance_cache.get(key, {})
+                    if att_summary:
+                        student_att = att_summary.get(student.id)
+                        if student_att:
+                            att_pct = student_att.get('percent', 0.0)
+                        else:
+                            att_eligible = False
 
                 vals_list.append({
                     'exam_paper_id': paper.id,

@@ -10,7 +10,8 @@ class EduExamPaperGenerateWizard(models.TransientModel):
 
     Two scopes are supported:
     - from_classrooms: use active classrooms matching the session's batch /
-      section / program_term to auto-derive curriculum lines, sections, teachers.
+      program_term to auto-derive curriculum lines and teachers.  One paper
+      per curriculum line per batch is created (batch-scoped, not per section).
     - from_curriculum: use the curriculum lines of the session's program_term
       directly (no classroom required).
 
@@ -41,14 +42,6 @@ class EduExamPaperGenerateWizard(models.TransientModel):
         string='Batch',
         related='exam_session_id.batch_id',
     )
-    section_ids = fields.Many2many(
-        comodel_name='edu.section',
-        relation='exam_paper_gen_wiz_section_rel',
-        column1='wizard_id',
-        column2='section_id',
-        string='Filter Sections',
-        help='Optionally filter to specific sections. Leave empty to include all sections in the session scope.',
-    )
     program_term_id = fields.Many2one(
         comodel_name='edu.program.term',
         string='Program Term',
@@ -73,11 +66,19 @@ class EduExamPaperGenerateWizard(models.TransientModel):
     )
 
     def action_load_preview(self):
-        """Populate preview_line_ids based on the chosen scope and filters."""
+        """Populate preview_line_ids based on the chosen scope.
+
+        One paper per curriculum line per batch — the whole batch sits
+        together for each exam, so section is not a differentiator here.
+        """
         self.ensure_one()
         session = self.exam_session_id
         if not session:
             raise UserError(_('Please select an Exam Session first.'))
+        if not session.batch_id:
+            raise UserError(_('The exam session must have a Batch set.'))
+
+        batch = session.batch_id
 
         # Clear existing preview lines
         self.preview_line_ids.unlink()
@@ -85,28 +86,33 @@ class EduExamPaperGenerateWizard(models.TransientModel):
         lines_to_create = []
 
         if self.scope == 'from_classrooms':
-            domain = [('state', '=', 'active')]
-            if session.batch_id:
-                domain.append(('batch_id', '=', session.batch_id.id))
+            domain = [
+                ('state', '=', 'active'),
+                ('batch_id', '=', batch.id),
+            ]
             if session.program_term_id:
                 domain.append(('program_term_id', '=', session.program_term_id.id))
-            if self.section_ids:
-                domain.append(('section_id', 'in', self.section_ids.ids))
-            elif session.section_ids:
-                domain.append(('section_id', 'in', session.section_ids.ids))
 
             classrooms = self.env['edu.classroom'].search(domain)
+
+            # Deduplicate: one paper per curriculum_line (batch-scoped).
+            # If multiple classrooms teach the same subject (different sections),
+            # pick the first teacher encountered.
+            seen = {}  # curriculum_line_id -> first classroom
             for cl in classrooms:
+                if cl.curriculum_line_id.id not in seen:
+                    seen[cl.curriculum_line_id.id] = cl
+
+            for curriculum_line_id, cl in seen.items():
                 already = bool(self.env['edu.exam.paper'].search([
                     ('exam_session_id', '=', session.id),
-                    ('curriculum_line_id', '=', cl.curriculum_line_id.id),
-                    ('section_id', '=', cl.section_id.id),
+                    ('curriculum_line_id', '=', curriculum_line_id),
+                    ('batch_id', '=', batch.id),
                 ], limit=1))
                 lines_to_create.append({
                     'wizard_id': self.id,
                     'classroom_id': cl.id,
-                    'curriculum_line_id': cl.curriculum_line_id.id,
-                    'section_id': cl.section_id.id,
+                    'curriculum_line_id': curriculum_line_id,
                     'teacher_id': cl.teacher_id.id if cl.teacher_id else False,
                     'already_exists': already,
                     'will_create': not already,
@@ -120,32 +126,20 @@ class EduExamPaperGenerateWizard(models.TransientModel):
             curriculum_lines = self.env['edu.curriculum.line'].search([
                 ('program_term_id', '=', session.program_term_id.id),
             ])
-            # Determine sections to iterate
-            if self.section_ids:
-                sections = self.section_ids
-            elif session.section_ids:
-                sections = session.section_ids
-            elif session.batch_id:
-                sections = session.batch_id.section_ids
-            else:
-                sections = self.env['edu.section'].browse()
-
             for cl_line in curriculum_lines:
-                for section in sections:
-                    already = bool(self.env['edu.exam.paper'].search([
-                        ('exam_session_id', '=', session.id),
-                        ('curriculum_line_id', '=', cl_line.id),
-                        ('section_id', '=', section.id),
-                    ], limit=1))
-                    lines_to_create.append({
-                        'wizard_id': self.id,
-                        'classroom_id': False,
-                        'curriculum_line_id': cl_line.id,
-                        'section_id': section.id,
-                        'teacher_id': False,
-                        'already_exists': already,
-                        'will_create': not already,
-                    })
+                already = bool(self.env['edu.exam.paper'].search([
+                    ('exam_session_id', '=', session.id),
+                    ('curriculum_line_id', '=', cl_line.id),
+                    ('batch_id', '=', batch.id),
+                ], limit=1))
+                lines_to_create.append({
+                    'wizard_id': self.id,
+                    'classroom_id': False,
+                    'curriculum_line_id': cl_line.id,
+                    'teacher_id': False,
+                    'already_exists': already,
+                    'will_create': not already,
+                })
 
         if lines_to_create:
             self.env['edu.exam.paper.generate.wizard.line'].create(lines_to_create)
@@ -169,6 +163,7 @@ class EduExamPaperGenerateWizard(models.TransientModel):
         """
         self.ensure_one()
         session = self.exam_session_id
+        batch = session.batch_id
         created_count = 0
         skipped_count = 0
         vals_list = []
@@ -179,7 +174,7 @@ class EduExamPaperGenerateWizard(models.TransientModel):
             existing = self.env['edu.exam.paper'].search([
                 ('exam_session_id', '=', session.id),
                 ('curriculum_line_id', '=', line.curriculum_line_id.id),
-                ('section_id', '=', line.section_id.id),
+                ('batch_id', '=', batch.id),
             ], limit=1)
             if existing:
                 skipped_count += 1
@@ -187,7 +182,7 @@ class EduExamPaperGenerateWizard(models.TransientModel):
             vals = {
                 'exam_session_id': session.id,
                 'curriculum_line_id': line.curriculum_line_id.id,
-                'section_id': line.section_id.id,
+                'batch_id': batch.id,
                 'classroom_id': line.classroom_id.id if line.classroom_id else False,
                 'teacher_id': line.teacher_id.id if line.teacher_id else False,
                 'program_term_id': session.program_term_id.id if session.program_term_id else False,
@@ -218,7 +213,7 @@ class EduExamPaperGenerateWizardLine(models.TransientModel):
 
     _name = 'edu.exam.paper.generate.wizard.line'
     _description = 'Exam Paper Generate Wizard Line'
-    _order = 'section_id, curriculum_line_id'
+    _order = 'curriculum_line_id'
 
     wizard_id = fields.Many2one(
         comodel_name='edu.exam.paper.generate.wizard',
@@ -240,11 +235,6 @@ class EduExamPaperGenerateWizardLine(models.TransientModel):
         comodel_name='edu.subject',
         string='Subject',
         related='curriculum_line_id.subject_id',
-    )
-    section_id = fields.Many2one(
-        comodel_name='edu.section',
-        string='Section',
-        ondelete='set null',
     )
     teacher_id = fields.Many2one(
         comodel_name='res.users',

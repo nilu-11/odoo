@@ -267,7 +267,19 @@ class EduAttendanceSheet(models.Model):
         ]
         if self.program_term_id:
             domain.append(('program_term_id', '=', self.program_term_id.id))
-        histories = self.env['edu.student.progression.history'].search(domain)
+        all_histories = self.env['edu.student.progression.history'].search(domain)
+
+        # Filter by elective subject choices.  Students with no elected
+        # subjects set are treated as taking all subjects (backwards compat).
+        classroom = self.classroom_id
+        if classroom and classroom.curriculum_line_id:
+            curriculum_line = classroom.curriculum_line_id
+            histories = all_histories.filtered(
+                lambda h: not h.effective_curriculum_line_ids
+                or curriculum_line in h.effective_curriculum_line_ids
+            )
+        else:
+            histories = all_histories
         if not histories:
             return
 
