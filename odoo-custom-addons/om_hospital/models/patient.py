@@ -10,4 +10,6 @@ class HospitalPatient(models.Model):
     gender = fields.Selection([
         ('male', 'Male'),
         ('female', 'Female')                                                                                                                                                                                
-    ], string = "Gender", tracking=True) 
+    ], string = "Gender", tracking=True)
+    
+    tags_id = fields.Many2many("patient.tag", String="Tags")

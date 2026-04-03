@@ -16,7 +16,7 @@
          <field name="name">hospital.patient.tag</field>
          <field name="model">patient.tag</field>
          <field name="arch" type="xml">
-             <list string="Patients" editable="bottom">
+             <list string="Patients" editable="bottom">  <!--new field added to the bottom-->
                 <field name="name"/>
             </list>
         </field>
