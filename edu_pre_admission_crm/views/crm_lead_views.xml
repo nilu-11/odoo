@@ -251,17 +251,18 @@
 
                 <!-- Status + quick progression buttons -->
                 <group>
-                    <group string="Status &amp; Tracking">
-                        <field name="inquiry_date"/>
+                    <group string="How did you know about us?" >
+                        <!-- <field name="inquiry_date"/>
                         <field name="last_contact_date" invisible="1"/>
                         <field name="next_followup_date"/>
-                        <field name="counselor_id"/>
-                        <field name="campaign_id"/>
+                        <field name="counselor_id"/> -->
                         <field name="medium_id"/>
+                        <field name="campaign_id"/>
                         <field name="source_id"/>
                         <field name="referred_by_id"/>
                     </group>
-                    <group>
+                    <group string =  "Counselor">
+                        <field name="counselor_id"/>
                     </group>
                 </group>
 
