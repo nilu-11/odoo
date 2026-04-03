@@ -456,7 +456,6 @@
             <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
             <field name="preferred_term_id" ref="edu_academic_structure.term_sem1_2425"/>
             <field name="scholarship_interest" eval="True"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_ram_shrestha"/>
             <field name="counseling_note">Walked in at the front desk with his father. Interested in the BCS program. Requires detailed information about the curriculum, career prospects, and scholarship eligibility. Campus tour requested.</field>
         </record>
@@ -476,7 +475,6 @@
             <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
             <field name="hostel_interest" eval="True"/>
             <field name="transport_interest" eval="False"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_sabina_rai"/>
             <field name="counseling_note">Strong science background (82% in +2 from Dharan). Showed genuine interest after the initial counseling call. Hostel availability confirmed. Follow-up call scheduled to discuss required documentation for admission.</field>
         </record>
@@ -496,7 +494,6 @@
             <field name="preferred_batch_id" ref="edu_academic_structure.batch_mba_2425"/>
             <field name="scholarship_interest" eval="True"/>
             <field name="transport_interest" eval="True"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_bikash_thapa"/>
             <field name="counseling_note">Management background with 78.25% in +2. Meets MBA eligibility requirements. Has prior co-operative work experience which strengthens his application. Documents collected and verified.</field>
             <field name="qualification_note">Passed academic eligibility check. Prior work experience noted. Recommended for MBA – Finance and Banking specialisation. Proceed to application stage after fee clearance.</field>
@@ -516,7 +513,6 @@
             <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
             <field name="preferred_batch_id" ref="edu_academic_structure.batch_mba_2425"/>
             <field name="hostel_interest" eval="True"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_anita_gurung"/>
             <field name="counseling_note">All academic documents submitted and verified. Application fee payment is the only remaining step before the formal admission application is created. Will proceed by end of this week.</field>
             <field name="qualification_note">Strong management background (85.75% in +2 from Butwal Campus). Fully meets MBA entry requirements. Hostel allocation confirmed pending fee payment.</field>
@@ -537,7 +533,6 @@
             <field name="preferred_batch_id" ref="edu_academic_structure.batch_bcs_2425_fall"/>
             <field name="preferred_term_id" ref="edu_academic_structure.term_sem1_2425"/>
             <field name="scholarship_interest" eval="True"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_sunita_tamang"/>
             <field name="counseling_note">Outstanding academic record — 90% in science from Tri-Chandra Campus and GPA 4.00 in SEE. Top candidate for the full merit scholarship. All formalities completed without delay. Highly motivated student.</field>
             <field name="qualification_note">Highest scoring applicant this cycle. Full merit scholarship recommended and approved. Admission application successfully submitted and accepted.</field>
@@ -556,7 +551,6 @@
             <field name="intended_academic_year_id" ref="edu_academic_structure.ay_2425"/>
             <field name="scholarship_interest" eval="False"/>
             <field name="hostel_interest" eval="True"/>
-            <field name="counselor_id" ref="base.user_admin"/>
             <field name="applicant_profile_id" ref="profile_roshan_adhikari"/>
             <field name="counseling_note">Submitted an online enquiry form via the college website. His father, a retired army officer, called the office to enquire. Initial contact made. Counselor to call Roshan within 2 days to schedule an in-person campus visit.</field>
         </record>

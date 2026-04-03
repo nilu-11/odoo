@@ -74,6 +74,12 @@ class CrmLead(models.Model):
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
     )    
+    counselor_name = fields.Many2one(
+        comodel_name='edu.team.member',
+        string='Counselor Name',
+        tracking=True,
+        help='Internal user responsible for counseling this prospect.',
+    )    
     referred_by_id = fields.Many2one(
         comodel_name='res.partner',
         string='Referred By',
@@ -181,8 +187,7 @@ class CrmLead(models.Model):
     def _compute_is_referral_source(self):
         for rec in self:
             rec.is_referral_source = (
-                rec.source_id
-                and rec.source_id.name
+                bool(rec.source_id)
                 and rec.source_id.name.strip().lower() == 'referral'
             )
 

@@ -1,4 +1,5 @@
 from . import edu_relationship_type
+from . import edu_team_member
 from . import edu_applicant_profile
 from . import edu_guardian
 from . import edu_applicant_guardian_rel

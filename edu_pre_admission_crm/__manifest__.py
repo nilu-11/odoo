@@ -39,6 +39,7 @@
         'security/ir.model.access.csv',
         'data/edu_relationship_type_data.xml',
         'views/edu_relationship_type_views.xml',
+        'views/edu_team_member_views.xml',
         'views/edu_applicant_profile_views.xml',
         'views/edu_guardian_views.xml',
         # 'views/hr_employee_views.xml',
