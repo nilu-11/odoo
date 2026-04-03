@@ -178,6 +178,9 @@
             <xpath expr="//div[hasclass('oe_title')]//h2" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//div[hasclass('oe_title')]//field[@name='name']" position="attributes">
+                <attribute name="placeholder">e.g. Inquiry 001</attribute>
+            </xpath>
             <!-- Add priority stars next to the lead name (h1) -->
             <xpath expr="//div[hasclass('oe_title')]//div[hasclass('d-flex')]" position="inside">
                 <field name="priority" widget="priority" class="ms-2 align-self-center"/>
