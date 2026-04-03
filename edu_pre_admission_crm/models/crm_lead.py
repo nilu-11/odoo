@@ -172,6 +172,19 @@ class CrmLead(models.Model):
         string='Advanced Options',
         default=False,
     )
+    is_referral_source = fields.Boolean(
+        compute='_compute_is_referral_source',
+        string='Is Referral Source',
+    )
+
+    @api.depends('source_id')
+    def _compute_is_referral_source(self):
+        for rec in self:
+            rec.is_referral_source = (
+                rec.source_id
+                and rec.source_id.name
+                and rec.source_id.name.strip().lower() == 'referral'
+            )
 
     # ── Applicant Profile Link ────────────────────────────────────────────────
     applicant_profile_id = fields.Many2one(

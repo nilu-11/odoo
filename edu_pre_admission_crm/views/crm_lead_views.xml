@@ -279,7 +279,7 @@
                         <field name="medium_id"/>
                         <field name="campaign_id"/>
                         <field name="source_id"/>
-                        <field name="referred_by_id"/>
+                        <field name="referred_by_id" invisible="not is_referral_source"/>
                     </group>
                     <group string =  "Counselor">
                         <field name="counselor_id"/>
