@@ -213,11 +213,16 @@
                 <widget name="web_ribbon" title="Duplicate" bg_color="bg-warning" invisible="not is_duplicate"/>
             </xpath>
 
+            <!-- Duplicate alert before the title -->
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="alert alert-warning py-1 px-2 mb-2 small" role="alert" invisible="not is_duplicate">
+                    <i class="fa fa-exclamation-triangle me-1"/>This enquiry appears to be a duplicate (same phone or email).
+                </div>
+            </xpath>
+
             <!-- Render pre-admission fields directly in form (no custom notebook page) -->
             <xpath expr="//sheet/notebook" position="before">                
-                <div class="alert alert-warning" role="alert" invisible="not is_duplicate">
-                    This enquiry appears to be a duplicate (same phone or email).
-                </div>
+                
                 <group>
                     <group string="Profile Information" >
                         <field name="quick_applicant_name"
