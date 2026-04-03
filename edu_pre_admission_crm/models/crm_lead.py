@@ -89,7 +89,7 @@ class CrmLead(models.Model):
     )
     other_interested_program_ids = fields.Many2many(
         comodel_name='edu.program',
-        string='Other Interested Programs',
+        string='Interested Programs',
         tracking=True,
         ondelete='restrict',
         index=True,
