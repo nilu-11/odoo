@@ -450,3 +450,29 @@ class EduExamSession(models.Model):
                 'default_exam_session_id': self.id,
             },
         }
+
+    def action_generate_marksheets(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Generate Marksheets'),
+            'res_model': 'edu.exam.marksheet.generate.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_exam_session_id': self.id,
+            },
+        }
+
+    def action_print_report_card(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Print Report Card'),
+            'res_model': 'edu.exam.report.card.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_exam_session_id': self.id,
+            },
+        }

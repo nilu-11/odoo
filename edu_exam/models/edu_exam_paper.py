@@ -394,3 +394,38 @@ class EduExamPaper(models.Model):
                 'default_exam_session_id': self.exam_session_id.id,
             },
         }
+
+    def action_view_components(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Components — %s') % self.display_name,
+            'res_model': 'edu.exam.paper.component',
+            'view_mode': 'list,form',
+            'domain': [('exam_paper_id', '=', self.id)],
+            'context': {
+                'default_exam_paper_id': self.id,
+            },
+        }
+
+    def action_enter_marks(self):
+        """Open the dedicated marks entry list for this paper's marksheets."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Marks Entry — %s') % self.display_name,
+            'res_model': 'edu.exam.marksheet',
+            'view_mode': 'list,form',
+            'views': [
+                (self.env.ref('edu_exam.view_edu_exam_marksheet_entry_list').id, 'list'),
+                (False, 'form'),
+            ],
+            'domain': [
+                ('exam_paper_id', '=', self.id),
+                ('is_latest_attempt', '=', True),
+            ],
+            'context': {
+                'default_exam_paper_id': self.id,
+                'marks_entry_mode': True,
+            },
+        }

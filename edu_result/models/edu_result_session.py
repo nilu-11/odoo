@@ -14,9 +14,8 @@ class EduResultSession(models.Model):
     State machine:  draft → processing → verified → published → closed
     """
 
-    _name = 'edu.result.session'
+    _inherit = ['edu.result.session', 'mail.thread', 'mail.activity.mixin']
     _description = 'Result Session'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'name desc'
     _rec_name = 'name'
 

@@ -57,3 +57,8 @@ access_edu_back_exam_generation_wizard_officer,edu.back.exam.generation.wizard o
 access_edu_back_exam_generation_wizard_edu_admin,edu.back.exam.generation.wizard edu admin,model_edu_back_exam_generation_wizard,edu_academic_structure.group_education_admin,1,1,1,1
 access_edu_back_exam_candidate_line_officer,edu.back.exam.candidate.line officer,model_edu_back_exam_candidate_line,edu_exam.group_exam_officer,1,1,1,1
 access_edu_back_exam_candidate_line_edu_admin,edu.back.exam.candidate.line edu admin,model_edu_back_exam_candidate_line,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_exam_report_card_wizard_viewer,edu.exam.report.card.wizard viewer,model_edu_exam_report_card_wizard,edu_exam.group_exam_viewer,1,1,1,1
+access_edu_exam_report_card_wizard_teacher,edu.exam.report.card.wizard teacher,model_edu_exam_report_card_wizard,edu_exam.group_exam_teacher,1,1,1,1
+access_edu_exam_report_card_wizard_officer,edu.exam.report.card.wizard officer,model_edu_exam_report_card_wizard,edu_exam.group_exam_officer,1,1,1,1
+access_edu_exam_report_card_wizard_admin,edu.exam.report.card.wizard admin,model_edu_exam_report_card_wizard,edu_exam.group_exam_admin,1,1,1,1
+access_edu_exam_report_card_wizard_edu_admin,edu.exam.report.card.wizard edu admin,model_edu_exam_report_card_wizard,edu_academic_structure.group_education_admin,1,1,1,1

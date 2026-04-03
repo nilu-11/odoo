@@ -13,15 +13,15 @@
                     <button name="action_activate" string="Activate"
                             type="object" class="btn-primary"
                             invisible="state != 'draft'"
-                            groups="edu_result.group_result_admin"/>
+                            groups="edu_result.group_result_admin,edu_academic_structure.group_education_admin"/>
                     <button name="action_reset_draft" string="Reset to Draft"
                             type="object"
                             invisible="state != 'archived'"
-                            groups="edu_result.group_result_admin"/>
+                            groups="edu_result.group_result_admin,edu_academic_structure.group_education_admin"/>
                     <button name="action_archive_scheme" string="Archive"
                             type="object"
                             invisible="state != 'active'"
-                            groups="edu_result.group_result_admin"/>
+                            groups="edu_result.group_result_admin,edu_academic_structure.group_education_admin"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,active,archived"/>
                 </header>
@@ -148,7 +148,7 @@
                         domain="[('state', '=', 'active')]"/>
                 <filter name="draft_schemes" string="Draft"
                         domain="[('state', '=', 'draft')]"/>
-                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="inactive" string="Archived" domain="[('state', '=', 'archived')]"/>
                 <group name="group_by">
                     <filter name="group_program" string="Program"
                             context="{'group_by': 'program_id'}"/>

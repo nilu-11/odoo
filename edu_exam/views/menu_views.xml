@@ -41,6 +41,22 @@
               sequence="40"
               groups="edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
+    <!-- ── Generate Marksheets ───────────────────────────── -->
+    <menuitem id="menu_edu_exam_generate_marksheets"
+              name="Generate Marksheets"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_marksheet_generate_wizard"
+              sequence="45"
+              groups="edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+
+    <!-- ── Print Report Card ──────────────────────────────── -->
+    <menuitem id="menu_edu_exam_report_card"
+              name="Print Report Card"
+              parent="menu_edu_exam_root"
+              action="action_edu_exam_report_card_wizard"
+              sequence="47"
+              groups="edu_exam.group_exam_viewer,edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+
     <!-- ── Back Exams ─────────────────────────────────────── -->
     <menuitem id="menu_edu_exam_back_exams"
               name="Back Exams"
@@ -94,14 +110,14 @@
     <menuitem id="menu_edu_assessment_schemes"
               name="Assessment Schemes"
               parent="menu_edu_exam_config"
-              action="action_edu_assessment_scheme"
+              action="edu_result.action_edu_assessment_scheme"
               sequence="10"
               groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
 
     <menuitem id="menu_edu_back_exam_policies"
               name="Back Exam Policies"
               parent="menu_edu_exam_config"
-              action="action_edu_back_exam_policy"
+              action="edu_result.action_edu_back_exam_policy"
               sequence="20"
               groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
 </odoo>

@@ -14,7 +14,7 @@ class EduBackExamPolicy(models.Model):
     - Whether a grade cap applies after back exam
     """
 
-    _name = 'edu.back.exam.policy'
+    _inherit = 'edu.back.exam.policy'
     _description = 'Back Exam Policy'
     _order = 'name'
 

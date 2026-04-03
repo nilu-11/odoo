@@ -12,9 +12,8 @@ class EduAssessmentScheme(models.Model):
     specific program, term, or academic year.
     """
 
-    _name = 'edu.assessment.scheme'
+    _inherit = ['edu.assessment.scheme', 'mail.thread', 'mail.activity.mixin']
     _description = 'Assessment Scheme'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'name'
     _rec_name = 'name'
 
@@ -204,7 +203,7 @@ class EduAssessmentSchemeLine(models.Model):
       - Attendance Score (10%), source: attendance
     """
 
-    _name = 'edu.assessment.scheme.line'
+    _inherit = 'edu.assessment.scheme.line'
     _description = 'Assessment Scheme Line'
     _order = 'scheme_id, sequence, id'
 
