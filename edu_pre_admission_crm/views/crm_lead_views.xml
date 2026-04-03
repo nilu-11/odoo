@@ -27,13 +27,14 @@
                 <field name="tag_ids"/>
                 <field name="next_followup_date"/>
                 <field name="counselor_id"/>
+                <field name="is_duplicate"/>
                 <progressbar field="activity_state"
                              colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
                 <templates>
                     <t t-name="card">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <field name="name" class="fw-bold flex-grow-1"/>
-                            <field name="priority" widget="priority" class="ms-1 flex-shrink-0"/>
+                        <div class="mb-1">
+                            <field name="name" class="mb-0 fw-bold fs-5"/>
+                            <span class="badge bg-warning ms-2" invisible="not is_duplicate">Duplicate</span>
                         </div>
                         <div class="text-muted small">
                             <field name="partner_id"/>
@@ -48,13 +49,12 @@
                         <field name="tag_ids" widget="many2many_tags"
                                options="{'color_field': 'color'}" class="mt-1"/>
                         <footer class="d-flex align-items-center justify-content-between mt-2 pt-1">
-                            <span t-if="record.next_followup_date.value" class="text-muted small">
+                            <field name="priority" widget="priority"/>
+                            <field name="activity_ids" widget="kanban_activity"/>
+                            <span t-if="record.next_followup_date.value" class="text-muted small ms-2">
                                 <i class="fa fa-calendar me-1"/><field name="next_followup_date"/>
                             </span>
-                            <span class="ms-auto d-flex align-items-center gap-1">
-                                <field name="activity_ids" widget="activity"/>
-                                <field name="counselor_id" widget="many2one_avatar_user"/>
-                            </span>
+                            <field name="counselor_id" widget="many2one_avatar_user" class="ms-auto"/>
                         </footer>
                     </t>
                 </templates>
@@ -178,6 +178,13 @@
             <xpath expr="//div[hasclass('oe_title')]//h2" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//div[hasclass('oe_title')]//field[@name='name']" position="attributes">
+                <attribute name="placeholder">e.g. Inquiry 001</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]//field[@name='name']" position="after">
+                <label for="inquiry_date_time" string="Inquiry DateTime" />
+                <field name="inquiry_date_time" class="text-muted small ms-2"/>
+            </xpath>
             <!-- Add priority stars next to the lead name (h1) -->
             <xpath expr="//div[hasclass('oe_title')]//div[hasclass('d-flex')]" position="inside">
                 <field name="priority" widget="priority" class="ms-2 align-self-center"/>
@@ -201,14 +208,32 @@
                 </group>
             </xpath>
 
+            <!-- web_ribbon for duplicate detection -->
+            <xpath expr="//sheet" position="inside">
+                <widget name="web_ribbon" title="Duplicate" bg_color="bg-warning" invisible="not is_duplicate"/>
+            </xpath>
+
+            <!-- Duplicate alert before the title -->
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="alert alert-warning py-1 px-2 mb-2 small" role="alert" invisible="not is_duplicate">
+                    <i class="fa fa-exclamation-triangle me-1"/>This enquiry appears to be a duplicate (same phone or email).
+                </div>
+            </xpath>
+
             <!-- Render pre-admission fields directly in form (no custom notebook page) -->
-            <xpath expr="//sheet/notebook" position="before">
+            <xpath expr="//sheet/notebook" position="before">                
+                
                 <group>
                     <group string="Profile Information" >
+                        <field name="quick_applicant_name"
+                               placeholder="e.g. Ram Shah"
+                               invisible="applicant_profile_id or lead_education_status in ['qualified', 'ready_for_application', 'converted', 'lost']"
+                               string="Applicant Name"/>
                         <field name="applicant_profile_id"
                                 options="{'no_create': False}"
                                 readonly="is_converted_to_application"
-                                help="Link or create the structured applicant profile. Required before conversion." invisible="is_converted_to_application"/>
+                                help="Link or create the structured applicant profile. Required before conversion."
+                                invisible="not applicant_profile_id and lead_education_status not in ['qualified', 'ready_for_application', 'converted']"/>
                         <field name="phone" widget="phone"/>
                         <field name="email_from" widget="email"/>
                         <label for="street" string="Address"/>
@@ -228,32 +253,36 @@
                                string="CGPA / Percentage"/>
                     </group>
                     <group string="Academic Information" >
-                        <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
+                        <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['qualified','ready_for_application', 'converted']"/>
                         <field name="other_interested_program_ids" readonly="is_converted_to_application" widget="many2many_tags"/>
-                        <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application"/>
+                        <field name="show_advanced_options" widget="boolean_toggle"/>
+                        <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
                             options="{'no_create': True}"
-                            readonly="is_converted_to_application"/>
+                            readonly="is_converted_to_application"
+                            invisible="not show_advanced_options"/>
                         <field name="preferred_term_id"
                             options="{'no_create': True}"
-                            readonly="is_converted_to_application"/>
+                            readonly="is_converted_to_application"
+                            invisible="not show_advanced_options"/>
                     </group>
                 </group>
 
                 <!-- Status + quick progression buttons -->
                 <group>
-                    <group string="Status &amp; Tracking">
-                        <field name="inquiry_date"/>
+                    <group string="How did you know about us?" >
+                        <!-- <field name="inquiry_date"/>
                         <field name="last_contact_date" invisible="1"/>
                         <field name="next_followup_date"/>
-                        <field name="counselor_id"/>
-                        <field name="campaign_id"/>
+                        <field name="counselor_id"/> -->
                         <field name="medium_id"/>
+                        <field name="campaign_id"/>
                         <field name="source_id"/>
-                        <field name="referred_by_id"/>
+                        <field name="referred_by_id" invisible="not is_referral_source"/>
                     </group>
-                    <group>
+                    <group string =  "Counselor">
+                        <field name="counselor_id"/>
                     </group>
                 </group>
 
@@ -288,7 +317,8 @@
                            <field name="transport_interest"/>
                           </group>
                       </group> -->
-                <group>
+                <group string = "Status &amp; Activities">
+
                 <group string="Pending Call Activities" colspan="1">
                     <field name="pending_call_activity_ids" nolabel="1" mode="list" readonly="1" width="600px">
                         <list string="Pending Call Activities" create="0" edit="0" delete="0">
@@ -313,11 +343,11 @@
                 </group>
                 
                 <group>
-                    <group string="Counseling Notes">
+                    <group string="Notes">
                         <field name="counseling_note" nolabel="1"
                                placeholder="Record counseling session notes, discussion points, concerns..."/>
                     </group>
-                    <group string="Qualification Notes">
+                    <group string="Qualification Notes" invisible="1">
                         <field name="qualification_note" nolabel="1"
                                placeholder="Eligibility check notes, document status, academic qualification summary..."/>
                     </group>
