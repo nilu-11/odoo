@@ -87,6 +87,9 @@
                             groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
                     <button name="action_snapshot_attendance" string="Snapshot Attendance" type="object"
                             groups="edu_exam.group_exam_officer,edu_academic_structure.group_education_admin"/>
+                    <button name="action_print_report_card" string="Print Report Card" type="object"
+                            class="btn-secondary"
+                            groups="edu_exam.group_exam_viewer,edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
                     <!-- Display lock/publish state info -->
                     <field name="exam_paper_state" widget="badge"
                            decoration-warning="exam_paper_state == 'marks_entry'"
@@ -213,6 +216,42 @@
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.marksheet — Marks Entry List View
+         Optimized editable list for bulk marks entry by teachers.
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_marksheet_entry_list" model="ir.ui.view">
+        <field name="name">edu.exam.marksheet.entry.list</field>
+        <field name="model">edu.exam.marksheet</field>
+        <field name="arch" type="xml">
+            <list string="Marks Entry" editable="bottom"
+                  decoration-danger="status == 'absent'"
+                  decoration-success="is_pass == True and status == 'present'"
+                  decoration-warning="status == 'present' and is_pass == False"
+                  decoration-muted="is_locked == True">
+                <field name="student_id" readonly="1"/>
+                <field name="section_id" string="Section" readonly="1"
+                       optional="hide"/>
+                <field name="status"/>
+                <field name="raw_marks"
+                       readonly="is_locked == True or exam_paper_state in ('published', 'closed')"/>
+                <field name="grace_marks"
+                       readonly="is_locked == True or exam_paper_state in ('published', 'closed')"
+                       optional="hide"/>
+                <field name="final_marks" readonly="1" decoration-bf="1"/>
+                <field name="max_marks" readonly="1"/>
+                <field name="pass_marks" readonly="1"/>
+                <field name="is_pass" readonly="1"/>
+                <field name="remarks"
+                       readonly="is_locked == True or exam_paper_state in ('published', 'closed')"
+                       optional="hide"/>
+                <field name="is_locked" readonly="1" optional="hide"/>
+                <field name="exam_paper_state" column_invisible="1"/>
+                <field name="exam_paper_id" column_invisible="1"/>
+            </list>
         </field>
     </record>
 

@@ -16,6 +16,15 @@
                         groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_academic_structure.group_education_admin">
                     <field name="exam_marksheet_count" widget="statinfo" string="Marksheets"/>
                 </button>
+                <button name="action_print_report_card"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-print"
+                        groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_academic_structure.group_education_admin">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Report Card</span>
+                    </div>
+                </button>
             </xpath>
         </field>
     </record>
