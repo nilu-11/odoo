@@ -205,10 +205,15 @@
             <xpath expr="//sheet/notebook" position="before">
                 <group>
                     <group string="Profile Information" >
+                        <field name="quick_applicant_name"
+                               placeholder="e.g. Ram Shah"
+                               invisible="applicant_profile_id or lead_education_status in ['qualified', 'ready_for_application', 'converted', 'lost']"
+                               string="Applicant Name"/>
                         <field name="applicant_profile_id"
                                 options="{'no_create': False}"
                                 readonly="is_converted_to_application"
-                                help="Link or create the structured applicant profile. Required before conversion."/>
+                                help="Link or create the structured applicant profile. Required before conversion."
+                                invisible="not applicant_profile_id and lead_education_status not in ['qualified', 'ready_for_application', 'converted']"/>
                         <field name="phone" widget="phone"/>
                         <field name="email_from" widget="email"/>
                         <label for="street" string="Address"/>
@@ -228,7 +233,7 @@
                                string="CGPA / Percentage"/>
                     </group>
                     <group string="Academic Information" >
-                        <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
+                        <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['qualified','ready_for_application', 'converted']"/>
                         <field name="other_interested_program_ids" readonly="is_converted_to_application" widget="many2many_tags"/>
                         <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application"/>
                         <field name="preferred_batch_id"

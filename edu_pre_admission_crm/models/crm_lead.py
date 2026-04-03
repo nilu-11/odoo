@@ -156,6 +156,15 @@ class CrmLead(models.Model):
         tracking=True,
     )
 
+    # ── Quick Profile Creation ─────────────────────────────────────────────────
+    quick_applicant_name = fields.Char(
+        string='Applicant Name',
+        help=(
+            'Type the full name (e.g. "Ram Shah") and click "Create Profile". '
+            'The first word becomes the First Name; the remaining words become the Last Name.'
+        ),
+    )
+
     # ── Applicant Profile Link ────────────────────────────────────────────────
     applicant_profile_id = fields.Many2one(
         comodel_name='edu.applicant.profile',
@@ -184,6 +193,38 @@ class CrmLead(models.Model):
         copy=False,
         tracking=True,
     )
+
+    def _create_profile_from_quick_name(self):
+        """Split quick_applicant_name and create a partner + applicant profile."""
+        self.ensure_one()
+        name = (self.quick_applicant_name or '').strip()
+        if not name:
+            raise UserError(
+                f'Lead "{self.name}": please set an Applicant Name before marking as Qualified.'
+            )
+        parts = name.split()
+        if len(parts) < 2:
+            raise UserError(
+                f'Lead "{self.name}": enter both a first and last name '
+                '(e.g. "Ram Shah") in the Applicant Name field.'
+            )
+        first_name = parts[0]
+        last_name = ' '.join(parts[1:])
+        partner = self.env['res.partner'].create({
+            'name': name,
+            'email': self.email_from or False,
+            'phone': self.phone or False,
+        })
+        profile = self.env['edu.applicant.profile'].create({
+            'first_name': first_name,
+            'last_name': last_name,
+            'partner_id': partner.id,
+        })
+        self.write({
+            'applicant_profile_id': profile.id,
+            'partner_id': partner.id,
+            'quick_applicant_name': False,
+        })
 
     # ── Onchange: clear batch when program/year changes ───────────────────────
     @api.onchange('interested_program_id', 'intended_academic_year_id')
@@ -261,9 +302,12 @@ class CrmLead(models.Model):
         ).write({'lead_education_status': 'prospect'})
 
     def action_set_qualified(self):
-        self.filtered(
+        for rec in self.filtered(
             lambda r: r.lead_education_status in ('inquiry', 'prospect')
-        ).write({'lead_education_status': 'qualified'})
+        ):
+            if not rec.applicant_profile_id:
+                rec._create_profile_from_quick_name()
+            rec.write({'lead_education_status': 'qualified'})
 
     def action_set_ready_for_application(self):
         for rec in self:
