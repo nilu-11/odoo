@@ -16,6 +16,14 @@
                         groups="edu_exam.group_exam_viewer,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer">
                     <field name="exam_paper_count" widget="statinfo" string="Exam Papers"/>
                 </button>
+                <button name="action_marks_entry"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-pencil-square-o"
+                        invisible="marks_entry_count == 0"
+                        groups="edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin">
+                    <field name="marks_entry_count" widget="statinfo" string="Marks Entry"/>
+                </button>
             </xpath>
         </field>
     </record>
