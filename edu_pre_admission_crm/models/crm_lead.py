@@ -260,6 +260,48 @@ class CrmLead(models.Model):
         string='Done Call Activities',
     )
 
+    # ── Computed: duplicate lead detection ────────────────────────────────────
+    duplicate_phone_lead_ids = fields.Many2many(
+        comodel_name='crm.lead',
+        compute='_compute_duplicate_leads',
+        string='Leads with Same Phone',
+    )
+    duplicate_email_lead_ids = fields.Many2many(
+        comodel_name='crm.lead',
+        compute='_compute_duplicate_leads',
+        string='Leads with Same Email',
+    )
+    has_duplicate_phone = fields.Boolean(compute='_compute_duplicate_leads')
+    has_duplicate_email = fields.Boolean(compute='_compute_duplicate_leads')
+    is_duplicate = fields.Boolean(compute='_compute_duplicate_leads')
+
+    @api.depends('phone', 'email_from')
+    def _compute_duplicate_leads(self):
+        for rec in self:
+            if rec.phone:
+                phone_dupes = self.search([
+                    ('phone', '=', rec.phone),
+                    ('id', '!=', rec.id),
+                    ('id', '<', rec.id),
+                ])
+                rec.duplicate_phone_lead_ids = phone_dupes
+                rec.has_duplicate_phone = bool(phone_dupes)
+            else:
+                rec.duplicate_phone_lead_ids = self.env['crm.lead']
+                rec.has_duplicate_phone = False
+            if rec.email_from:
+                email_dupes = self.search([
+                    ('email_from', '=ilike', rec.email_from),
+                    ('id', '!=', rec.id),
+                    ('id', '<', rec.id),
+                ])
+                rec.duplicate_email_lead_ids = email_dupes
+                rec.has_duplicate_email = bool(email_dupes)
+            else:
+                rec.duplicate_email_lead_ids = self.env['crm.lead']
+                rec.has_duplicate_email = False
+            rec.is_duplicate = rec.has_duplicate_phone or rec.has_duplicate_email
+
     def _compute_call_activities(self):
         call_type = self.env.ref('mail.mail_activity_data_call', raise_if_not_found=False)
         for rec in self:
