@@ -333,7 +333,7 @@
                         <field name="counseling_note" nolabel="1"
                                placeholder="Record counseling session notes, discussion points, concerns..."/>
                     </group>
-                    <group string="Qualification Notes">
+                    <group string="Qualification Notes" invisible="1">
                         <field name="qualification_note" nolabel="1"
                                placeholder="Eligibility check notes, document status, academic qualification summary..."/>
                     </group>
