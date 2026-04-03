@@ -100,8 +100,6 @@ class CrmLead(models.Model):
     )
 
 
-
-
     intended_academic_year_id = fields.Many2one(
         comodel_name='edu.academic.year',
         string='Intended Intake Year',
@@ -163,6 +161,10 @@ class CrmLead(models.Model):
             'Type the full name (e.g. "Ram Shah") and click "Create Profile". '
             'The first word becomes the First Name; the remaining words become the Last Name.'
         ),
+    )
+    show_advanced_options = fields.Boolean(
+        string='Advanced Options',
+        default=False,
     )
 
     # ── Applicant Profile Link ────────────────────────────────────────────────

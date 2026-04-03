@@ -235,14 +235,17 @@
                     <group string="Academic Information" >
                         <field name="interested_program_id" readonly="is_converted_to_application" invisible="lead_education_status not in ['qualified','ready_for_application', 'converted']"/>
                         <field name="other_interested_program_ids" readonly="is_converted_to_application" widget="many2many_tags"/>
-                        <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application"/>
+                        <field name="show_advanced_options" widget="boolean_toggle"/>
+                        <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
                             options="{'no_create': True}"
-                            readonly="is_converted_to_application"/>
+                            readonly="is_converted_to_application"
+                            invisible="not show_advanced_options"/>
                         <field name="preferred_term_id"
                             options="{'no_create': True}"
-                            readonly="is_converted_to_application"/>
+                            readonly="is_converted_to_application"
+                            invisible="not show_advanced_options"/>
                     </group>
                 </group>
 
