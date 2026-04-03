@@ -52,6 +52,12 @@ class CrmLead(models.Model):
         tracking=True,
         help='Date the first inquiry was received.',
     )
+    inquiry_date_time = fields.Datetime(
+        string='Inquiry DateTime',
+        default=fields.Datetime.now,
+        tracking=True,
+        help='Date and time the first inquiry was received.',
+    )
     last_contact_date = fields.Date(
         string='Last Contact Date',
         tracking=True,
