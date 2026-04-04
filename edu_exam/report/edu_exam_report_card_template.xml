@@ -67,7 +67,7 @@
                             <!-- ── Marks Table ── -->
                             <table class="table table-sm table-bordered" style="font-size: 11px;">
                                 <thead>
-                                    <tr style="background-color: #343a40; color: white;">
+                                    <tr style="background-color: #4472C4; color: white;">
                                         <th style="width: 5%;">#</th>
                                         <th>Subject</th>
                                         <th class="text-center" style="width: 10%;">Max Marks</th>
@@ -80,11 +80,11 @@
                                 </thead>
                                 <tbody>
                                     <t t-foreach="sd['subjects']" t-as="subj">
-                                        <tr t-att-class="
-                                            'table-danger' if subj['status'] in ('withheld', 'malpractice')
-                                            else 'table-warning' if subj['status'] == 'absent'
-                                            else 'table-success' if subj['is_pass']
-                                            else 'table-light' if not subj['is_pass'] and subj['status'] == 'present'
+                                        <tr t-att-style="
+                                            'background-color: #fce4e4;' if subj['status'] in ('withheld', 'malpractice')
+                                            else 'background-color: #fff8e1;' if subj['status'] == 'absent'
+                                            else '' if subj['is_pass']
+                                            else 'background-color: #fce4e4;' if not subj['is_pass'] and subj['status'] == 'present'
                                             else ''
                                         ">
                                             <td><t t-out="subj_index + 1"/></td>
@@ -133,7 +133,7 @@
                                         <!-- Component breakdown (optional) -->
                                         <t t-if="include_components and subj['components']">
                                             <t t-foreach="subj['components']" t-as="comp">
-                                                <tr style="font-size: 10px; color: #6c757d;">
+                                                <tr style="font-size: 10px; color: #555555; background-color: #f2f2f2;">
                                                     <td/>
                                                     <td class="ps-4">
                                                         ↳ <t t-out="comp['name']"/>
@@ -176,7 +176,7 @@
                                 </tbody>
                                 <!-- ── Summary Footer ── -->
                                 <tfoot>
-                                    <tr style="background-color: #343a40; color: white; font-weight: bold;">
+                                    <tr style="background-color: #4472C4; color: white; font-weight: bold;">
                                         <td colspan="2" class="text-end">TOTAL</td>
                                         <td class="text-center"><t t-out="sd['total_max']"/></td>
                                         <td class="text-center"><t t-out="sd['total_pass']"/></td>

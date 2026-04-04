@@ -298,7 +298,7 @@
                             <div class="o_horizontal_separator mt-4 mb-3">Scholarship Reviews</div>
                             <field name="scholarship_review_ids"
                                    readonly="scholarship_frozen">
-                                <list>
+                                <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="scholarship_scheme_id"/>
                                     <field name="eligibility_result" optional="show"
@@ -309,12 +309,22 @@
                                     <field name="approved_amount"
                                            optional="show"/>
                                     <field name="calculated_discount_amount"
-                                           string="Discount"/>
-                                    <field name="cap_applied"/>
-                                    <field name="cap_reason" optional="hide"/>
+                                           string="Discount" readonly="1"/>
+                                    <field name="cap_applied" readonly="1"/>
+                                    <field name="cap_reason" optional="hide" readonly="1"/>
                                     <field name="approved_by" optional="show"
-                                           widget="many2one_avatar_user"/>
+                                           widget="many2one_avatar_user" readonly="1"/>
                                     <field name="state" widget="badge"/>
+                                    <button name="action_approve" type="object"
+                                            string="Approve" icon="fa-check"
+                                            class="btn-link text-success"
+                                            invisible="state not in ['draft', 'under_review', 'recommended']"
+                                            groups="edu_admission.group_scholarship_approver"/>
+                                    <button name="action_reject" type="object"
+                                            string="Reject" icon="fa-times"
+                                            class="btn-link text-danger"
+                                            invisible="state not in ['draft', 'under_review', 'recommended']"
+                                            groups="edu_admission.group_scholarship_approver"/>
                                 </list>
                             </field>
                         </page>

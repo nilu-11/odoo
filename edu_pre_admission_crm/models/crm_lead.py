@@ -73,13 +73,13 @@ class CrmLead(models.Model):
         string='Counselor',
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
-    )    
+    )
     counselor_name = fields.Many2one(
         comodel_name='edu.team.member',
         string='Counselor Name',
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
-    )    
+    )
     referred_by_id = fields.Many2one(
         comodel_name='res.partner',
         string='Referred By',
@@ -93,11 +93,11 @@ class CrmLead(models.Model):
     # ── Academic Interest ─────────────────────────────────────────────────────
     interested_program_id = fields.Many2one(
         comodel_name='edu.program',
-        string='Enrolled Program',
+        string='Selected Program',
         tracking=True,
         ondelete='restrict',
         index=True,
-        help='The program the applicant is inquiring about.',
+        help='The final program selected for this applicant (set when marking Ready for Application).',
     )
     other_interested_program_ids = fields.Many2many(
         comodel_name='edu.program',
@@ -106,8 +106,8 @@ class CrmLead(models.Model):
         ondelete='restrict',
         index=True,
         help=(
-            'Other programs the applicant has expressed interest in. '
-            'For example, if they are interested in both BCA and BBA'
+            'Programs the applicant has expressed interest in. '
+            'For example, if they are interested in both BCA and BBA.'
         ),
     )
 
@@ -320,6 +320,7 @@ class CrmLead(models.Model):
                 rec.has_duplicate_email = False
             rec.is_duplicate = rec.has_duplicate_phone or rec.has_duplicate_email
 
+    @api.depends('activity_ids', 'message_ids')
     def _compute_call_activities(self):
         call_type = self.env.ref('mail.mail_activity_data_call', raise_if_not_found=False)
         for rec in self:
@@ -384,11 +385,6 @@ class CrmLead(models.Model):
                     f'Lead "{rec.name}" cannot be marked Ready for Application — '
                     'link an Applicant Profile first.'
                 )
-            if not rec.interested_program_id:
-                raise UserError(
-                    f'Lead "{rec.name}" cannot be marked Ready for Application — '
-                    'set the Interested Program first.'
-                )
         self.write({'lead_education_status': 'ready_for_application'})
 
     # ═════════════════════════════════════════════════════════════════════════
@@ -404,7 +400,7 @@ class CrmLead(models.Model):
         if not self.applicant_profile_id:
             errors.append('Applicant Profile is not linked.')
         if not self.interested_program_id:
-            errors.append('Interested Program is not set.')
+            errors.append('Selected Program is not set.')
         if self.is_converted_to_application:
             errors.append(
                 'This lead has already been converted to an admission application.'

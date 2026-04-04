@@ -27,6 +27,13 @@
               action="action_edu_applicant_profile"
               sequence="20"/>
 
+    <menuitem id="menu_guardians"
+              name="Guardians"
+              parent="menu_pre_admission_main"
+              action="action_edu_guardian"
+              sequence="30"
+              groups="group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
+
     <!-- ── Configuration ──────────────────────────────────────────────── -->
     <menuitem id="menu_pre_admission_configuration"
               name="Configuration"

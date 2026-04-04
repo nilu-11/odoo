@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_round
 
@@ -651,11 +651,24 @@ class EduAdmissionScholarshipReview(models.Model):
         decisions remain stable even if the scheme master is edited later.
         Triggers parent application recalculation.
         """
+        if not self.env.user.has_group('edu_admission.group_scholarship_approver') and \
+                not self.env.user.has_group('edu_academic_structure.group_education_admin'):
+            raise UserError(
+                _('Only Scholarship Approvers or Education Administrators '
+                  'can approve scholarships.')
+            )
         for rec in self:
             if rec.state not in ('draft', 'under_review', 'recommended'):
                 raise UserError(
                     f'Cannot approve review in "{rec.state}" state.'
                 )
+            # Auto-fill from recommendation if approved values not set
+            if not rec.approved_type and rec.recommendation_type:
+                rec.write({
+                    'approved_type': rec.recommendation_type,
+                    'approved_percent': rec.recommended_percent,
+                    'approved_amount': rec.recommended_amount,
+                })
             if not rec.approved_type:
                 raise UserError(
                     'Set an approved type (percentage/fixed/full/custom) '
@@ -694,6 +707,12 @@ class EduAdmissionScholarshipReview(models.Model):
 
     def action_reject(self):
         """Reject this scholarship review line."""
+        if not self.env.user.has_group('edu_admission.group_scholarship_approver') and \
+                not self.env.user.has_group('edu_academic_structure.group_education_admin'):
+            raise UserError(
+                _('Only Scholarship Approvers or Education Administrators '
+                  'can reject scholarships.')
+            )
         for rec in self:
             if rec.state == 'cancelled':
                 raise UserError('Cannot reject a cancelled review.')

@@ -1,6 +1,10 @@
+import logging
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_round
+
+_logger = logging.getLogger(__name__)
 
 
 class EduAdmissionApplication(models.Model):
@@ -1146,6 +1150,12 @@ class EduAdmissionApplication(models.Model):
         running_total = 0.0
 
         for line in sorted_lines:
+            if not line.approved_type:
+                _logger.warning(
+                    'Scholarship review %s has no approved_type set, skipping.',
+                    line.display_name,
+                )
+                continue
             raw = line._calculate_raw_discount(eligible)
             capped, scheme_cap, scheme_cap_reason = self._apply_scheme_caps(
                 line, raw, eligible

@@ -105,7 +105,7 @@
                             string="Reset to Draft"
                             invisible="state not in ['rejected', 'cancelled']"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,under_review,recommended,approved"/>
+                           statusbar_visible="draft,recommended,approved"/>
                 </header>
 
                 <sheet>
@@ -127,22 +127,7 @@
                             <field name="sequence"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
-                        <group string="Recommendation">
-                            <field name="recommendation_type"
-                                   readonly="state in ['approved', 'rejected']"/>
-                            <field name="recommended_percent"
-                                   invisible="recommendation_type != 'percentage'"
-                                   readonly="state in ['approved', 'rejected']"/>
-                            <field name="recommended_amount"
-                                   invisible="recommendation_type not in ['fixed', 'custom']"
-                                   readonly="state in ['approved', 'rejected']"/>
-                        </group>
-                    </group>
-
-                    <!-- ── Approved Values ── -->
-                    <group>
-                        <group string="Approved Values"
-                               invisible="state not in ['recommended', 'approved', 'under_review', 'draft']">
+                        <group string="Approved Values">
                             <field name="approved_type"
                                    readonly="state == 'approved'"/>
                             <field name="approved_percent"
@@ -152,6 +137,10 @@
                                    invisible="approved_type not in ['fixed', 'custom']"
                                    readonly="state == 'approved'"/>
                         </group>
+                    </group>
+
+                    <!-- ── Outcome ── -->
+                    <group>
                         <group string="Outcome">
                             <field name="calculated_discount_amount" readonly="1"/>
                             <field name="eligible_base_amount_snapshot" readonly="1"
@@ -204,6 +193,16 @@
 
                         <!-- ── Review Notes Tab ── -->
                         <page string="Review Notes" name="review_notes">
+                            <group string="Recommendation (Reviewer Proposal)">
+                                <field name="recommendation_type"
+                                       readonly="state in ['approved', 'rejected']"/>
+                                <field name="recommended_percent"
+                                       invisible="recommendation_type != 'percentage'"
+                                       readonly="state in ['approved', 'rejected']"/>
+                                <field name="recommended_amount"
+                                       invisible="recommendation_type not in ['fixed', 'custom']"
+                                       readonly="state in ['approved', 'rejected']"/>
+                            </group>
                             <group string="Financial Review Notes"
                                    invisible="scholarship_scheme_id and scholarship_scheme_id.eligibility_basis not in ['financial_aid', 'need']">
                                 <field name="financial_review_note" nolabel="1"
@@ -238,7 +237,7 @@
                                     <field name="exclusive_snapshot" readonly="1"/>
                                     <field name="stacking_allowed_snapshot" readonly="1"/>
                                     <field name="stacking_group_snapshot" readonly="1"/>
-                                    <field name="institutional_cap_exempt_snapshot" readonly="1"/>
+                                    <field name="institutional_cap_exempt_snapshot" readonly="1" invisible="1"/>
                                 </group>
                             </group>
                             <group>

@@ -131,6 +131,22 @@ class EduExamSession(models.Model):
         column2='section_id',
         string='Sections',
     )
+    program_ids = fields.Many2many(
+        comodel_name='edu.program',
+        relation='edu_exam_session_program_rel',
+        column1='session_id',
+        column2='program_id',
+        string='Programs',
+        help='For program scope: select specific programs. Leave empty for all programs in the academic year.',
+    )
+    batch_ids = fields.Many2many(
+        comodel_name='edu.batch',
+        relation='edu_exam_session_batch_rel',
+        column1='session_id',
+        column2='batch_id',
+        string='Batches',
+        help='For batch scope: select specific batches. The single batch_id field is used for backward compatibility.',
+    )
 
     # ── Back exam references ──────────────────────────────────────────────────
 

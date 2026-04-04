@@ -13,6 +13,8 @@
                 <field name="academic_year_id"/>
                 <field name="batch_id"/>
                 <field name="program_term_id"/>
+                <field name="program_id"/>
+                <field name="exam_scope"/>
                 <!-- Filters -->
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_planned" string="Planned" domain="[('state', '=', 'planned')]"/>
@@ -31,6 +33,7 @@
                     <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
                     <filter name="group_academic_year" string="Academic Year" context="{'group_by': 'academic_year_id'}"/>
                     <filter name="group_batch" string="Batch" context="{'group_by': 'batch_id'}"/>
+                    <filter name="group_program" string="Program" context="{'group_by': 'program_id'}"/>
                     <filter name="group_program_term" string="Program Term" context="{'group_by': 'program_term_id'}"/>
                 </group>
             </search>
@@ -47,6 +50,8 @@
             <list string="Exam Sessions" decoration-muted="state == 'cancelled'" decoration-info="state == 'draft'">
                 <field name="name"/>
                 <field name="code"/>
+                <field name="exam_scope" optional="hide"/>
+                <field name="program_id" optional="hide"/>
                 <field name="exam_type"/>
                 <field name="attempt_type"/>
                 <field name="academic_year_id"/>
@@ -202,15 +207,28 @@
 
                         <page string="Academic Scope" name="scope">
                             <group>
-                                <group>
+                                <group string="Scope">
                                     <field name="exam_scope"/>
                                     <field name="academic_year_id"/>
-                                    <field name="program_id"/>
-                                    <field name="batch_id"/>
-                                    <field name="program_term_id"/>
+                                    <field name="program_id"
+                                           invisible="exam_scope not in ('program', 'batch', 'section', 'classroom', 'program_term')"
+                                           required="exam_scope in ('program', 'batch', 'section', 'classroom', 'program_term')"/>
+                                    <field name="program_ids" widget="many2many_tags"
+                                           invisible="exam_scope != 'institution'"
+                                           options="{'no_create': True}"/>
+                                    <field name="batch_id"
+                                           invisible="exam_scope not in ('batch', 'section', 'classroom')"
+                                           required="exam_scope in ('batch', 'section', 'classroom')"/>
+                                    <field name="batch_ids" widget="many2many_tags"
+                                           invisible="exam_scope not in ('program', 'institution')"
+                                           options="{'no_create': True}"/>
+                                    <field name="program_term_id"
+                                           invisible="exam_scope not in ('program_term', 'batch', 'section', 'classroom')"
+                                           required="exam_scope == 'program_term'"/>
                                 </group>
-                                <group>
-                                    <field name="section_ids" widget="many2many_tags"/>
+                                <group string="Sections &amp; Details">
+                                    <field name="section_ids" widget="many2many_tags"
+                                           invisible="exam_scope != 'section'"/>
                                     <field name="company_id" groups="base.group_multi_company"/>
                                 </group>
                             </group>

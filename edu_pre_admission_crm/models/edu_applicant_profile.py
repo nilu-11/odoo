@@ -119,6 +119,7 @@ class EduApplicantProfile(models.Model):
             else:
                 rec.age = 0
 
+    @api.depends()
     def _compute_lead_count(self):
         lead_model = self.env.get('crm.lead')
         if not lead_model:

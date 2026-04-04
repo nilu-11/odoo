@@ -103,6 +103,7 @@ class EduGuardian(models.Model):
             parts = [rec.first_name, rec.middle_name, rec.last_name]
             rec.full_name = ' '.join(p for p in parts if p)
 
+    @api.depends('applicant_rel_ids')
     def _compute_applicant_count(self):
         data = self.env['edu.applicant.guardian.rel']._read_group(
             [('guardian_id', 'in', self.ids), ('active', '=', True)],
