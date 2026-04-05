@@ -260,7 +260,7 @@
                         <field name="interested_program_id" string="Selected Program"
                                readonly="is_converted_to_application"
                                invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
-                        <field name="show_advanced_options" widget="boolean_toggle"/>
+                        <field name="show_advanced_options" widget="boolean_toggle" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
                         <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
