@@ -15,7 +15,7 @@ class MailMessage(models.Model):
             body = message.body or ''
             if body:
                 plain = html2plaintext(body)
-                match = re.search(r'Feedback:\s*(.*)', plain, re.IGNORECASE)
+                match = re.search(r'Original note:\s*(.*)', plain, re.IGNORECASE)
                 if match:
                     feedback = match.group(1).strip()
                     if feedback:
