@@ -347,11 +347,12 @@
                 </group>
                 </group>
                 
-      
+                <group>
                     <group string="Notes">
                         <field name="counseling_note" nolabel="1"
                                placeholder="Record counseling session notes, discussion points, concerns..."/>
                     </group>
+                </group>
       
             </xpath>
 
