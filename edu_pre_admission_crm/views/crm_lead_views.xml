@@ -340,7 +340,7 @@
                     <field name="done_call_message_ids" nolabel="1" mode="list" readonly="1" width="300px">
                         <list string="Done Call Activities" create="0" edit="0" delete="0">
                             <field name="date" string="Date"/>
-                            <field name="call_feedback" string="Feedback"/>
+                            <field name="feedback_text" string="Feedback"/>
                             <field name="author_id" string="Done By"/>
                         </list>
                     </field>
