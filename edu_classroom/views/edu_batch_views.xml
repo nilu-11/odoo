@@ -8,17 +8,29 @@
         <field name="model">edu.batch</field>
         <field name="inherit_id" ref="edu_academic_structure.view_edu_batch_form"/>
         <field name="arch" type="xml">
+
+            <!-- Generate Classrooms button in the header -->
+            <xpath expr="//header/field[@name='state']" position="before">
+                <button name="action_generate_classrooms_wizard"
+                        string="Generate Classrooms"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="state != 'active'"
+                        groups="edu_classroom.group_classroom_admin,edu_academic_structure.group_education_admin"/>
+            </xpath>
+
+            <!-- Classrooms smart button -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_classrooms"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-chalkboard-teacher"
-                        invisible="classroom_count == 0">
+                        icon="fa-chalkboard-teacher">
                     <field name="classroom_count"
                            widget="statinfo"
                            string="Classrooms"/>
                 </button>
             </xpath>
+
         </field>
     </record>
 </odoo>

@@ -80,7 +80,17 @@ class ResultComputeEngine:
         # Step 5 — compute subject-level results and build subject lines
         subject_line_data = []  # list of (vals_dict, components_list)
         for ph in progression_histories:
-            for cl in curriculum_lines:
+            # Determine which curriculum lines this student is actually taking.
+            # Fall back to all lines if no elective data has been set (backwards compat).
+            if ph.effective_curriculum_line_ids:
+                effective = ph.effective_curriculum_line_ids
+                student_lines = curriculum_lines.filtered(
+                    lambda cl, eff=effective: cl in eff
+                )
+            else:
+                student_lines = curriculum_lines
+
+            for cl in student_lines:
                 result = self._compute_subject_result(ph, cl, source_cache)
                 if result is None:
                     continue

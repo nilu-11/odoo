@@ -34,11 +34,11 @@
               groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
 
     <!-- ── Reports ────────────────────────────────────────── -->
-    <!-- <menuitem id="menu_edu_assessment_reports"
+    <menuitem id="menu_edu_assessment_reports"
               name="Reports"
               parent="menu_edu_assessment_root"
               sequence="70"
-              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
+              groups="edu_assessment.group_assessment_viewer,edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
 
     <menuitem id="menu_edu_assessment_report_classroom_sheet"
               name="Classroom Assessment Sheet"
@@ -59,7 +59,7 @@
               parent="menu_edu_assessment_reports"
               action="action_report_edu_assessment_category_summary"
               sequence="30"
-              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/> -->
+              groups="edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin"/>
 
     <!-- ── Configuration ─────────────────────────────────── -->
     <menuitem id="menu_edu_assessment_config"

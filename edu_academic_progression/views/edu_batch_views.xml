@@ -25,8 +25,16 @@
                         groups="edu_academic_progression.group_section_assignment_officer,edu_academic_progression.group_section_assignment_admin,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
             </xpath>
 
-            <!-- Smart buttons for progression history -->
+            <!-- Smart buttons for students and progression history -->
             <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_students"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-user-graduate"
+                        groups="edu_student.group_student_viewer,edu_student.group_student_officer,edu_student.group_student_admin,edu_academic_structure.group_education_admin">
+                    <field name="student_count" widget="statinfo" string="Students"/>
+                </button>
+
                 <button name="action_view_progression_history"
                         type="object"
                         class="oe_stat_button"
@@ -36,7 +44,7 @@
                         <span class="o_stat_value">
                             <field name="active_progression_count"/>
                         </span>
-                        <span class="o_stat_text">Active</span>
+                        <span class="o_stat_text">Active Progressions</span>
                     </div>
                 </button>
 

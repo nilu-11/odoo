@@ -70,10 +70,3 @@ class EduBackExamPolicy(models.Model):
         default=True,
     )
 
-    _sql_constraints = [
-        (
-            'unique_code',
-            'UNIQUE(code)',
-            'Back Exam Policy code must be unique.',
-        ),
-    ]

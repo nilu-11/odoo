@@ -38,6 +38,7 @@ class CrmLead(models.Model):
         tracking=True,
         index=True,
         copy=False,
+        group_expand='_group_expand_lead_education_status',
         help=(
             'Education workflow stage, independent of CRM pipeline stage. '
             'Tracks pre-admission progression from first contact to application.'
@@ -50,6 +51,12 @@ class CrmLead(models.Model):
         default=fields.Date.today,
         tracking=True,
         help='Date the first inquiry was received.',
+    )
+    inquiry_date_time = fields.Datetime(
+        string='Inquiry DateTime',
+        default=fields.Datetime.now,
+        tracking=True,
+        help='Date and time the first inquiry was received.',
     )
     last_contact_date = fields.Date(
         string='Last Contact Date',
@@ -67,19 +74,44 @@ class CrmLead(models.Model):
         tracking=True,
         help='Internal user responsible for counseling this prospect.',
     )
-
+    counselor_name = fields.Many2one(
+        comodel_name='edu.team.member',
+        string='Counselor Name',
+        tracking=True,
+        help='Internal user responsible for counseling this prospect.',
+    )
+    referred_by_id = fields.Many2one(
+        comodel_name='res.partner',
+        string='Referred By',
+        tracking=True,
+        ondelete='restrict',
+        help='Contact who referred this applicant.',
+    )
     counseling_note = fields.Text(string='Counseling Notes')
     qualification_note = fields.Text(string='Qualification Notes')
 
     # ── Academic Interest ─────────────────────────────────────────────────────
     interested_program_id = fields.Many2one(
         comodel_name='edu.program',
-        string='Interested Program',
+        string='Selected Program',
         tracking=True,
         ondelete='restrict',
         index=True,
-        help='The program the applicant is inquiring about.',
+        help='The final program selected for this applicant (set when marking Ready for Application).',
     )
+    other_interested_program_ids = fields.Many2many(
+        comodel_name='edu.program',
+        string='Interested Programs',
+        tracking=True,
+        ondelete='restrict',
+        index=True,
+        help=(
+            'Programs the applicant has expressed interest in. '
+            'For example, if they are interested in both BCA and BBA.'
+        ),
+    )
+
+
     intended_academic_year_id = fields.Many2one(
         comodel_name='edu.academic.year',
         string='Intended Intake Year',
@@ -105,6 +137,19 @@ class CrmLead(models.Model):
         ondelete='restrict',
         help='Preferred enrollment term (e.g. Semester 1 2026).',
     )
+    # ── Academic Background ────────────────────────────────────────────────────
+    qualification = fields.Char(
+        string='Qualification',
+        tracking=True,
+        help='Highest qualification of the applicant, e.g. A-Levels, Bachelor of Science.',
+    )
+    cgpa_percentage = fields.Float(
+        string='CGPA / Percentage',
+        digits=(5, 2),
+        tracking=True,
+        help='CGPA (e.g. 3.75) or percentage (e.g. 82.50) from the last qualification.',
+    )
+
     scholarship_interest = fields.Boolean(
         string='Scholarship Interest',
         default=False,
@@ -120,6 +165,31 @@ class CrmLead(models.Model):
         default=False,
         tracking=True,
     )
+
+    # ── Quick Profile Creation ─────────────────────────────────────────────────
+    quick_applicant_name = fields.Char(
+        string='Applicant Name',
+        help=(
+            'Type the full name (e.g. "Ram Shah") and click "Create Profile". '
+            'The first word becomes the First Name; the remaining words become the Last Name.'
+        ),
+    )
+    show_advanced_options = fields.Boolean(
+        string='Advanced Options',
+        default=False,
+    )
+    is_referral_source = fields.Boolean(
+        compute='_compute_is_referral_source',
+        string='Is Referral Source',
+    )
+
+    @api.depends('source_id')
+    def _compute_is_referral_source(self):
+        for rec in self:
+            rec.is_referral_source = (
+                bool(rec.source_id)
+                and rec.source_id.name.strip().lower() == 'referral'
+            )
 
     # ── Applicant Profile Link ────────────────────────────────────────────────
     applicant_profile_id = fields.Many2one(
@@ -150,6 +220,38 @@ class CrmLead(models.Model):
         tracking=True,
     )
 
+    def _create_profile_from_quick_name(self):
+        """Split quick_applicant_name and create a partner + applicant profile."""
+        self.ensure_one()
+        name = (self.quick_applicant_name or '').strip()
+        if not name:
+            raise UserError(
+                f'Lead "{self.name}": please set an Applicant Name before marking as Qualified.'
+            )
+        parts = name.split()
+        if len(parts) < 2:
+            raise UserError(
+                f'Lead "{self.name}": enter both a first and last name '
+                '(e.g. "Ram Shah") in the Applicant Name field.'
+            )
+        first_name = parts[0]
+        last_name = ' '.join(parts[1:])
+        partner = self.env['res.partner'].create({
+            'name': name,
+            'email': self.email_from or False,
+            'phone': self.phone or False,
+        })
+        profile = self.env['edu.applicant.profile'].create({
+            'first_name': first_name,
+            'last_name': last_name,
+            'partner_id': partner.id,
+        })
+        self.write({
+            'applicant_profile_id': profile.id,
+            'partner_id': partner.id,
+            'quick_applicant_name': False,
+        })
+
     # ── Onchange: clear batch when program/year changes ───────────────────────
     @api.onchange('interested_program_id', 'intended_academic_year_id')
     def _onchange_academic_interest_scope(self):
@@ -176,6 +278,49 @@ class CrmLead(models.Model):
         string='Done Call Activities',
     )
 
+    # ── Computed: duplicate lead detection ────────────────────────────────────
+    duplicate_phone_lead_ids = fields.Many2many(
+        comodel_name='crm.lead',
+        compute='_compute_duplicate_leads',
+        string='Leads with Same Phone',
+    )
+    duplicate_email_lead_ids = fields.Many2many(
+        comodel_name='crm.lead',
+        compute='_compute_duplicate_leads',
+        string='Leads with Same Email',
+    )
+    has_duplicate_phone = fields.Boolean(compute='_compute_duplicate_leads')
+    has_duplicate_email = fields.Boolean(compute='_compute_duplicate_leads')
+    is_duplicate = fields.Boolean(compute='_compute_duplicate_leads')
+
+    @api.depends('phone', 'email_from')
+    def _compute_duplicate_leads(self):
+        for rec in self:
+            if rec.phone:
+                phone_dupes = self.search([
+                    ('phone', '=', rec.phone),
+                    ('id', '!=', rec.id),
+                    ('id', '<', rec.id),
+                ])
+                rec.duplicate_phone_lead_ids = phone_dupes
+                rec.has_duplicate_phone = bool(phone_dupes)
+            else:
+                rec.duplicate_phone_lead_ids = self.env['crm.lead']
+                rec.has_duplicate_phone = False
+            if rec.email_from:
+                email_dupes = self.search([
+                    ('email_from', '=ilike', rec.email_from),
+                    ('id', '!=', rec.id),
+                    ('id', '<', rec.id),
+                ])
+                rec.duplicate_email_lead_ids = email_dupes
+                rec.has_duplicate_email = bool(email_dupes)
+            else:
+                rec.duplicate_email_lead_ids = self.env['crm.lead']
+                rec.has_duplicate_email = False
+            rec.is_duplicate = rec.has_duplicate_phone or rec.has_duplicate_email
+
+    @api.depends('activity_ids', 'message_ids')
     def _compute_call_activities(self):
         call_type = self.env.ref('mail.mail_activity_data_call', raise_if_not_found=False)
         for rec in self:
@@ -209,8 +354,15 @@ class CrmLead(models.Model):
                 vals = dict(vals, partner_id=applicant.partner_id.id)
         return super().write(vals)
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # Education Status Transitions
+    # ═════════════════════════════════════════════════════════════════════════    # Group Expand — always show all status columns in kanban
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    @api.model
+    def _group_expand_lead_education_status(self, statuses, domain):
+        """Return all selection values so kanban always shows every column."""
+        return [key for key, _label in self._fields['lead_education_status'].selection]
+
+    # ═══════════════════════════════════════════════════════════════════════════    # Education Status Transitions
     # ═════════════════════════════════════════════════════════════════════════
 
     def action_set_prospect(self):
@@ -219,9 +371,12 @@ class CrmLead(models.Model):
         ).write({'lead_education_status': 'prospect'})
 
     def action_set_qualified(self):
-        self.filtered(
+        for rec in self.filtered(
             lambda r: r.lead_education_status in ('inquiry', 'prospect')
-        ).write({'lead_education_status': 'qualified'})
+        ):
+            if not rec.applicant_profile_id:
+                rec._create_profile_from_quick_name()
+            rec.write({'lead_education_status': 'qualified'})
 
     def action_set_ready_for_application(self):
         for rec in self:
@@ -229,11 +384,6 @@ class CrmLead(models.Model):
                 raise UserError(
                     f'Lead "{rec.name}" cannot be marked Ready for Application — '
                     'link an Applicant Profile first.'
-                )
-            if not rec.interested_program_id:
-                raise UserError(
-                    f'Lead "{rec.name}" cannot be marked Ready for Application — '
-                    'set the Interested Program first.'
                 )
         self.write({'lead_education_status': 'ready_for_application'})
 
@@ -250,7 +400,7 @@ class CrmLead(models.Model):
         if not self.applicant_profile_id:
             errors.append('Applicant Profile is not linked.')
         if not self.interested_program_id:
-            errors.append('Interested Program is not set.')
+            errors.append('Selected Program is not set.')
         if self.is_converted_to_application:
             errors.append(
                 'This lead has already been converted to an admission application.'

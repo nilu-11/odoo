@@ -51,6 +51,9 @@ class EduAssessmentScheme(models.Model):
     description = fields.Text(
         string='Description',
     )
+    note = fields.Text(
+        string='Notes',
+    )
     active = fields.Boolean(
         string='Active',
         default=True,
@@ -61,13 +64,6 @@ class EduAssessmentScheme(models.Model):
         string='Scheme Lines',
     )
 
-    _sql_constraints = [
-        (
-            'unique_code',
-            'UNIQUE(code)',
-            'Assessment Scheme code must be unique.',
-        ),
-    ]
 
 
 class EduAssessmentSchemeLine(models.Model):

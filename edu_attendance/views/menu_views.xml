@@ -14,4 +14,7 @@
 
     <!-- Attendance Report / Defaulters -->
     <menuitem id="menu_edu_attendance_defaulters" name="Attendance Report" parent="menu_edu_attendance_root" action="action_edu_attendance_defaulters" sequence="40" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <!-- Attendance Matrix Report -->
+    <menuitem id="menu_edu_attendance_matrix" name="Attendance Matrix" parent="menu_edu_attendance_root" action="action_edu_attendance_matrix_wizard" sequence="50" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 </odoo>

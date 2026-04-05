@@ -187,6 +187,38 @@ class EduAttendanceSheet(models.Model):
 
     # ── Constraints ───────────────────────────────────────────────────────────
 
+    _sql_constraints = [
+        (
+            'register_date_time_unique',
+            'UNIQUE(register_id, session_date, time_from)',
+            'An attendance sheet already exists for this classroom on this '
+            'date and time slot. Use the existing sheet instead.',
+        ),
+    ]
+
+    @api.constrains('register_id', 'session_date', 'time_from')
+    def _check_duplicate_sheet(self):
+        """Prevent duplicate sheets for the same register + date (+ time slot)."""
+        for rec in self:
+            domain = [
+                ('register_id', '=', rec.register_id.id),
+                ('session_date', '=', rec.session_date),
+                ('id', '!=', rec.id),
+            ]
+            if rec.time_from:
+                domain.append(('time_from', '=', rec.time_from))
+            else:
+                domain.append(('time_from', '=', False))
+            if self.env['edu.attendance.sheet'].search_count(domain):
+                raise ValidationError(_(
+                    'An attendance sheet already exists for "%s" on %s%s. '
+                    'Please use the existing sheet instead of creating a new one.'
+                ) % (
+                    rec.register_id.name,
+                    rec.session_date,
+                    (' at %.2f' % rec.time_from) if rec.time_from else '',
+                ))
+
     @api.constrains('time_from', 'time_to')
     def _check_times(self):
         for rec in self:
@@ -222,17 +254,32 @@ class EduAttendanceSheet(models.Model):
                 rec.action_generate_lines()
 
     def action_generate_lines(self):
-        """Populate lines from active progression histories for the section."""
+        """Populate lines from active progression histories for the section/term."""
         self.ensure_one()
         if self.state == 'submitted':
             raise UserError(_(
                 'Cannot regenerate lines on a submitted sheet "%s".'
             ) % self.display_name)
 
-        histories = self.env['edu.student.progression.history'].search([
+        domain = [
             ('section_id', '=', self.section_id.id),
             ('state', '=', 'active'),
-        ])
+        ]
+        if self.program_term_id:
+            domain.append(('program_term_id', '=', self.program_term_id.id))
+        all_histories = self.env['edu.student.progression.history'].search(domain)
+
+        # Filter by elective subject choices.  Students with no elected
+        # subjects set are treated as taking all subjects (backwards compat).
+        classroom = self.classroom_id
+        if classroom and classroom.curriculum_line_id:
+            curriculum_line = classroom.curriculum_line_id
+            histories = all_histories.filtered(
+                lambda h: not h.effective_curriculum_line_ids
+                or curriculum_line in h.effective_curriculum_line_ids
+            )
+        else:
+            histories = all_histories
         if not histories:
             return
 
@@ -263,6 +310,18 @@ class EduAttendanceSheet(models.Model):
                     'Cannot submit sheet "%s" — no attendance lines recorded.'
                 ) % rec.display_name)
         self.write({'state': 'submitted'})
+
+    def action_mark_all_present(self):
+        """Set all attendance lines to 'present' (quick reset)."""
+        for rec in self:
+            if rec.state == 'submitted':
+                raise UserError(_(
+                    'Cannot modify submitted sheet "%s". '
+                    'Reset it to draft first.'
+                ) % rec.display_name)
+            lines = rec.line_ids.filtered(lambda l: l.status != 'present')
+            if lines:
+                lines.write({'status': 'present'})
 
     def action_reset_to_draft(self):
         """Admin only: submitted → draft."""

@@ -15,6 +15,7 @@
                 <field name="academic_year_id"/>
                 <field name="section_id"/>
                 <field name="enrollment_id"/>
+                <field name="elected_curriculum_line_ids" string="Elected Subject"/>
                 <separator/>
                 <filter string="Active"    name="state_active"
                         domain="[('state', '=', 'active')]"/>
@@ -143,10 +144,36 @@
                         </group>
                     </group>
 
-                    <group string="Notes">
-                        <field name="remarks" nolabel="1" colspan="2"
-                               placeholder="Optional remarks for this progression period…"/>
-                    </group>
+                    <notebook>
+                        <page string="Elective Subjects" name="electives">
+                            <div class="alert alert-info" role="alert"
+                                 invisible="state != 'active'">
+                                Select the elective and optional subjects for this student's current term.
+                                Compulsory subjects are always included automatically.
+                            </div>
+                            <field name="elected_curriculum_line_ids"
+                                   readonly="state != 'active'"
+                                   domain="[('program_term_id', '=', program_term_id), ('subject_category', 'in', ('elective', 'optional'))]"
+                                   widget="many2many_tags">
+                            </field>
+                            <separator string="Effective Subjects (Compulsory + Elected)"/>
+                            <field name="effective_curriculum_line_ids" readonly="1">
+                                <list>
+                                    <field name="subject_id"/>
+                                    <field name="subject_category" widget="badge"
+                                           decoration-info="subject_category == 'elective'"
+                                           decoration-warning="subject_category == 'optional'"/>
+                                    <field name="credit_hours"/>
+                                    <field name="full_marks"/>
+                                    <field name="pass_marks"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="remarks" nolabel="1" colspan="2"
+                                   placeholder="Optional remarks for this progression period…"/>
+                        </page>
+                    </notebook>
 
                     <group string="Audit" invisible="state == 'active'">
                         <group>

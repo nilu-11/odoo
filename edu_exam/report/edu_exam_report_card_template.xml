@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Report Card — Report Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_report_edu_exam_report_card" model="ir.actions.report">
+        <field name="name">Exam Report Card</field>
+        <field name="model">edu.exam.report.card.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">edu_exam.report_exam_report_card</field>
+        <field name="report_file">edu_exam.report_exam_report_card</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Report Card — QWeb Template
+         Context: docs = edu.exam.report.card.wizard records
+    ══════════════════════════════════════════════════════ -->
+    <template id="report_exam_report_card">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="wizard">
+                <t t-set="data" t-value="wizard._get_report_data()"/>
+                <t t-set="session" t-value="data['session']"/>
+                <t t-set="include_components" t-value="data['include_components']"/>
+
+                <t t-foreach="data['students_data']" t-as="sd">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <!-- ── Report Title ── -->
+                            <div class="text-center mb-3">
+                                <h2 style="margin-bottom: 2px;">Examination Report Card</h2>
+                                <h4 class="text-muted" style="margin-top: 0;">
+                                    <t t-out="session.name"/>
+                                </h4>
+                            </div>
+
+                            <!-- ── Student Info ── -->
+                            <table class="table table-sm table-bordered mb-3" style="font-size: 12px;">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 20%; background-color: #f8f9fa;">Student Name</td>
+                                        <td style="width: 30%;"><t t-out="sd['student'].display_name"/></td>
+                                        <td class="fw-bold" style="width: 20%; background-color: #f8f9fa;">Student No.</td>
+                                        <td style="width: 30%;"><t t-out="sd['student'].student_no or ''"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Roll Number</td>
+                                        <td><t t-out="sd['student'].roll_number or ''"/></td>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Academic Year</td>
+                                        <td><t t-out="session.academic_year_id.name or ''"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Batch</td>
+                                        <td><t t-out="sd['batch'].name if sd['batch'] else ''"/></td>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Program Term</td>
+                                        <td><t t-out="sd['program_term'].name if sd['program_term'] else ''"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Section</td>
+                                        <td><t t-out="sd['section'].name if sd['section'] else ''"/></td>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Exam Type</td>
+                                        <td><t t-out="session.exam_type or ''"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- ── Marks Table ── -->
+                            <table class="table table-sm table-bordered" style="font-size: 11px;">
+                                <thead>
+                                    <tr style="background-color: #4472C4; color: white;">
+                                        <th style="width: 5%;">#</th>
+                                        <th>Subject</th>
+                                        <th class="text-center" style="width: 10%;">Max Marks</th>
+                                        <th class="text-center" style="width: 10%;">Pass Marks</th>
+                                        <th class="text-center" style="width: 10%;">Marks Obtained</th>
+                                        <th class="text-center" style="width: 8%;">Grace</th>
+                                        <th class="text-center" style="width: 10%;">Final Marks</th>
+                                        <th class="text-center" style="width: 10%;">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="sd['subjects']" t-as="subj">
+                                        <tr t-att-style="
+                                            'background-color: #fce4e4;' if subj['status'] in ('withheld', 'malpractice')
+                                            else 'background-color: #fff8e1;' if subj['status'] == 'absent'
+                                            else '' if subj['is_pass']
+                                            else 'background-color: #fce4e4;' if not subj['is_pass'] and subj['status'] == 'present'
+                                            else ''
+                                        ">
+                                            <td><t t-out="subj_index + 1"/></td>
+                                            <td class="fw-bold"><t t-out="subj['name']"/></td>
+                                            <td class="text-center"><t t-out="subj['max_marks']"/></td>
+                                            <td class="text-center"><t t-out="subj['pass_marks']"/></td>
+                                            <td class="text-center">
+                                                <t t-if="subj['status'] == 'present'">
+                                                    <t t-out="subj['raw_marks']"/>
+                                                </t>
+                                                <t t-elif="subj['status'] == 'absent'">—</t>
+                                                <t t-else=""><t t-out="subj['status'].upper()"/></t>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-if="subj['grace_marks']">
+                                                    <t t-out="subj['grace_marks']"/>
+                                                </t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <td class="text-center fw-bold">
+                                                <t t-if="subj['status'] == 'present'">
+                                                    <t t-out="subj['final_marks']"/>
+                                                </t>
+                                                <t t-elif="subj['status'] == 'absent'">AB</t>
+                                                <t t-else=""><t t-out="subj['status'].upper()"/></t>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-if="subj['status'] == 'absent'">
+                                                    <span class="fw-bold" style="color: #856404;">ABSENT</span>
+                                                </t>
+                                                <t t-elif="subj['status'] in ('withheld', 'malpractice')">
+                                                    <span class="fw-bold" style="color: #721c24;"><t t-out="subj['status'].upper()"/></span>
+                                                </t>
+                                                <t t-elif="subj['status'] == 'exempt'">
+                                                    <span class="fw-bold text-muted">EXEMPT</span>
+                                                </t>
+                                                <t t-elif="subj['is_pass']">
+                                                    <span class="fw-bold" style="color: #155724;">PASS</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="fw-bold" style="color: #721c24;">FAIL</span>
+                                                </t>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Component breakdown (optional) -->
+                                        <t t-if="include_components and subj['components']">
+                                            <t t-foreach="subj['components']" t-as="comp">
+                                                <tr style="font-size: 10px; color: #555555; background-color: #f2f2f2;">
+                                                    <td/>
+                                                    <td class="ps-4">
+                                                        ↳ <t t-out="comp['name']"/>
+                                                        <t t-if="comp['type']">
+                                                            (<t t-out="comp['type']"/>)
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-center"><t t-out="comp['max_marks']"/></td>
+                                                    <td class="text-center">—</td>
+                                                    <td class="text-center">
+                                                        <t t-if="comp['status'] == 'present'">
+                                                            <t t-out="comp['marks_obtained']"/>
+                                                        </t>
+                                                        <t t-else="">—</t>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-if="comp['grace_marks']">
+                                                            <t t-out="comp['grace_marks']"/>
+                                                        </t>
+                                                        <t t-else="">—</t>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-if="comp['status'] == 'present'">
+                                                            <t t-out="comp['final_marks']"/>
+                                                        </t>
+                                                        <t t-else="">—</t>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-if="comp['is_pass']">
+                                                            <span style="color: #155724;">P</span>
+                                                        </t>
+                                                        <t t-elif="comp['status'] == 'present'">
+                                                            <span style="color: #721c24;">F</span>
+                                                        </t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </t>
+                                </tbody>
+                                <!-- ── Summary Footer ── -->
+                                <tfoot>
+                                    <tr style="background-color: #4472C4; color: white; font-weight: bold;">
+                                        <td colspan="2" class="text-end">TOTAL</td>
+                                        <td class="text-center"><t t-out="sd['total_max']"/></td>
+                                        <td class="text-center"><t t-out="sd['total_pass']"/></td>
+                                        <td class="text-center" colspan="2"/>
+                                        <td class="text-center"><t t-out="sd['total_obtained']"/></td>
+                                        <td class="text-center">
+                                            <t t-out="'%.2f' % sd['percentage']"/>%
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <!-- ── Result Summary ── -->
+                            <table class="table table-sm table-bordered mt-2" style="font-size: 11px;">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 25%; background-color: #f8f9fa;">Total Subjects</td>
+                                        <td style="width: 25%;"><t t-out="sd['total_subjects']"/></td>
+                                        <td class="fw-bold" style="width: 25%; background-color: #f8f9fa;">Percentage</td>
+                                        <td style="width: 25%;"><t t-out="'%.2f' % sd['percentage']"/>%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Subjects Passed</td>
+                                        <td><span style="color: #155724;"><t t-out="sd['subjects_passed']"/></span></td>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Subjects Failed</td>
+                                        <td>
+                                            <t t-if="sd['subjects_failed']">
+                                                <span style="color: #721c24;"><t t-out="sd['subjects_failed']"/></span>
+                                            </t>
+                                            <t t-else="">0</t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="sd['subjects_absent']">
+                                        <tr>
+                                            <td class="fw-bold" style="background-color: #f8f9fa;">Subjects Absent</td>
+                                            <td><span style="color: #856404;"><t t-out="sd['subjects_absent']"/></span></td>
+                                            <td colspan="2"/>
+                                        </tr>
+                                    </t>
+                                    <tr>
+                                        <td class="fw-bold" style="background-color: #f8f9fa;">Overall Result</td>
+                                        <td colspan="3">
+                                            <t t-if="sd['overall_pass']">
+                                                <span class="fw-bold" style="color: #155724; font-size: 13px;">PASS</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="fw-bold" style="color: #721c24; font-size: 13px;">FAIL</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- ── Signatures ── -->
+                            <div class="row mt-5" style="font-size: 11px;">
+                                <div class="col-4 text-center">
+                                    <p style="border-top: 1px solid #333; padding-top: 4px; display: inline-block; width: 80%;">
+                                        Class Teacher
+                                    </p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <p style="border-top: 1px solid #333; padding-top: 4px; display: inline-block; width: 80%;">
+                                        Controller of Examinations
+                                    </p>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <p style="border-top: 1px solid #333; padding-top: 4px; display: inline-block; width: 80%;">
+                                        Principal
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

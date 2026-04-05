@@ -18,7 +18,7 @@
                         </p>
 
                         <table class="table table-sm table-bordered mt-3">
-                            <thead class="table-dark">
+                            <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th>#</th>
                                     <th>Subject</th>
@@ -93,7 +93,7 @@
                         </div>
 
                         <table class="table table-sm table-bordered mt-3">
-                            <thead class="table-dark">
+                            <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th style="width:5%">#</th>
                                     <th style="width:35%">Student Name</th>
@@ -161,7 +161,7 @@
                         </div>
 
                         <table class="table table-sm table-bordered mt-3">
-                            <thead class="table-dark">
+                            <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th>#</th>
                                     <th>Subject</th>
@@ -233,7 +233,7 @@
                         </div>
 
                         <table class="table table-sm table-bordered mt-3">
-                            <thead class="table-dark">
+                            <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th>#</th>
                                     <th>Student Name</th>
@@ -278,7 +278,7 @@
                         <h4 class="text-center"><t t-out="session.name"/></h4>
 
                         <table class="table table-sm table-bordered mt-3">
-                            <thead class="table-dark">
+                            <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th>#</th>
                                     <th>Subject</th>
@@ -298,7 +298,7 @@
                                     <t t-set="absent_ms" t-value="paper.env['edu.exam.marksheet'].search_count([('exam_paper_id', '=', paper.id), ('is_latest_attempt', '=', True), ('status', '!=', 'present')])"/>
                                     <t t-set="effectively_entered" t-value="entered_ms + absent_ms"/>
                                     <t t-set="pending" t-value="total_ms - effectively_entered"/>
-                                    <tr t-att-class="'table-warning' if pending > 0 else ''">
+                                    <tr t-att-style="'background-color: #fff8e1;' if pending > 0 else ''">
                                         <td><t t-out="paper_index + 1"/></td>
                                         <td><t t-out="paper.subject_id.name or ''"/></td>
                                         <td><t t-out="paper.section_id.name or ''"/></td>

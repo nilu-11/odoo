@@ -14,6 +14,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'views/edu_classroom_kanban_views.xml',
         'views/edu_classroom_views.xml',
         'views/edu_batch_views.xml',
         'views/edu_section_views.xml',

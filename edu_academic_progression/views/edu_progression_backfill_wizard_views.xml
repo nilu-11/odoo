@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Progression Backfill Wizard — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_progression_backfill_wizard_form" model="ir.ui.view">
+        <field name="name">edu.progression.backfill.wizard.form</field>
+        <field name="model">edu.progression.backfill.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create Missing Progression Histories">
+                <field name="batch_program_id" invisible="1"/>
+
+                <group>
+                    <group string="Selection">
+                        <field name="batch_id"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="program_term_id"
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <group string="Summary">
+                        <field name="eligible_count" readonly="1"
+                               string="Eligible Enrollments"/>
+                        <field name="existing_count" readonly="1"
+                               string="Already Have Progression"/>
+                        <field name="to_create_count" readonly="1"
+                               string="Will Create"/>
+                    </group>
+                </group>
+
+                <footer>
+                    <button name="action_backfill"
+                            string="Create Progression Records"
+                            type="object"
+                            class="btn-primary"/>
+                    <button special="cancel"
+                            string="Cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Server Action — open wizard
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_progression_backfill_wizard" model="ir.actions.act_window">
+        <field name="name">Create Missing Progression Histories</field>
+        <field name="res_model">edu.progression.backfill.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_edu_progression_backfill_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Menu — Backfill wizard
+    ══════════════════════════════════════════════════════ -->
+    <menuitem id="menu_edu_progression_backfill"
+              name="Backfill Progression"
+              parent="edu_academic_progression.menu_edu_progression"
+              sequence="30"
+              action="action_edu_progression_backfill_wizard"
+              groups="edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
+</odoo>

@@ -1,22 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Section Form — add current_student_count (read-only)
-         Added by edu_academic_progression so it shows the
-         live headcount derived from active progression history.
+         Section Form — smart buttons, student count, student tab
     ══════════════════════════════════════════════════════ -->
     <record id="view_edu_section_form_progression" model="ir.ui.view">
         <field name="name">edu.section.form.progression</field>
         <field name="model">edu.section</field>
         <field name="inherit_id" ref="edu_academic_structure.view_edu_section_form"/>
         <field name="arch" type="xml">
-            <!-- Insert enrolled student count beside capacity -->
+
+            <!-- Smart button box before the title -->
+            <xpath expr="//sheet/div[@class='oe_title']" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_students"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-users"
+                            groups="edu_student.group_student_viewer,edu_student.group_student_officer,edu_student.group_student_admin,edu_academic_structure.group_education_admin">
+                        <field name="current_student_count" widget="statinfo" string="Students"/>
+                    </button>
+                </div>
+            </xpath>
+
+            <!-- Enrolled student count beside capacity in the form fields -->
             <field name="capacity" position="after">
                 <field name="current_student_count"
                        string="Enrolled Students"
                        readonly="1"
                        help="Students with an active progression history in this section."/>
             </field>
+
+            <!-- Students tab -->
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Students" name="students">
+                        <field name="student_ids" readonly="1">
+                            <list string="Students" create="false" delete="false"
+                                  decoration-muted="not active">
+                                <field name="student_no" string="Student No."/>
+                                <field name="display_name" string="Name"/>
+                                <field name="roll_number" string="Roll No."
+                                       optional="show"/>
+                                <field name="current_program_term_id"
+                                       string="Term" optional="show"/>
+                                <field name="active" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+
         </field>
     </record>
 

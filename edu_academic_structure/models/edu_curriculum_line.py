@@ -65,6 +65,12 @@ class EduCurriculumLine(models.Model):
         store=True,
     )
     subject_type = fields.Selection(
+        selection=[
+            ('theory', 'Theory'),
+            ('practical_theory', 'Practical & Theory'),
+            ('simulation', 'Simulation'),
+            ('project', 'Project'),
+        ],
         related='subject_id.subject_type',
         string='Subject Type',
         store=True,

@@ -18,6 +18,7 @@
         'views/edu_attendance_register_views.xml',
         'views/edu_attendance_sheet_views.xml',
         'views/edu_attendance_defaulters_views.xml',
+        'views/edu_attendance_matrix_wizard_views.xml',
         'views/res_config_settings_views.xml',
         'views/edu_student_views.xml',
         'views/edu_classroom_views.xml',

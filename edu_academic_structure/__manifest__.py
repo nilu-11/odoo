@@ -26,10 +26,9 @@
         'views/edu_subject_views.xml',
         'views/edu_curriculum_line_views.xml',
         'views/menu_views.xml',
+        'data/demo_data.xml',
     ],
-    'demo': [
-        # 'data/demo_data.xml',
-    ],
+    'demo': [],
     'installable': True,
     'application': True,
     'auto_install': False,

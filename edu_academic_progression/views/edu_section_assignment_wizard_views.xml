@@ -187,7 +187,5 @@
               parent="edu_academic_progression.menu_edu_progression"
               sequence="20"
               action="action_edu_section_assignment_wizard"
-              groups="edu_academic_progression.group_section_assignment_officer,
-                      edu_academic_progression.group_section_assignment_admin,
-                      edu_academic_structure.group_education_admin"/>
+              groups="edu_academic_progression.group_section_assignment_officer,edu_academic_progression.group_section_assignment_admin,edu_academic_structure.group_education_admin"/>
 </odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Report Card Wizard — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_report_card_wizard_form" model="ir.ui.view">
+        <field name="name">edu.exam.report.card.wizard.form</field>
+        <field name="model">edu.exam.report.card.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Print Report Card">
+                <group>
+                    <group string="Exam Session">
+                        <field name="exam_session_id"/>
+                        <field name="batch_id"/>
+                        <field name="academic_year_id"/>
+                    </group>
+                    <group string="Options">
+                        <field name="include_absent"/>
+                        <field name="include_components"/>
+                    </group>
+                </group>
+                <group string="Students">
+                    <field name="student_ids" widget="many2many_tags"
+                           nolabel="1" colspan="2"
+                           placeholder="Leave empty to print for all students in session..."
+                           domain="[('state', '=', 'active')]"/>
+                </group>
+                <footer>
+                    <button name="action_print" string="Print Report Card"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Wizard Action
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_exam_report_card_wizard" model="ir.actions.act_window">
+        <field name="name">Print Report Card</field>
+        <field name="res_model">edu.exam.report.card.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

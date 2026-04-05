@@ -15,7 +15,6 @@
                     <group string="Paper Filter">
                         <field name="paper_ids" widget="many2many_tags"
                                domain="[('exam_session_id', '=', exam_session_id)]"/>
-                        <field name="section_ids" widget="many2many_tags"/>
                     </group>
                     <group string="Attempt">
                         <group>

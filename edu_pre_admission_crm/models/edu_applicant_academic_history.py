@@ -110,3 +110,18 @@ class EduApplicantAcademicHistory(models.Model):
                     f'Percentage score cannot exceed 100 '
                     f'(institution: "{rec.institution_name}").'
                 )
+
+    @api.constrains('is_highest_completed', 'applicant_profile_id')
+    def _check_single_highest(self):
+        for rec in self:
+            if rec.is_highest_completed:
+                others = self.search([
+                    ('applicant_profile_id', '=', rec.applicant_profile_id.id),
+                    ('is_highest_completed', '=', True),
+                    ('id', '!=', rec.id),
+                ])
+                if others:
+                    raise ValidationError(
+                        'Only one academic history record per applicant '
+                        'can be marked as "Highest Completed".'
+                    )

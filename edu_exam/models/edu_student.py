@@ -37,3 +37,16 @@ class EduStudent(models.Model):
                 'default_student_id': self.id,
             },
         }
+
+    def action_print_report_card(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Print Report Card'),
+            'res_model': 'edu.exam.report.card.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_student_ids': self.ids,
+            },
+        }

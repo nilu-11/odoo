@@ -401,6 +401,21 @@ class EduExamMarksheet(models.Model):
                 'verified_on': fields.Datetime.now(),
             })
 
+    def action_print_report_card(self):
+        """Open the report card wizard pre-filled with this student and session."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Print Report Card'),
+            'res_model': 'edu.exam.report.card.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_exam_session_id': self.exam_session_id.id,
+                'default_student_ids': self.student_id.ids,
+            },
+        }
+
     def action_snapshot_attendance(self):
         """Fetch the attendance summary from the classroom's register and
         populate attendance_percent_snapshot and attendance_eligible.

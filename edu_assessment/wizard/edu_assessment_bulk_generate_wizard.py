@@ -114,11 +114,18 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
                 _('Classroom "%s" has no section assigned.') % classroom.name
             )
 
-        # Fetch active progression histories for the classroom's section
-        histories = self.env['edu.student.progression.history'].search([
+        # Fetch active progression histories for the classroom's section,
+        # filtered by elective subject choices.  Students with no elected
+        # subjects set are treated as taking all subjects (backwards compat).
+        curriculum_line = classroom.curriculum_line_id
+        all_histories = self.env['edu.student.progression.history'].search([
             ('section_id', '=', classroom.section_id.id),
             ('state', '=', 'active'),
         ])
+        histories = all_histories.filtered(
+            lambda h: not h.effective_curriculum_line_ids
+            or curriculum_line in h.effective_curriculum_line_ids
+        )
         if not histories:
             raise UserError(
                 _(
