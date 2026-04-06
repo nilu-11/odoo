@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_letter_of_credit" model="ir.actions.act_window">
+        <field name="name">Letters of Credit</field>
+        <field name="res_model">letter.of.credit</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_letter_of_credit_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Letter of Credit
+            </p>
+        </field>
+    </record>
+
+    <record id="action_letter_of_credit_type" model="ir.actions.act_window">
+        <field name="name">LC Types</field>
+        <field name="res_model">letter.of.credit.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_letter_of_credit_type_search"/>
+    </record>
+
+    <record id="action_letter_of_credit_documents" model="ir.actions.act_window">
+        <field name="name">LC Documents</field>
+        <field name="res_model">letter.of.credit.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_letter_of_credit_document_search"/>
+    </record>
+
+    <menuitem
+        id="menu_letter_of_credit_app"
+        name="Letter of Credit"
+        sequence="60"
+        groups="base.group_user"
+    />
+
+    <menuitem
+        id="menu_letter_of_credit_operations"
+        name="Operations"
+        parent="menu_letter_of_credit_app"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_letter_of_credit"
+        name="Letters of Credit"
+        parent="menu_letter_of_credit_operations"
+        action="action_letter_of_credit"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_letter_of_credit_documents"
+        name="Documents"
+        parent="menu_letter_of_credit_operations"
+        action="action_letter_of_credit_documents"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_letter_of_credit_configuration"
+        name="Configuration"
+        parent="menu_letter_of_credit_app"
+        sequence="60"
+        groups="base.group_system"
+    />
+
+    <menuitem
+        id="menu_letter_of_credit_type"
+        name="LC Types"
+        parent="menu_letter_of_credit_configuration"
+        action="action_letter_of_credit_type"
+        sequence="10"
+    />
+
+    <menuitem id="menu_letter_of_credit_root" name="Letter of Credit" parent="account.menu_finance" sequence="90"/>
+    <menuitem id="menu_letter_of_credit_finance" name="Letters of Credit" parent="menu_letter_of_credit_root" action="action_letter_of_credit" sequence="10"/>
+</odoo>

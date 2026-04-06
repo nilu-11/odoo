@@ -1,0 +1,8 @@
+{
+  "python.analysis.extraPaths": [
+    "./odoo",
+    "./odoo-custom-addons",
+    "./custom_addons"
+  ],
+  "python.pythonPath": "/opt/odoo19/odoo19-venv/bin/python"
+}

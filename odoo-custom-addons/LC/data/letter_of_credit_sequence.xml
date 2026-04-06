@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_letter_of_credit" model="ir.sequence">
+        <field name="name">Letter of Credit</field>
+        <field name="code">letter.of.credit</field>
+        <field name="prefix">LC</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

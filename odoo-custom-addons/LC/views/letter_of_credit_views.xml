@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_letter_of_credit_type_list" model="ir.ui.view">
+        <field name="name">letter.of.credit.type.list</field>
+        <field name="model">letter.of.credit.type</field>
+        <field name="arch" type="xml">
+            <list string="LC Types">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_type_form" model="ir.ui.view">
+        <field name="name">letter.of.credit.type.form</field>
+        <field name="model">letter.of.credit.type</field>
+        <field name="arch" type="xml">
+            <form string="LC Type">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Required Documents">
+                            <field name="required_document_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="mandatory"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_type_search" model="ir.ui.view">
+        <field name="name">letter.of.credit.type.search</field>
+        <field name="model">letter.of.credit.type</field>
+        <field name="arch" type="xml">
+            <search string="Search LC Types">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_document_list" model="ir.ui.view">
+        <field name="name">letter.of.credit.document.list</field>
+        <field name="model">letter.of.credit.document</field>
+        <field name="arch" type="xml">
+            <list string="LC Documents">
+                <field name="lc_id"/>
+                <field name="name"/>
+                <field name="mandatory"/>
+                <field name="status"/>
+                <field name="received_date"/>
+                <field name="file_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_document_form" model="ir.ui.view">
+        <field name="name">letter.of.credit.document.form</field>
+        <field name="model">letter.of.credit.document</field>
+        <field name="arch" type="xml">
+            <form string="LC Document">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="lc_id"/>
+                            <field name="name"/>
+                            <field name="mandatory"/>
+                            <field name="status"/>
+                            <field name="received_date"/>
+                        </group>
+                        <group>
+                            <field name="file" filename="file_name"/>
+                            <field name="file_name"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_document_search" model="ir.ui.view">
+        <field name="name">letter.of.credit.document.search</field>
+        <field name="model">letter.of.credit.document</field>
+        <field name="arch" type="xml">
+            <search string="Search LC Documents">
+                <field name="lc_id"/>
+                <field name="name"/>
+                <filter name="filter_pending" string="Pending" domain="[('status', '=', 'pending')]"/>
+                <filter name="filter_received" string="Received" domain="[('status', '=', 'received')]"/>
+                <filter name="filter_accepted" string="Accepted" domain="[('status', '=', 'accepted')]"/>
+                <filter name="filter_discrepant" string="Discrepant" domain="[('status', '=', 'discrepant')]"/>
+                <group>
+                    <filter name="group_by_lc" string="LC" context="{'group_by': 'lc_id'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_list" model="ir.ui.view">
+        <field name="name">letter.of.credit.list</field>
+        <field name="model">letter.of.credit</field>
+        <field name="arch" type="xml">
+            <list string="Letters of Credit">
+                <field name="name"/>
+                <field name="type_id"/>
+                <field name="applicant_id"/>
+                <field name="beneficiary_id"/>
+                <field name="amount"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_form" model="ir.ui.view">
+        <field name="name">letter.of.credit.form</field>
+        <field name="model">letter.of.credit</field>
+        <field name="arch" type="xml">
+            <form string="Letter of Credit">
+                <header>
+                    <button name="action_issue" string="Issue" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'issued'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'approved'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state == 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,issued,approved,closed,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id"/>
+                            <field name="type_id"/>
+                            <field name="reference"/>
+                        </group>
+                        <group>
+                            <field name="is_expired" readonly="1"/>
+                            <field name="mandatory_document_count" readonly="1"/>
+                            <field name="received_document_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="applicant_id"/>
+                            <field name="beneficiary_id"/>
+                            <field name="bank_id"/>
+                            <field name="advising_bank_id"/>
+                            <field name="confirming_bank_id"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                            <field name="latest_shipment_date"/>
+                            <field name="payment_term_id"/>
+                            <field name="incoterm_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="port_of_loading"/>
+                            <field name="port_of_discharge"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Documents">
+                            <field name="document_ids" context="{'default_lc_id': id}">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="mandatory"/>
+                                    <field name="status"/>
+                                    <field name="received_date"/>
+                                    <field name="file_name"/>
+                                    <field name="note" optional="hide"/>
+                                </list>
+                                <form string="LC Document">
+                                    <group>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="mandatory"/>
+                                            <field name="status"/>
+                                            <field name="received_date"/>
+                                        </group>
+                                        <group>
+                                            <field name="file" filename="file_name"/>
+                                            <field name="file_name"/>
+                                            <field name="note"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Terms">
+                            <field name="notes" placeholder="Add commercial terms, shipment conditions, and other LC clauses."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_letter_of_credit_search" model="ir.ui.view">
+        <field name="name">letter.of.credit.search</field>
+        <field name="model">letter.of.credit</field>
+        <field name="arch" type="xml">
+            <search string="Search Letters of Credit">
+                <field name="name"/>
+                <field name="type_id"/>
+                <field name="applicant_id"/>
+                <field name="beneficiary_id"/>
+                <field name="bank_id"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_issued" string="Issued" domain="[('state', '=', 'issued')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <filter name="filter_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="filter_expired" string="Expired" domain="[('is_expired', '=', True)]"/>
+                <group>
+                    <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_bank" string="Bank" context="{'group_by': 'bank_id'}"/>
+                    <filter name="group_by_type" string="LC Type" context="{'group_by': 'type_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+</odoo>

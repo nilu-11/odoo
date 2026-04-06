@@ -2,6 +2,7 @@
     'name' : 'Hospital Management System',
     'author' : 'Nilima Shrestha',
     'version' : '19.0.1.0',
+    'images': ['static/description/icon.png'],
     'installable': True,
     'application':True,
     'sequence': 1,
