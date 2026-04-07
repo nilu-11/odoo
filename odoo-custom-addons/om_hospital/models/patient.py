@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from datetime import date
 
 class HospitalPatient(models.Model):
     _name = "hospital.patient"   #tech name of the model
@@ -13,3 +14,16 @@ class HospitalPatient(models.Model):
     ], string = "Gender", tracking=True)
     
     tags_id = fields.Many2many("patient.tag", String="Tags")
+    age = fields.Integer(string="Age", compute="_compute_age")
+    appointment_ids = fields.One2many(
+        "hospital.appointment",
+        "patient_id",
+        string="Appointments",
+    )
+
+    @api.depends("date_of_birth")
+    def _compute_age(self):
+        today = date.today()
+        for rec in self:
+            if rec.date_of_birth:
+                rec.age = today.year - rec.date_of_birth

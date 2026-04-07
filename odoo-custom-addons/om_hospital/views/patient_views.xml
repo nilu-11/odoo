@@ -34,12 +34,24 @@
                         <group>
                             <field name="name"/>
                             <field name="date_of_birth"/>
+                            <field name="age"/>
                         </group>
                         <group>
                             <field name="gender"/>
                             <field name="tags_id" widget="many2many_tags"/>   <!--makes it appear horizontally-->
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Appointments">
+                            <field name="appointment_ids">
+                                <list>
+                                    <field name="reference"/>
+                                    <field name="date_appointment"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter />
             </form>
