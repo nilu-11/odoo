@@ -1,5 +1,4 @@
 from odoo import api, fields, models
-from datetime import date
 
 class HospitalPatient(models.Model):
     _name = "hospital.patient"   #tech name of the model
@@ -21,9 +20,17 @@ class HospitalPatient(models.Model):
         string="Appointments",
     )
 
+    _name_unique = models.Constraint(
+        'unique(name)', 
+        'The name must be unique!',
+    )
+
     @api.depends("date_of_birth")
     def _compute_age(self):
-        today = date.today()
+        today = fields.Date.today()
         for rec in self:
             if rec.date_of_birth:
-                rec.age = today.year - rec.date_of_birth
+                rec.age = today.year - rec.date_of_birth.year
+            else:
+                rec.age = 0
+    

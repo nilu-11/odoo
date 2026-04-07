@@ -19,6 +19,7 @@ class HospitalAppointment(models.Model):
 		string="Patient",
 		required=True,
 		tracking=True,
+		
 	)
 	date_appointment = fields.Date(string="Appointment Date", tracking=True)
 	note = fields.Text(string="Notes")
