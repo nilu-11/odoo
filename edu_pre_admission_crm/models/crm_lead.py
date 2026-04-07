@@ -292,6 +292,10 @@ class CrmLead(models.Model):
     has_duplicate_phone = fields.Boolean(compute='_compute_duplicate_leads')
     has_duplicate_email = fields.Boolean(compute='_compute_duplicate_leads')
     is_duplicate = fields.Boolean(compute='_compute_duplicate_leads')
+    duplicate_lead_count = fields.Integer(
+        compute='_compute_duplicate_leads',
+        string='Similar Inquiries',
+    )
 
     @api.depends('phone', 'email_from')
     def _compute_duplicate_leads(self):
@@ -305,7 +309,8 @@ class CrmLead(models.Model):
                 rec.duplicate_phone_lead_ids = phone_dupes
                 rec.has_duplicate_phone = bool(phone_dupes)
             else:
-                rec.duplicate_phone_lead_ids = self.env['crm.lead']
+                phone_dupes = self.env['crm.lead']
+                rec.duplicate_phone_lead_ids = phone_dupes
                 rec.has_duplicate_phone = False
             if rec.email_from:
                 email_dupes = self.search([
@@ -316,9 +321,11 @@ class CrmLead(models.Model):
                 rec.duplicate_email_lead_ids = email_dupes
                 rec.has_duplicate_email = bool(email_dupes)
             else:
-                rec.duplicate_email_lead_ids = self.env['crm.lead']
+                email_dupes = self.env['crm.lead']
+                rec.duplicate_email_lead_ids = email_dupes
                 rec.has_duplicate_email = False
             rec.is_duplicate = rec.has_duplicate_phone or rec.has_duplicate_email
+            rec.duplicate_lead_count = len(phone_dupes | email_dupes)
 
     @api.depends('activity_ids', 'message_ids')
     def _compute_call_activities(self):
@@ -537,6 +544,21 @@ class CrmLead(models.Model):
             return self.env['res.partner']
         domain = expression.OR(domain_parts)
         return self.env['res.partner'].search(domain)
+
+    def action_open_similar_inquiries(self):
+        """
+        Opens a list of CRM leads that share the same phone or email as this lead.
+        """
+        self.ensure_one()
+        all_dupes = self.duplicate_phone_lead_ids | self.duplicate_email_lead_ids
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Similar Inquiries',
+            'res_model': 'crm.lead',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', all_dupes.ids)],
+            'target': 'new',
+        }
 
     def action_check_duplicate_applicants(self):
         """

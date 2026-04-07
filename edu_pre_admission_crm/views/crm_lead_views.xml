@@ -137,7 +137,7 @@
                         type="object"
                         string="Check Duplicates"
                         class="btn-secondary"
-                        invisible="is_converted_to_application"/>
+                        invisible="1"/>
                 <button name="action_convert_to_admission_application"
                         type="object"
                         string="Convert to Application"
@@ -169,6 +169,13 @@
                         <span class="o_stat_text">Applicant</span>
                         <field name="applicant_profile_id" class="o_stat_value" readonly="1"/>
                     </div>
+                </button>
+                <button name="action_open_similar_inquiries"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-clone"
+                        invisible="not is_duplicate">
+                    <field name="duplicate_lead_count" widget="statinfo" string="Similar Inquiry"/>
                 </button>
             </xpath>
 
