@@ -254,8 +254,9 @@
                                 <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
                             </div>
                         </div>
-                        <field name="qualification"
-                               placeholder="e.g. A-Levels, Bachelor of Science"/>
+                           <field name="qualification_id"
+                               options="{'no_create': False}"
+                               placeholder="Select Qualification"/>
                         <field name="cgpa_percentage"
                                string="CGPA / Percentage"/>
                     </group>

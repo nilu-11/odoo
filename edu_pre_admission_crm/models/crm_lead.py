@@ -143,6 +143,13 @@ class CrmLead(models.Model):
         tracking=True,
         help='Highest qualification of the applicant, e.g. A-Levels, Bachelor of Science.',
     )
+    qualification_id = fields.Many2one(
+        comodel_name='edu.qualification',
+        string='Qualification',
+        tracking=True,
+        ondelete='restrict',
+        help='Select the highest qualification from the master list.',
+    )
     cgpa_percentage = fields.Float(
         string='CGPA / Percentage',
         digits=(5, 2),
