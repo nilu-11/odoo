@@ -13,6 +13,7 @@ class HospitalPatient(models.Model):
     ], string = "Gender", tracking=True)
     
     tags_id = fields.Many2many("patient.tag", String="Tags")
+    note = fields.Text(string="Note")
     age = fields.Integer(string="Age", compute="_compute_age")
     appointment_ids = fields.One2many(
         "hospital.appointment",
@@ -33,4 +34,12 @@ class HospitalPatient(models.Model):
                 rec.age = today.year - rec.date_of_birth.year
             else:
                 rec.age = 0
+            
+    @api.onchange("age")
+    def _onchange_age(self):
+        for rec in self:
+            if rec.age < 12:
+                rec.note = "This is a pediatric patient."
+            else:
+                rec.note = ""
     

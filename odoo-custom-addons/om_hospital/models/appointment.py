@@ -19,8 +19,14 @@ class HospitalAppointment(models.Model):
 		string="Patient",
 		required=True,
 		tracking=True,
-		
 	)
+
+	patient_age = fields.Integer(
+		string = "Patient Age",
+		related = "patient_id.age",
+		store = True,
+	)
+	
 	date_appointment = fields.Date(string="Appointment Date", tracking=True)
 	note = fields.Text(string="Notes")
 	state = fields.Selection(

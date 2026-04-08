@@ -39,6 +39,7 @@
                         <group>
                             <field name="gender"/>
                             <field name="tags_id" widget="many2many_tags"/>   <!--makes it appear horizontally-->
+                            <field name="note"/>
                         </group>
                     </group>
                     <notebook>
