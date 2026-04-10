@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_staff_qualification_hr_user,edu.staff.qualification hr user,model_edu_staff_qualification,hr.group_hr_user,1,1,1,1
+access_edu_staff_qualification_user,edu.staff.qualification base user,model_edu_staff_qualification,base.group_user,1,0,0,0

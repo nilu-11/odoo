@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Record Rule Overrides
+         teacher_id now points to hr.employee; domains must
+         traverse teacher_id.user_id to match the logged-in user.
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ── Classroom ─────────────────────────────────────── -->
+    <record id="edu_classroom.rule_classroom_teacher_own" model="ir.rule">
+        <field name="name">Classroom: teacher sees own classrooms only</field>
+        <field name="model_id" ref="edu_classroom.model_edu_classroom"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_classroom.group_classroom_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Exam Paper ────────────────────────────────────── -->
+    <record id="edu_exam.rule_exam_paper_teacher" model="ir.rule">
+        <field name="name">Exam Paper: Teacher sees own papers</field>
+        <field name="model_id" ref="edu_exam.model_edu_exam_paper"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_exam.group_exam_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Exam Marksheet ────────────────────────────────── -->
+    <record id="edu_exam.rule_exam_marksheet_teacher" model="ir.rule">
+        <field name="name">Marksheet: Teacher sees own paper marksheets</field>
+        <field name="model_id" ref="edu_exam.model_edu_exam_marksheet"/>
+        <field name="domain_force">[('exam_paper_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_exam.group_exam_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Attendance Register ───────────────────────────── -->
+    <record id="edu_attendance.rule_attendance_register_teacher_own" model="ir.rule">
+        <field name="name">Attendance Register: teacher sees own classrooms only</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_register"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_attendance.group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Attendance Sheet ──────────────────────────────── -->
+    <record id="edu_attendance.rule_attendance_sheet_teacher_own" model="ir.rule">
+        <field name="name">Attendance Sheet: teacher sees own classrooms only</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_attendance.group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Attendance Line ───────────────────────────────── -->
+    <record id="edu_attendance.rule_attendance_line_teacher_own" model="ir.rule">
+        <field name="name">Attendance Line: teacher sees own classrooms only</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet_line"/>
+        <field name="domain_force">[('classroom_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('edu_attendance.group_attendance_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ── Assessment Record ─────────────────────────────── -->
+    <record id="edu_assessment.rule_assessment_record_teacher" model="ir.rule">
+        <field name="name">Assessment Record: Teacher sees own classroom</field>
+        <field name="model_id" ref="edu_assessment.model_edu_continuous_assessment_record"/>
+        <field name="domain_force">
+            ['|',
+              ('teacher_id.user_id', '=', user.id),
+              ('classroom_id.teacher_id.user_id', '=', user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('edu_assessment.group_assessment_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
