@@ -22,6 +22,6 @@
     <menuitem id="menu_edu_hr_departments"
               name="Departments"
               parent="menu_edu_hr_root"
-              action="hr.open_module_tree_department"
+              action="hr.hr_department_tree_action"
               sequence="30"/>
 </odoo>
