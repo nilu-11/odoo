@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Portal Privilege Category
+    ══════════════════════════════════════════════════════ -->
+    <record id="privilege_edu_portal" model="res.groups.privilege">
+        <field name="name">Education Portal</field>
+        <field name="sequence">95</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Portal Groups
+         All three inherit from base.group_portal (free licensing)
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="group_edu_portal_student" model="res.groups">
+        <field name="name">Portal: Student</field>
+        <field name="privilege_id" ref="privilege_edu_portal"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">Student portal user. Can view own attendance, results, assessments, and fees.</field>
+    </record>
+
+    <record id="group_edu_portal_parent" model="res.groups">
+        <field name="name">Portal: Parent</field>
+        <field name="privilege_id" ref="privilege_edu_portal"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">Parent portal user. Can view children's attendance, results, assessments, and fees.</field>
+    </record>
+
+    <record id="group_edu_portal_teacher" model="res.groups">
+        <field name="name">Portal: Teacher</field>
+        <field name="privilege_id" ref="privilege_edu_portal"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">Teacher portal user. Can mark attendance, enter marks, and record assessments for their classrooms via the portal controller.</field>
+    </record>
+</odoo>
