@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.attendance.register — Search View: update My Registers filter
+         Original filter domain: [('teacher_id', '=', uid)]
+         Updated domain:         [('teacher_id.user_id', '=', uid)]
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_register_search_hr" model="ir.ui.view">
+        <field name="name">edu.attendance.register.search.hr</field>
+        <field name="model">edu.attendance.register</field>
+        <field name="inherit_id" ref="edu_attendance.view_edu_attendance_register_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_my_registers']" position="attributes">
+                <attribute name="domain">[('teacher_id.user_id', '=', uid)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.attendance.sheet — Search View: update My Sheets filter
+         Original filter domain: [('teacher_id', '=', uid)]
+         Updated domain:         [('teacher_id.user_id', '=', uid)]
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_attendance_sheet_search_hr" model="ir.ui.view">
+        <field name="name">edu.attendance.sheet.search.hr</field>
+        <field name="model">edu.attendance.sheet</field>
+        <field name="inherit_id" ref="edu_attendance.view_edu_attendance_sheet_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_my_sheets']" position="attributes">
+                <attribute name="domain">[('teacher_id.user_id', '=', uid)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         My Attendance Sheets window action — update domain to traverse
+         teacher_id (hr.employee) → user_id (res.users)
+    ══════════════════════════════════════════════════════ -->
+    <record id="edu_attendance.action_edu_attendance_sheet_mine" model="ir.actions.act_window">
+        <field name="name">My Attendance Sheets</field>
+        <field name="res_model">edu.attendance.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_sheets': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No attendance sheets for your classrooms yet.
+            </p>
+            <p>
+                Sheets appear here once you start a session from
+                one of your attendance registers.
+            </p>
+        </field>
+    </record>
+</odoo>

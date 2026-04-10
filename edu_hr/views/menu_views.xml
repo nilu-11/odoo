@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Staff Management — top-level menu under Education -->
+    <menuitem id="menu_edu_hr_root"
+              name="Staff Management"
+              parent="edu_academic_structure.menu_education_root"
+              sequence="25"
+              groups="hr.group_hr_user,hr.group_hr_manager,edu_academic_structure.group_education_admin"/>
+
+    <menuitem id="menu_edu_staff_all"
+              name="Staff"
+              parent="menu_edu_hr_root"
+              action="action_edu_staff_all"
+              sequence="10"/>
+
+    <menuitem id="menu_edu_teaching_staff"
+              name="Teaching Staff"
+              parent="menu_edu_hr_root"
+              action="action_edu_teaching_staff"
+              sequence="20"/>
+
+    <menuitem id="menu_edu_hr_departments"
+              name="Departments"
+              parent="menu_edu_hr_root"
+              action="hr.open_module_tree_department"
+              sequence="30"/>
+</odoo>

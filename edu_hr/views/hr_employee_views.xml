@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         hr.employee — Form View Extension
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_hr_employee_form_edu" model="ir.ui.view">
+        <field name="name">hr.employee.form.edu</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- Smart buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_classrooms"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-chalkboard"
+                        invisible="not is_teaching_staff">
+                    <field name="classroom_count"
+                           widget="statinfo"
+                           string="Classrooms"/>
+                </button>
+                <button name="action_view_exam_papers"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        invisible="not is_teaching_staff">
+                    <field name="exam_paper_count"
+                           widget="statinfo"
+                           string="Exam Papers"/>
+                </button>
+                <button name="action_view_assessment_records"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-pencil-square-o"
+                        invisible="not is_teaching_staff">
+                    <field name="assessment_record_count"
+                           widget="statinfo"
+                           string="Assessments"/>
+                </button>
+                <button name="action_view_attendance_registers"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calendar-check-o"
+                        invisible="not is_teaching_staff">
+                    <field name="attendance_register_count"
+                           widget="statinfo"
+                           string="Attendance"/>
+                </button>
+            </xpath>
+
+            <!-- Education tab in the notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Education" name="education">
+                    <group>
+                        <group string="Staff Classification">
+                            <field name="employee_code"/>
+                            <field name="staff_type"/>
+                            <field name="is_teaching_staff"/>
+                        </group>
+                        <group string="Academic Affiliation">
+                            <field name="edu_department_id"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Qualifications" name="qualifications">
+                    <field name="qualification_ids">
+                        <list editable="bottom">
+                            <field name="degree"/>
+                            <field name="institution"/>
+                            <field name="year_of_completion"/>
+                            <field name="notes"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Subject Expertise" name="subject_expertise"
+                      invisible="not is_teaching_staff">
+                    <field name="subject_expertise_ids" widget="many2many_tags"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         hr.employee — List View Extension
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_hr_employee_list_edu" model="ir.ui.view">
+        <field name="name">hr.employee.list.edu</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="employee_code" optional="show"/>
+                <field name="staff_type" optional="show"/>
+                <field name="edu_department_id" optional="show"/>
+                <field name="classroom_count" string="Classrooms" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         hr.employee — Search View Extension
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_hr_employee_search_edu" model="ir.ui.view">
+        <field name="name">hr.employee.search.edu</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="employee_code"/>
+                <field name="edu_department_id"/>
+                <separator/>
+                <filter name="filter_teaching_staff"
+                        string="Teaching Staff"
+                        domain="[('is_teaching_staff', '=', True)]"/>
+                <filter name="filter_non_teaching_staff"
+                        string="Non-Teaching Staff"
+                        domain="[('is_teaching_staff', '=', False)]"/>
+                <separator/>
+                <filter name="group_staff_type"
+                        string="Staff Type"
+                        context="{'group_by': 'staff_type'}"/>
+                <filter name="group_edu_department"
+                        string="Academic Department"
+                        context="{'group_by': 'edu_department_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Window Actions
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_staff_all" model="ir.actions.act_window">
+        <field name="name">Staff</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No staff members found.
+            </p>
+            <p>
+                Create staff records for teachers, lab assistants, and other school personnel.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_edu_teaching_staff" model="ir.actions.act_window">
+        <field name="name">Teaching Staff</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_teaching_staff', '=', True)]</field>
+        <field name="context">{'default_is_teaching_staff': True, 'search_default_filter_teaching_staff': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No teaching staff found.
+            </p>
+            <p>
+                Create teacher records and assign them to classrooms.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.continuous.assessment.record — Search View:
+         update My Assessments filter
+         Original filter domain: [('teacher_id', '=', uid)]
+         Updated domain:         [('teacher_id.user_id', '=', uid)]
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_continuous_assessment_record_search_hr" model="ir.ui.view">
+        <field name="name">edu.continuous.assessment.record.search.hr</field>
+        <field name="model">edu.continuous.assessment.record</field>
+        <field name="inherit_id" ref="edu_assessment.view_edu_continuous_assessment_record_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_my_assessments']" position="attributes">
+                <attribute name="domain">[('teacher_id.user_id', '=', uid)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         My Assessments window action — update domain to traverse
+         teacher_id (hr.employee) → user_id (res.users).
+         Remove default_teacher_id context key: teacher_id is now
+         hr.employee, not a res.users id, so uid cannot be used
+         as a default value directly.
+    ══════════════════════════════════════════════════════ -->
+    <record id="edu_assessment.action_edu_continuous_assessment_record_mine" model="ir.actions.act_window">
+        <field name="name">My Assessments</field>
+        <field name="res_model">edu.continuous.assessment.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_assessments': 1}</field>
+    </record>
+</odoo>

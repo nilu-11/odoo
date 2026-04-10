@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.exam.paper — Search View: update My Papers filter
+         Original filter domain: [('teacher_id', '=', uid)]
+         Updated domain:         [('teacher_id.user_id', '=', uid)]
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_exam_paper_search_hr" model="ir.ui.view">
+        <field name="name">edu.exam.paper.search.hr</field>
+        <field name="model">edu.exam.paper</field>
+        <field name="inherit_id" ref="edu_exam.view_edu_exam_paper_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_my_papers']" position="attributes">
+                <attribute name="domain">[('teacher_id.user_id', '=', uid)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         My Exam Papers window action — update domain to traverse
+         teacher_id (hr.employee) → user_id (res.users)
+    ══════════════════════════════════════════════════════ -->
+    <record id="edu_exam.action_edu_exam_paper_mine" model="ir.actions.act_window">
+        <field name="name">My Exam Papers</field>
+        <field name="res_model">edu.exam.paper</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_papers': 1}</field>
+    </record>
+</odoo>

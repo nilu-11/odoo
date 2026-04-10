@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         edu.classroom — Search View: update My Classrooms filter
+         Original filter domain: [('teacher_id', '=', uid)]
+         Updated domain:         [('teacher_id.user_id', '=', uid)]
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_search_hr" model="ir.ui.view">
+        <field name="name">edu.classroom.search.hr</field>
+        <field name="model">edu.classroom</field>
+        <field name="inherit_id" ref="edu_classroom.view_edu_classroom_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_my_classrooms']" position="attributes">
+                <attribute name="domain">[('teacher_id.user_id', '=', uid)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         edu.classroom — Form View: add Teacher Profile smart button
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_form_hr" model="ir.ui.view">
+        <field name="name">edu.classroom.form.hr</field>
+        <field name="model">edu.classroom</field>
+        <field name="inherit_id" ref="edu_classroom.view_edu_classroom_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_teacher_profile"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-id-card"
+                        invisible="not teacher_id"
+                        string="Teacher Profile"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         My Classrooms window action — update domain to traverse
+         teacher_id (hr.employee) → user_id (res.users)
+    ══════════════════════════════════════════════════════ -->
+    <record id="edu_classroom.action_edu_classroom_mine" model="ir.actions.act_window">
+        <field name="name">My Classrooms</field>
+        <field name="res_model">edu.classroom</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_classrooms': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No classrooms assigned to you yet.
+            </p>
+            <p>
+                Classrooms will appear here once an administrator assigns
+                you as the teacher.
+            </p>
+        </field>
+    </record>
+</odoo>
