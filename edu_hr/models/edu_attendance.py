@@ -11,3 +11,15 @@ class EduAttendanceRegister(models.Model):
         store=True,
         index=True,
     )
+
+
+class EduAttendanceSheet(models.Model):
+    _inherit = 'edu.attendance.sheet'
+
+    teacher_id = fields.Many2one(
+        comodel_name='hr.employee',
+        string='Teacher',
+        related='register_id.teacher_id',
+        store=True,
+        index=True,
+    )
