@@ -78,13 +78,17 @@ class HrEmployee(models.Model):
         return True
 
     def _send_portal_welcome_email(self, user, temp_password):
-        template = self.env.ref('edu_portal.mail_template_portal_welcome', raise_if_not_found=False)
-        if template:
-            template.sudo().with_context(
-                portal_user=user,
-                portal_temp_password=temp_password,
-                portal_role='teacher',
-            ).send_mail(self.id, force_send=False)
+        """Send a welcome email with login credentials directly (no template)."""
+        if not user.email:
+            return
+        from .portal_mail import build_welcome_body
+        self.env['mail.mail'].sudo().create({
+            'subject': 'Welcome to the EMIS Portal',
+            'body_html': build_welcome_body(user, temp_password, role='teacher'),
+            'email_to': user.email,
+            'email_from': self.env.company.email or self.env.user.email or False,
+            'auto_delete': True,
+        }).send()
 
 
 def _generate_portal_password(length=12):

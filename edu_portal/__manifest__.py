@@ -26,7 +26,6 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
-        'data/mail_templates.xml',
         'views/portal_layout.xml',
         'views/components.xml',
         'views/teacher_templates.xml',
