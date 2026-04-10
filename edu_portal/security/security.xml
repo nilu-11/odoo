@@ -116,4 +116,87 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Portal — Record Rules
+         Scope reads to children linked via guardian relationship.
+         Uses user.children_partner_ids (computed on res.users).
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="rule_portal_parent_student" model="ir.rule">
+        <field name="name">Portal Parent: children records</field>
+        <field name="model_id" ref="edu_student.model_edu_student"/>
+        <field name="domain_force">[('partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_attendance" model="ir.rule">
+        <field name="name">Portal Parent: children attendance</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet_line"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_marksheet" model="ir.rule">
+        <field name="name">Portal Parent: children marksheets</field>
+        <field name="model_id" ref="edu_exam.model_edu_exam_marksheet"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_assessment" model="ir.rule">
+        <field name="name">Portal Parent: children assessments</field>
+        <field name="model_id" ref="edu_assessment.model_edu_continuous_assessment_record"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_fee_due" model="ir.rule">
+        <field name="name">Portal Parent: children fee dues</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_fee_plan" model="ir.rule">
+        <field name="name">Portal Parent: children fee plans</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_fee_plan"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_parent_payment" model="ir.rule">
+        <field name="name">Portal Parent: children payments</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_payment"/>
+        <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>
