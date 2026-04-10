@@ -34,4 +34,86 @@
         <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
         <field name="comment">Teacher portal user. Can mark attendance, enter marks, and record assessments for their classrooms via the portal controller.</field>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Student Portal — Record Rules
+         Scope all reads to the student's own partner.
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="rule_portal_student_own_record" model="ir.rule">
+        <field name="name">Portal Student: own record only</field>
+        <field name="model_id" ref="edu_student.model_edu_student"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_attendance" model="ir.rule">
+        <field name="name">Portal Student: own attendance lines</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet_line"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_marksheet" model="ir.rule">
+        <field name="name">Portal Student: own marksheets</field>
+        <field name="model_id" ref="edu_exam.model_edu_exam_marksheet"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_assessment" model="ir.rule">
+        <field name="name">Portal Student: own assessments</field>
+        <field name="model_id" ref="edu_assessment.model_edu_continuous_assessment_record"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_fee_due" model="ir.rule">
+        <field name="name">Portal Student: own fee dues</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_fee_plan" model="ir.rule">
+        <field name="name">Portal Student: own fee plans</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_fee_plan"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_portal_student_payment" model="ir.rule">
+        <field name="name">Portal Student: own payments</field>
+        <field name="model_id" ref="edu_fees.model_edu_student_payment"/>
+        <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>
