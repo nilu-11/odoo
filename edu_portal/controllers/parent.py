@@ -51,7 +51,7 @@ class ParentPortalController(http.Controller):
                 [('student_id', '=', child.id)], limit=30,
             )
             total = len(lines)
-            present = len(lines.filtered(lambda l: l.status == 'present'))
+            present = len(lines.filtered(lambda line: line.status == 'present'))
             pct = round((present / total) * 100, 1) if total else 0.0
             dues = request.env['edu.student.fee.due'].search(
                 [('student_id', '=', child.id), ('state', '!=', 'paid')],

@@ -1,5 +1,5 @@
 """Teacher portal controllers."""
-from odoo import http, _
+from odoo import http
 from odoo.http import request
 from .helpers import (
     base_context, get_teacher_employee, teacher_owns_classroom, get_portal_role,

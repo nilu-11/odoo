@@ -31,7 +31,7 @@ class StudentPortalController(http.Controller):
             [('student_id', '=', student.id)], limit=30, order='session_date desc',
         )
         total = len(lines)
-        present = len(lines.filtered(lambda l: l.status == 'present'))
+        present = len(lines.filtered(lambda line: line.status == 'present'))
         attendance_pct = round((present / total) * 100, 1) if total else 0.0
         marksheets = request.env['edu.exam.marksheet'].search(
             [('student_id', '=', student.id)], limit=5, order='create_date desc',
