@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Parent Home — Children Overview
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_home_page" name="Parent Home">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">Children Overview</h2>
+            <t t-if="summaries">
+                <t t-foreach="summaries" t-as="s">
+                    <div class="card">
+                        <h3 style="margin:0 0 12px 0; font-size:18px;">
+                            <t t-esc="s['student'].display_name"/>
+                        </h3>
+                        <div class="stat-grid" style="margin-bottom:0;">
+                            <div>
+                                <p class="card-title">Attendance</p>
+                                <p class="card-value" style="font-size:20px;"><t t-esc="s['attendance_pct']"/>%</p>
+                            </div>
+                            <div>
+                                <p class="card-title">Outstanding</p>
+                                <p class="card-value" style="font-size:20px;"><t t-esc="'{:,.0f}'.format(s['outstanding'])"/></p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+            <t t-else="">
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="icon" t-value="'👨‍👩‍👧'"/>
+                    <t t-set="title" t-value="'No children linked'"/>
+                    <t t-set="message" t-value="'Please contact the school administrator.'"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Attendance (reuses student_attendance_page layout)
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_attendance_page" name="Parent Attendance">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">
+                Attendance
+                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
+            </h2>
+            <t t-if="lines">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Date</th><th>Subject</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="lines" t-as="l">
+                            <tr>
+                                <td><t t-esc="l.session_date"/></td>
+                                <td><t t-esc="l.subject_id.name or l.classroom_id.subject_id.name"/></td>
+                                <td>
+                                    <t t-if="l.status == 'present'"><span class="classroom-card-badge badge-success">Present</span></t>
+                                    <t t-if="l.status == 'absent'"><span class="classroom-card-badge badge-danger">Absent</span></t>
+                                    <t t-if="l.status == 'late'"><span class="classroom-card-badge badge-warning">Late</span></t>
+                                    <t t-if="l.status == 'excused'"><span class="classroom-card-badge badge-muted">Excused</span></t>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+            <t t-else="">
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="icon" t-value="'✓'"/>
+                    <t t-set="title" t-value="'No attendance records for the selected child'"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Results
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_results_page" name="Parent Results">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">
+                Results
+                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
+            </h2>
+            <t t-if="marksheets">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Paper</th><th>Session</th><th>Marks</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="marksheets" t-as="ms">
+                            <tr>
+                                <td><t t-esc="ms.exam_paper_id.display_name"/></td>
+                                <td><t t-esc="ms.exam_paper_id.exam_session_id.name"/></td>
+                                <td><t t-esc="ms.marks_obtained"/> / <t t-esc="ms.max_marks"/></td>
+                                <td>
+                                    <t t-if="ms.marks_obtained &gt;= (ms.exam_paper_id.pass_marks or 0)">
+                                        <span class="classroom-card-badge badge-success">Pass</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="classroom-card-badge badge-danger">Fail</span>
+                                    </t>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+            <t t-else="">
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="icon" t-value="'📊'"/>
+                    <t t-set="title" t-value="'No results for the selected child'"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Assessments
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_assessments_page" name="Parent Assessments">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">
+                Assessments
+                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
+            </h2>
+            <t t-if="records">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Date</th><th>Category</th><th>Title</th><th>Marks</th></tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="records" t-as="r">
+                            <tr>
+                                <td><t t-esc="r.assessment_date"/></td>
+                                <td><t t-esc="r.category_id.name"/></td>
+                                <td><t t-esc="r.name or ''"/></td>
+                                <td><t t-esc="r.marks_obtained"/> / <t t-esc="r.max_marks"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+            <t t-else="">
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="icon" t-value="'📝'"/>
+                    <t t-set="title" t-value="'No assessments for the selected child'"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Fees
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_fees_page" name="Parent Fees">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">
+                Fees
+                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
+            </h2>
+            <div class="stat-grid">
+                <div class="card">
+                    <p class="card-title">Outstanding</p>
+                    <p class="card-value"><t t-esc="'{:,.0f}'.format(total_due)"/></p>
+                </div>
+            </div>
+            <h3 class="page-title" style="font-size:18px; margin-top:20px;">Dues</h3>
+            <t t-if="dues">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Due Date</th><th>Fee Head</th><th>Amount</th><th>Balance</th><th>State</th></tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="dues" t-as="d">
+                            <tr>
+                                <td><t t-esc="d.due_date"/></td>
+                                <td><t t-esc="d.fee_head_id.name"/></td>
+                                <td><t t-esc="d.amount"/></td>
+                                <td><t t-esc="d.balance_amount"/></td>
+                                <td><span class="classroom-card-badge badge-muted"><t t-esc="d.state.title()"/></span></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+            <t t-else=""><p style="color:var(--text-muted);">No fee dues on record.</p></t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Parent Profile
+    ══════════════════════════════════════════════════════ -->
+    <template id="parent_profile_page" name="Parent Profile">
+        <t t-call="edu_portal.portal_layout">
+            <h2 class="page-title">My Profile</h2>
+            <t t-if="guardian">
+                <div class="card">
+                    <p class="card-title">Name</p>
+                    <p class="card-value"><t t-esc="guardian.full_name"/></p>
+                </div>
+                <div class="stat-grid">
+                    <div class="card">
+                        <p class="card-title">Phone</p>
+                        <p class="card-value" style="font-size:18px;"><t t-esc="guardian.phone or '—'"/></p>
+                    </div>
+                    <div class="card">
+                        <p class="card-title">Email</p>
+                        <p class="card-value" style="font-size:18px;"><t t-esc="guardian.email or '—'"/></p>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
