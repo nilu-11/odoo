@@ -9,6 +9,7 @@
         'base',
         'web',
         'mail',
+        'portal',
         'hr',
         'edu_academic_structure',
         'edu_student',
