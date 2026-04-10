@@ -4,28 +4,27 @@
          Master Portal Layout
          Used by all portal pages via t-call.
     ══════════════════════════════════════════════════════ -->
-    <template id="portal_layout" name="EMIS Portal Layout">
-        <!DOCTYPE html>
-        <html lang="en">
-            <head>
-                <meta charset="utf-8"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
-                <title><t t-esc="page_title or 'EMIS Portal'"/></title>
-                <link rel="stylesheet" type="text/css" href="/edu_portal/static/src/css/portal.css"/>
-                <script src="/edu_portal/static/src/vendor/htmx.min.js"/>
-            </head>
-            <body t-attf-class="portal-body #{'sidebar-collapsed' if sidebar_collapsed else ''}"
-                  t-att-data-role="portal_role">
-                <t t-call="edu_portal.sidebar_component"/>
-                <div class="portal-main">
-                    <t t-call="edu_portal.topbar_component"/>
-                    <main class="portal-content">
-                        <t t-out="0"/>
-                    </main>
-                </div>
-                <script src="/edu_portal/static/src/js/portal.js"/>
-                <script src="/edu_portal/static/src/js/entry.js"/>
-            </body>
-        </html>
+    <template id="portal_layout" name="EMIS Portal Layout">&lt;!DOCTYPE html&gt;
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title><t t-esc="page_title or 'EMIS Portal'"/></title>
+        <link rel="stylesheet" type="text/css" href="/edu_portal/static/src/css/portal.css"/>
+        <script src="/edu_portal/static/src/vendor/htmx.min.js"/>
+    </head>
+    <body t-attf-class="portal-body #{'sidebar-collapsed' if sidebar_collapsed else ''}"
+          t-att-data-role="portal_role">
+        <t t-call="edu_portal.sidebar_component"/>
+        <div class="portal-main">
+            <t t-call="edu_portal.topbar_component"/>
+            <main class="portal-content">
+                <t t-out="0"/>
+            </main>
+        </div>
+        <script src="/edu_portal/static/src/js/portal.js"/>
+        <script src="/edu_portal/static/src/js/entry.js"/>
+    </body>
+</html>
     </template>
 </odoo>
