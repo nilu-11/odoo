@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_guardian_form_portal" model="ir.ui.view">
+        <field name="name">edu.guardian.form.portal</field>
+        <field name="model">edu.guardian</field>
+        <field name="inherit_id" ref="edu_pre_admission_crm.view_edu_guardian_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_grant_portal_access"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-user-plus"
+                        invisible="portal_access">
+                    <span>Grant Portal Access</span>
+                </button>
+                <button name="action_revoke_portal_access"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-user-times"
+                        invisible="not portal_access">
+                    <span>Revoke Portal Access</span>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

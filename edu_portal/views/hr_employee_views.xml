@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_employee_form_portal" model="ir.ui.view">
+        <field name="name">hr.employee.form.portal</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='education']" position="inside">
+                <group string="Portal Access" invisible="not is_teaching_staff">
+                    <field name="portal_access" readonly="1"/>
+                    <field name="portal_user_id" readonly="1"/>
+                    <button name="action_grant_portal_access"
+                            type="object"
+                            string="Grant Portal Access"
+                            class="btn-primary"
+                            invisible="portal_access"/>
+                    <button name="action_revoke_portal_access"
+                            type="object"
+                            string="Revoke Portal Access"
+                            invisible="not portal_access"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
