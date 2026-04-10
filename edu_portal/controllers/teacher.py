@@ -1,0 +1,2 @@
+# /portal/teacher/* routes
+# Full implementation in a later task
