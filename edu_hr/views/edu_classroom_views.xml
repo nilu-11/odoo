@@ -17,6 +17,20 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════
+         edu.classroom — Kanban View: update teacher avatar widget
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_classroom_kanban_hr" model="ir.ui.view">
+        <field name="name">edu.classroom.kanban.hr</field>
+        <field name="model">edu.classroom</field>
+        <field name="inherit_id" ref="edu_classroom.view_edu_classroom_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='teacher_id'][@widget='many2one_avatar_user']" position="attributes">
+                <attribute name="widget">many2one_avatar_employee</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
          edu.classroom — Form View: add Teacher Profile smart button
     ══════════════════════════════════════════════════════ -->
     <record id="view_edu_classroom_form_hr" model="ir.ui.view">
