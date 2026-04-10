@@ -173,13 +173,9 @@
                         Academic and financial fields are frozen after offer acceptance.
                     </div>
                     <!-- Scholarship freeze indicator -->
-                    <div class="alert alert-warning mb-3"
-                         invisible="not scholarship_frozen">
+                    <div class="alert alert-warning mb-3" invisible="not scholarship_frozen">
                         <i class="fa fa-lock me-2"/>
-                        <strong>Scholarship outcome frozen</strong> on
-                        <field name="scholarship_freeze_date" readonly="1"
-                               class="d-inline" nolabel="1"/>.
-                        Approved scholarship lines cannot be edited.
+                        <strong>Scholarship outcome frozen</strong> on <field name="scholarship_freeze_date" readonly="1" class="d-inline" nolabel="1"/>. Approved scholarship lines cannot be edited.
                     </div>
 
                     <!-- ── Applicant &amp; Academic Context ── -->
