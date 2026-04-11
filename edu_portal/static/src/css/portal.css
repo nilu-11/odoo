@@ -546,3 +546,325 @@ body.sidebar-collapsed .sidebar-badge {
     .portal-main { margin-left: var(--sidebar-collapsed-width); }
     .sidebar-label, .sidebar-brand-text { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   Google Classroom-style refactor
+   Card grid home, classroom tabs, people grid, attendance/marks tables
+   ══════════════════════════════════════════════════════════ */
+
+/* ─── Classroom card grid ────────────────────────────────── */
+.classroom-grid-wrap {
+    padding: 16px 24px 40px;
+}
+.classroom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 16px;
+}
+.classroom-grid .classroom-card {
+    display: block;
+    padding: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-decoration: none;
+    color: inherit;
+}
+.classroom-grid .classroom-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+.classroom-grid .classroom-card::before {
+    content: '';
+    display: block;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+}
+.classroom-grid .classroom-card-info {
+    padding: 16px 18px 12px;
+}
+.classroom-grid .classroom-card-info h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.classroom-grid .classroom-card-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+.classroom-grid .classroom-card-badge {
+    display: inline-block;
+    margin: 0 18px 16px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ─── Classroom tab bar ──────────────────────────────────── */
+.classroom-tabs {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.classroom-tabs-header {
+    padding: 20px 0 14px;
+}
+.classroom-tabs-title {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 600;
+}
+.classroom-tabs-sub {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+.classroom-tabs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+}
+.classroom-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+}
+.classroom-tab:hover { color: var(--text-primary); }
+.classroom-tab.active {
+    color: var(--primary-blue);
+    border-bottom-color: var(--primary-blue);
+}
+.classroom-tab-icon { font-size: 16px; }
+
+.classroom-body {
+    padding: 24px;
+}
+
+/* ─── People grid ────────────────────────────────────────── */
+.people-section { margin-bottom: 32px; }
+.people-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+}
+.people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+.person-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+.person-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-blue-light);
+    color: var(--primary-blue-dark);
+    font-weight: 600;
+    font-size: 16px;
+}
+.person-info { display: flex; flex-direction: column; min-width: 0; }
+.person-info strong {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.person-info span {
+    font-size: 12px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ─── Attendance / marks / assessments tables ────────────── */
+.attendance-table, .marks-table, .assessment-table, .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.attendance-table th, .marks-table th, .assessment-table th, .result-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+}
+.attendance-table td, .marks-table td, .assessment-table td, .result-table td {
+    padding: 12px 14px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+.attendance-table tr:last-child td,
+.marks-table tr:last-child td,
+.assessment-table tr:last-child td,
+.result-table tr:last-child td { border-bottom: none; }
+
+.attendance-status-cell { display: flex; gap: 6px; }
+.attendance-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-light);
+    color: var(--text-secondary);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.attendance-btn.active.status-present { background: var(--accent-success); color: white; }
+.attendance-btn.active.status-absent  { background: var(--accent-danger);  color: white; }
+.attendance-btn.active.status-late    { background: var(--accent-warning); color: white; }
+.attendance-btn.active.status-excused { background: var(--text-secondary); color: white; }
+
+.attendance-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.attendance-status.status-present { background: #dcfce7; color: #047857; }
+.attendance-status.status-absent  { background: #fee2e2; color: #b91c1c; }
+.attendance-status.status-late    { background: #fef3c7; color: #b45309; }
+.attendance-status.status-excused { background: var(--bg-lighter); color: var(--text-secondary); }
+
+.attendance-summary { margin-bottom: 18px; }
+.attendance-summary-metric {
+    display: inline-flex;
+    flex-direction: column;
+    padding: 12px 20px;
+    background: var(--primary-blue-light);
+    border-radius: var(--radius-md);
+}
+.metric-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--primary-blue-dark);
+    letter-spacing: 0.05em;
+}
+.metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+}
+
+/* ─── Result card (student view) ─────────────────────────── */
+.result-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+.result-card h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+}
+.result-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.result-metric {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+}
+
+/* ─── Paper list (exams tab) ─────────────────────────────── */
+.paper-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+.paper-card {
+    display: block;
+    padding: 16px 18px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.paper-card:hover {
+    border-color: var(--primary-blue);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+}
+.paper-card h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+.paper-card p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+.paper-state {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--bg-lighter);
+    color: var(--text-secondary);
+}
+
+/* ─── Marks entry inline form ────────────────────────────── */
+.marks-entry-form { display: inline-flex; align-items: center; gap: 6px; }
+.marks-entry-form input[type="number"] {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+}
+.marks-error {
+    margin-left: 8px;
+    color: var(--accent-danger);
+    font-size: 12px;
+}
+
+/* ─── Responsive tweaks for new components ───────────────── */
+@media (max-width: 768px) {
+    .classroom-tabs { padding: 0 12px; }
+    .classroom-body { padding: 16px 12px; }
+    .classroom-grid-wrap { padding: 12px; }
+    .result-metrics { grid-template-columns: 1fr; }
+}

@@ -15,7 +15,7 @@
                 <t t-foreach="sidebar_items" t-as="item">
                     <li>
                         <a t-att-href="item['url']"
-                           t-attf-class="#{'active' if item.get('key') == active_item else ''}">
+                           t-attf-class="#{'active' if item.get('key') == (active_sidebar_key or active_item) else ''}">
                             <span class="nav-icon"><t t-esc="item['icon']"/></span>
                             <span class="sidebar-label"><t t-esc="item['label']"/></span>
                             <t t-if="item.get('badge')">

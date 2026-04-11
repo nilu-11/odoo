@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Teacher Home / Dashboard
+         Teacher Home — Google Classroom-style card grid.
+
+         Pure grid. No stats strip, no sidebar widgets. Clicking a
+         card routes into /portal/teacher/classroom/<id>/stream.
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_home_page" name="Teacher Home">
         <t t-call="edu_portal.portal_layout">
-            <div class="stat-grid">
-                <div class="card">
-                    <p class="card-title">My Classrooms</p>
-                    <p class="card-value"><t t-esc="total_classrooms"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Total Students</p>
-                    <p class="card-value"><t t-esc="total_students"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Marks Due</p>
-                    <p class="card-value"><t t-esc="pending_marks"/></p>
-                </div>
-            </div>
-            <div class="dashboard-grid">
-                <div>
-                    <h2 class="page-title">My Classrooms</h2>
-                    <t t-if="classroom_cards">
+            <div class="classroom-grid-wrap">
+                <h2 class="page-title">My Classrooms</h2>
+                <t t-if="classroom_cards">
+                    <div class="classroom-grid">
                         <t t-foreach="classroom_cards" t-as="card">
                             <t t-call="edu_portal.classroom_card_component">
                                 <t t-set="classroom" t-value="card['classroom']"/>
@@ -31,99 +20,16 @@
                                 <t t-set="detail_url" t-value="card['detail_url']"/>
                             </t>
                         </t>
-                    </t>
-                    <t t-else="">
-                        <t t-call="edu_portal.empty_state_component">
-                            <t t-set="icon" t-value="'📚'"/>
-                            <t t-set="title" t-value="'No classrooms assigned'"/>
-                            <t t-set="message" t-value="'Classrooms will appear here once an administrator assigns you as the teacher.'"/>
-                        </t>
-                    </t>
-                </div>
-                <aside>
-                    <div class="card">
-                        <p class="card-title">Quick Links</p>
-                        <a class="btn btn-secondary btn-sm" href="/portal/teacher/classrooms">All Classrooms</a>
                     </div>
-                </aside>
-            </div>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Classrooms List
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_classrooms_page" name="Teacher Classrooms">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">My Classrooms</h2>
-            <t t-if="classrooms">
-                <t t-foreach="classrooms" t-as="cl">
-                    <a t-attf-href="/portal/teacher/classroom/#{cl.id}" class="classroom-card">
-                        <div class="classroom-card-info">
-                            <h3><t t-esc="cl.name"/></h3>
-                            <p>
-                                <t t-esc="cl.batch_id.name"/> ·
-                                <t t-esc="cl.section_id.name"/> ·
-                                <t t-esc="cl.subject_id.name"/>
-                            </p>
-                        </div>
-                        <span class="classroom-card-badge badge-muted"><t t-esc="cl.state.title()"/></span>
-                    </a>
                 </t>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'📚'"/>
-                    <t t-set="title" t-value="'No classrooms'"/>
-                    <t t-set="message" t-value="'No classrooms have been assigned to you yet.'"/>
-                </t>
-            </t>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Classroom Detail
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_classroom_detail_page" name="Teacher Classroom Detail">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title"><t t-esc="classroom.name"/></h2>
-            <div class="stat-grid">
-                <div class="card">
-                    <p class="card-title">Students</p>
-                    <p class="card-value"><t t-esc="len(students)"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">State</p>
-                    <p class="card-value"><t t-esc="classroom.state.title()"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Section</p>
-                    <p class="card-value"><t t-esc="classroom.section_id.name"/></p>
-                </div>
-            </div>
-
-            <div class="card">
-                <p class="card-title">Quick Actions</p>
-                <a class="btn btn-primary btn-sm" t-attf-href="/portal/teacher/attendance/#{classroom.id}">Mark Attendance</a>
-                <a class="btn btn-secondary btn-sm" t-attf-href="/portal/teacher/assessments/#{classroom.id}">View Assessments</a>
-                <a class="btn btn-secondary btn-sm" t-attf-href="/portal/teacher/roster/#{classroom.id}">Student Roster</a>
-            </div>
-
-            <h3 class="page-title" style="margin-top:30px;">Students</h3>
-            <table class="data-table">
-                <thead>
-                    <tr><th>Roll</th><th>Name</th><th>Student ID</th></tr>
-                </thead>
-                <tbody>
-                    <t t-foreach="students" t-as="s">
-                        <tr>
-                            <td><t t-esc="s.admission_number or ''"/></td>
-                            <td><t t-esc="s.display_name"/></td>
-                            <td><t t-esc="s.student_no or ''"/></td>
-                        </tr>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'📚'"/>
+                        <t t-set="title" t-value="'No classrooms assigned'"/>
+                        <t t-set="message" t-value="'Classrooms will appear here once an administrator assigns you as the teacher.'"/>
                     </t>
-                </tbody>
-            </table>
+                </t>
+            </div>
         </t>
     </template>
 
@@ -148,242 +54,11 @@
                 </div>
                 <div class="card">
                     <p class="card-title">Staff Type</p>
-                    <p class="card-value" style="font-size:18px;"><t t-esc="dict(employee._fields['staff_type'].selection).get(employee.staff_type, '—')"/></p>
+                    <p class="card-value" style="font-size:18px;">
+                        <t t-esc="dict(employee._fields['staff_type'].selection).get(employee.staff_type, '—')"/>
+                    </p>
                 </div>
             </div>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Attendance Entry Page
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_attendance_page" name="Teacher Attendance">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">Attendance · <t t-esc="classroom.name"/></h2>
-            <t t-if="not sheet">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'✓'"/>
-                    <t t-set="title" t-value="'No active attendance sheet'"/>
-                    <t t-set="message" t-value="'An attendance sheet needs to be created for today before you can mark attendance.'"/>
-                </t>
-            </t>
-            <t t-else="">
-                <div class="card">
-                    <p class="card-title">Session</p>
-                    <p class="card-value" style="font-size:18px;"><t t-esc="sheet.session_date"/></p>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th style="width:80px;">Roll</th>
-                            <th>Student</th>
-                            <th style="width:320px;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="sheet.line_ids" t-as="line">
-                            <t t-call="edu_portal.teacher_attendance_row_partial">
-                                <t t-set="line" t-value="line"/>
-                            </t>
-                        </t>
-                    </tbody>
-                </table>
-            </t>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         HTMX Partial: Single attendance row
-         Returned when a status is clicked — replaces the row.
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_attendance_row_partial" name="Teacher Attendance Row">
-        <tr t-att-data-line-id="line.id" data-attendance-row="1" tabindex="0">
-            <td><t t-esc="line.roll_number or ''"/></td>
-            <td><t t-esc="line.student_id.display_name"/></td>
-            <td>
-                <t t-foreach="[('present','P','active-present'), ('absent','A','active-absent'), ('late','L','active-late'), ('excused','E','active-excused')]" t-as="opt">
-                    <form hx-post="/portal/teacher/attendance/mark"
-                          hx-target="closest tr"
-                          hx-swap="outerHTML"
-                          style="display:inline">
-                        <input type="hidden" name="line_id" t-att-value="line.id"/>
-                        <input type="hidden" name="status" t-att-value="opt[0]"/>
-                        <button type="submit"
-                                t-attf-class="status-btn #{opt[2] if line.status == opt[0] else ''}">
-                            <t t-esc="opt[1]"/>
-                        </button>
-                    </form>
-                </t>
-            </td>
-        </tr>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Marks Entry List
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_marks_list_page" name="Teacher Marks List">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">Exam Marks Entry</h2>
-            <t t-if="papers">
-                <t t-foreach="papers" t-as="p">
-                    <a t-attf-href="/portal/teacher/marks/#{p.id}" class="classroom-card">
-                        <div class="classroom-card-info">
-                            <h3><t t-esc="p.display_name"/></h3>
-                            <p>
-                                <t t-esc="p.exam_session_id.name"/> ·
-                                Max: <t t-esc="p.max_marks"/>
-                            </p>
-                        </div>
-                        <span class="classroom-card-badge badge-warning">Entry Open</span>
-                    </a>
-                </t>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'📝'"/>
-                    <t t-set="title" t-value="'No marks entry open'"/>
-                    <t t-set="message" t-value="'When exam papers are in marks_entry state, they will appear here.'"/>
-                </t>
-            </t>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Marks Entry Grid
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_marks_entry_page" name="Teacher Marks Entry">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title"><t t-esc="paper.display_name"/></h2>
-            <div class="stat-grid">
-                <div class="card">
-                    <p class="card-title">Max Marks</p>
-                    <p class="card-value"><t t-esc="paper.max_marks"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Pass Marks</p>
-                    <p class="card-value"><t t-esc="paper.pass_marks"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Students</p>
-                    <p class="card-value"><t t-esc="len(marksheets)"/></p>
-                </div>
-            </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th style="width:80px;">Roll</th>
-                        <th>Student</th>
-                        <th style="width:160px;">Marks</th>
-                        <th style="width:120px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <t t-foreach="marksheets" t-as="ms">
-                        <t t-call="edu_portal.teacher_marks_row_partial">
-                            <t t-set="marksheet" t-value="ms"/>
-                            <t t-set="error" t-value="None"/>
-                        </t>
-                    </t>
-                </tbody>
-            </table>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         HTMX Partial: Single marks row
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_marks_row_partial" name="Teacher Marks Row">
-        <tr t-att-data-marksheet-id="marksheet.id">
-            <td><t t-esc="marksheet.student_id.admission_number or ''"/></td>
-            <td><t t-esc="marksheet.student_id.display_name"/></td>
-            <td>
-                <form hx-post="/portal/teacher/marks/save"
-                      hx-target="closest tr"
-                      hx-swap="outerHTML"
-                      hx-trigger="change from:input"
-                      style="display:inline">
-                    <input type="hidden" name="marksheet_id" t-att-value="marksheet.id"/>
-                    <input type="number"
-                           name="marks_obtained"
-                           class="input"
-                           style="width:120px;"
-                           step="0.01"
-                           min="0"
-                           t-att-max="marksheet.max_marks"
-                           t-att-value="marksheet.marks_obtained"
-                           data-marks-input="1"/>
-                </form>
-                <t t-if="error">
-                    <div style="color:#fee2e2; font-size:11px; margin-top:4px;"><t t-esc="error"/></div>
-                </t>
-            </td>
-            <td>
-                <t t-if="marksheet.marks_obtained &gt;= marksheet.pass_marks">
-                    <span class="classroom-card-badge badge-success">Pass</span>
-                </t>
-                <t t-else="">
-                    <span class="classroom-card-badge badge-danger">Fail</span>
-                </t>
-            </td>
-        </tr>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Assessments List (all classrooms)
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_assessments_list_page" name="Teacher Assessments List">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">Continuous Assessments</h2>
-            <p style="color:var(--text-muted); margin-bottom:20px;">Select a classroom to view assessments.</p>
-            <t t-foreach="classrooms" t-as="cl">
-                <a t-attf-href="/portal/teacher/assessments/#{cl.id}" class="classroom-card">
-                    <div class="classroom-card-info">
-                        <h3><t t-esc="cl.name"/></h3>
-                        <p><t t-esc="cl.section_id.name"/> · <t t-esc="cl.subject_id.name"/></p>
-                    </div>
-                    <span class="classroom-card-badge badge-muted">View</span>
-                </a>
-            </t>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Classroom Assessments
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_classroom_assessments_page" name="Teacher Classroom Assessments">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">Assessments · <t t-esc="classroom.name"/></h2>
-            <t t-if="records">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Student</th>
-                            <th>Category</th>
-                            <th>Marks</th>
-                            <th>State</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="records" t-as="r">
-                            <tr>
-                                <td><t t-esc="r.assessment_date"/></td>
-                                <td><t t-esc="r.student_id.display_name"/></td>
-                                <td><t t-esc="r.category_id.name"/></td>
-                                <td><t t-esc="r.marks_obtained"/> / <t t-esc="r.max_marks"/></td>
-                                <td><span class="classroom-card-badge badge-muted"><t t-esc="r.state.title()"/></span></td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'✅'"/>
-                    <t t-set="title" t-value="'No assessments yet'"/>
-                    <t t-set="message" t-value="'Use the backend bulk generate wizard to create assessment records.'"/>
-                </t>
-            </t>
         </t>
     </template>
 </odoo>
