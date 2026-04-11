@@ -105,10 +105,13 @@ class TeacherClassroomController(http.Controller):
     def teacher_classroom_stream_pin(self, post_id, **kw):
         if get_portal_role(request.env.user) != 'teacher':
             return request.not_found()
+        employee = get_teacher_employee(request.env.user)
+        if not employee:
+            return request.not_found()
         post = request.env['edu.classroom.post'].sudo().browse(post_id)
         if not post.exists():
             return request.not_found()
-        if post.classroom_id.teacher_id != request.env.user:
+        if post.classroom_id.teacher_id != employee:
             return request.not_found()
         post.action_toggle_pin()
         return request.redirect(
@@ -123,10 +126,13 @@ class TeacherClassroomController(http.Controller):
     def teacher_classroom_stream_archive(self, post_id, **kw):
         if get_portal_role(request.env.user) != 'teacher':
             return request.not_found()
+        employee = get_teacher_employee(request.env.user)
+        if not employee:
+            return request.not_found()
         post = request.env['edu.classroom.post'].sudo().browse(post_id)
         if not post.exists():
             return request.not_found()
-        if post.classroom_id.teacher_id != request.env.user:
+        if post.classroom_id.teacher_id != employee:
             return request.not_found()
         classroom_id = post.classroom_id.id
         post.action_archive_post()
@@ -256,12 +262,15 @@ class TeacherClassroomController(http.Controller):
     def teacher_classroom_exam_save(self, marksheet_id, marks_obtained, **kw):
         if get_portal_role(request.env.user) != 'teacher':
             return request.not_found()
+        employee = get_teacher_employee(request.env.user)
+        if not employee:
+            return request.not_found()
         marksheet = request.env['edu.exam.marksheet'].sudo().browse(int(marksheet_id))
         if not marksheet.exists():
             return request.not_found()
         # Verify the teacher owns a classroom matching this paper's batch/curriculum
         classroom = request.env['edu.classroom'].sudo().search([
-            ('teacher_id', '=', request.env.user.id),
+            ('teacher_id', '=', employee.id),
             ('batch_id', '=', marksheet.exam_paper_id.batch_id.id),
             ('curriculum_line_id', '=', marksheet.exam_paper_id.curriculum_line_id.id),
             ('section_id', '=', marksheet.section_id.id),

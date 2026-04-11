@@ -24,9 +24,9 @@ class TeacherPortalController(http.Controller):
     def _guard_teacher(self):
         """Return the teacher's hr.employee or None if not authorised.
 
-        NOTE: the returned employee is for display only. Auth comparisons
-        against classroom.teacher_id / exam_paper.teacher_id must use
-        ``request.env.user`` — those fields are m2o to res.users.
+        With edu_hr installed, edu.classroom.teacher_id (and the exam /
+        attendance / assessment teacher_id fields) are m2o to hr.employee,
+        so auth comparisons use this record rather than the res.users.
         """
         user = request.env.user
         if get_portal_role(user) != 'teacher':
@@ -41,10 +41,9 @@ class TeacherPortalController(http.Controller):
         if not employee:
             return request.redirect('/portal')
 
-        # Classrooms owned by the current user (teacher_id is res.users)
         Classroom = request.env['edu.classroom'].sudo()
         ExamPaper = request.env['edu.exam.paper'].sudo()
-        classrooms = Classroom.search([('teacher_id', '=', request.env.user.id)])
+        classrooms = Classroom.search([('teacher_id', '=', employee.id)])
 
         classroom_cards = []
         for cl in classrooms:

@@ -13,11 +13,13 @@ models directly — they call ``build_portal_context``, which internally
 reads the registry, resolves visibility/badge methods, and hands back
 a fully-populated context dict.
 
-Authorship note — ``classroom.teacher_id`` / ``exam_paper.teacher_id``
-are ``Many2one('res.users')`` across the EMIS codebase. All auth
-comparisons here use ``request.env.user`` (never an ``hr.employee``
-record). The ``get_teacher_employee`` helper still exists for display
-purposes only.
+Authorship note — the ``edu_hr`` module overrides
+``edu.classroom.teacher_id`` (and exam paper / attendance /
+assessment ``teacher_id``) from ``res.users`` to ``hr.employee``. All
+auth comparisons here therefore resolve the current user to their
+linked ``hr.employee`` via ``get_teacher_employee`` and compare that
+record to ``teacher_id``. If a teacher user has no linked employee,
+they are treated as having no classrooms.
 """
 from odoo.http import request
 
@@ -50,11 +52,13 @@ def is_sidebar_collapsed():
 # ─── Entity lookups ────────────────────────────────────────────────
 
 def get_teacher_employee(user):
-    """Return the hr.employee linked to this user (display-only).
+    """Return the hr.employee linked to this user (used for auth).
 
-    NEVER use the returned record for auth comparisons against
-    ``edu.classroom.teacher_id`` or similar fields — those are m2o to
-    ``res.users``. Use ``request.env.user`` for auth.
+    With ``edu_hr`` installed, ``edu.classroom.teacher_id`` and friends
+    are m2o to ``hr.employee``, so this record is what every ownership
+    check must compare against. Returns ``None`` if no employee is
+    linked — the caller is then responsible for treating the user as
+    unauthorised.
     """
     emp = request.env['hr.employee'].sudo().search(
         [('user_id', '=', user.id)], limit=1,
@@ -116,8 +120,10 @@ def guard_classroom_access(classroom_id, role):
     Returns the ``edu.classroom`` record on success, or ``None`` if the
     classroom does not exist or the user is not authorised.
 
-    * ``teacher`` → ``classroom.teacher_id`` must equal the current user
-      (NOT their hr.employee — the field is m2o to ``res.users``).
+    * ``teacher`` → the user's linked ``hr.employee`` must equal
+      ``classroom.teacher_id``. With ``edu_hr`` installed, that field
+      is m2o to ``hr.employee``, so auth resolves through the employee
+      — not the user record.
     * ``student`` → the current user's student record must have an
       ``active`` progression history whose ``section_id`` matches the
       classroom's ``section_id``.
@@ -129,7 +135,10 @@ def guard_classroom_access(classroom_id, role):
     user = request.env.user
 
     if role == 'teacher':
-        return classroom if classroom.teacher_id == user else None
+        employee = get_teacher_employee(user)
+        if not employee:
+            return None
+        return classroom if classroom.teacher_id == employee else None
 
     if role == 'student':
         student = get_student_record(user)
@@ -277,12 +286,14 @@ def base_context(active_item=None, page_title=None):
 def teacher_owns_classroom(user_or_employee, classroom):
     """Legacy compat — returns True if the current user owns the classroom.
 
-    The old callers passed an ``hr.employee`` here, which silently
-    compared as False against ``classroom.teacher_id`` (a ``res.users``
-    m2o). This shim now compares the CURRENT request user against the
-    classroom, ignoring the passed argument for correctness. Removed in
-    Phase 11 once all callers have migrated to ``guard_classroom_access``.
+    With ``edu_hr`` installed, ``classroom.teacher_id`` is m2o to
+    ``hr.employee``. This shim resolves the current request user to
+    their linked employee and compares to ``classroom.teacher_id``.
+    Removed once all callers have migrated to ``guard_classroom_access``.
     """
     if not classroom:
         return False
-    return classroom.teacher_id == request.env.user
+    employee = get_teacher_employee(request.env.user)
+    if not employee:
+        return False
+    return classroom.teacher_id == employee

@@ -212,7 +212,11 @@
     <record id="rule_edu_classroom_post_teacher_own" model="ir.rule">
         <field name="name">Portal Teacher: own classroom posts</field>
         <field name="model_id" ref="model_edu_classroom_post"/>
-        <field name="domain_force">[('classroom_id.teacher_id', '=', user.id)]</field>
+        <!--
+            edu_hr makes edu.classroom.teacher_id m2o to hr.employee,
+            so ownership is checked via the employee user_id back-ref.
+        -->
+        <field name="domain_force">[('classroom_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_teacher'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
