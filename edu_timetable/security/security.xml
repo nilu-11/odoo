@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="privilege_timetable_access" model="res.groups.privilege">
+        <field name="name">Timetable</field>
+        <field name="sequence">80</field>
+        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+    </record>
+
+    <record id="group_timetable_viewer" model="res.groups">
+        <field name="name">Viewer</field>
+        <field name="privilege_id" ref="privilege_timetable_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Read-only access to timetable records.</field>
+    </record>
+
+    <record id="group_timetable_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_timetable_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_timetable_viewer'))]"/>
+        <field name="comment">Can create and edit timetable slots for own classrooms.</field>
+    </record>
+
+    <record id="group_timetable_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="privilege_id" ref="privilege_timetable_access"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_timetable_user'))]"/>
+        <field name="comment">Full access to all timetables, rooms, periods, and templates.</field>
+    </record>
+</odoo>

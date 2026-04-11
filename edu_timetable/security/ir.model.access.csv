@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_room_viewer,edu.room viewer,model_edu_room,edu_timetable.group_timetable_viewer,1,0,0,0
+access_edu_room_user,edu.room user,model_edu_room,edu_timetable.group_timetable_user,1,0,0,0
+access_edu_room_admin,edu.room admin,model_edu_room,edu_timetable.group_timetable_admin,1,1,1,1
+access_edu_timetable_template_viewer,edu.timetable.template viewer,model_edu_timetable_template,edu_timetable.group_timetable_viewer,1,0,0,0
+access_edu_timetable_template_user,edu.timetable.template user,model_edu_timetable_template,edu_timetable.group_timetable_user,1,1,0,0
+access_edu_timetable_template_admin,edu.timetable.template admin,model_edu_timetable_template,edu_timetable.group_timetable_admin,1,1,1,1
+access_edu_timetable_period_viewer,edu.timetable.period viewer,model_edu_timetable_period,edu_timetable.group_timetable_viewer,1,0,0,0
+access_edu_timetable_period_user,edu.timetable.period user,model_edu_timetable_period,edu_timetable.group_timetable_user,1,1,1,1
+access_edu_timetable_period_admin,edu.timetable.period admin,model_edu_timetable_period,edu_timetable.group_timetable_admin,1,1,1,1
+access_edu_timetable_slot_viewer,edu.timetable.slot viewer,model_edu_timetable_slot,edu_timetable.group_timetable_viewer,1,0,0,0
+access_edu_timetable_slot_user,edu.timetable.slot user,model_edu_timetable_slot,edu_timetable.group_timetable_user,1,1,1,1
+access_edu_timetable_slot_admin,edu.timetable.slot admin,model_edu_timetable_slot,edu_timetable.group_timetable_admin,1,1,1,1
