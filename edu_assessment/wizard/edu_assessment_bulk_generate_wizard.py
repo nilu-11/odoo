@@ -51,9 +51,14 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
         default=100.0,
     )
     teacher_id = fields.Many2one(
-        comodel_name='res.users',
+        comodel_name='hr.employee',
         string='Teacher',
-        default=lambda self: self.env.user,
+        domain="[('is_teaching_staff', '=', True)]",
+        default=lambda self: self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        ),
+        help='Teacher who will own the generated assessment records. '
+             'Defaults to the current user\'s employee record.',
     )
 
     # ── Options ───────────────────────────────────────────────────────────────
@@ -99,9 +104,22 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
 
     @api.onchange('classroom_id')
     def _onchange_classroom_id(self):
-        if self.classroom_id and self.classroom_id.teacher_id:
-            if self.teacher_id == self.env.user:
-                self.teacher_id = self.classroom_id.teacher_id
+        """Prefer the classroom's assigned teacher when one is available.
+
+        The wizard is opened by a staff member who typically teaches
+        only some of their section's classrooms — the classroom override
+        ensures we credit the correct subject teacher for the records,
+        not whoever happens to be running the wizard. We only override
+        if the current teacher_id is the logged-in user's employee (the
+        field default), to avoid clobbering an explicit selection.
+        """
+        if not (self.classroom_id and self.classroom_id.teacher_id):
+            return
+        current_employee = self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        )
+        if not self.teacher_id or self.teacher_id == current_employee:
+            self.teacher_id = self.classroom_id.teacher_id
 
     # ── Generate action ───────────────────────────────────────────────────────
 
@@ -153,6 +171,22 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
         if classroom.program_term_id and hasattr(classroom.program_term_id, 'academic_year_id'):
             academic_year_id = classroom.program_term_id.academic_year_id.id
 
+        # Resolve teacher — wizard default or fallback to current user's
+        # employee. teacher_id on edu.continuous.assessment.record is
+        # m2o hr.employee (edu_hr override), so never fall back to a
+        # res.users id here.
+        resolved_teacher = self.teacher_id or self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        )
+        if not resolved_teacher:
+            raise UserError(
+                _(
+                    'Could not resolve a teacher. Either pick one on the '
+                    'wizard, or ask an administrator to link your user '
+                    'to an hr.employee record.'
+                )
+            )
+
         vals_list = []
         skipped = 0
         for history in histories:
@@ -176,7 +210,7 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
                 'academic_year_id': academic_year_id or (
                     history.academic_year_id.id if history.academic_year_id else False
                 ),
-                'teacher_id': self.teacher_id.id if self.teacher_id else self.env.user.id,
+                'teacher_id': resolved_teacher.id,
                 'assessment_date': self.assessment_date,
                 'max_marks': self.max_marks,
                 'marks_obtained': 0.0,
