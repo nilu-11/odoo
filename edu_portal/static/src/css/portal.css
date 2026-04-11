@@ -174,7 +174,9 @@ body.sidebar-collapsed .sidebar-badge {
     gap: 16px;
     position: sticky;
     top: 0;
-    z-index: 50;
+    /* Must be higher than .classroom-tabs (z:50) so the user-menu
+       dropdown hangs above the sticky tab bar inside a classroom hub. */
+    z-index: 60;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -249,10 +251,11 @@ body.sidebar-collapsed .sidebar-badge {
     color: var(--text-primary);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 6px 18px rgba(26, 34, 51, 0.12);
     min-width: 200px;
     padding: 8px;
     display: none;
+    z-index: 70;
 }
 
 .user-menu.open { display: block; }
@@ -545,6 +548,8 @@ body.sidebar-collapsed .sidebar-badge {
     .portal-sidebar {
         transform: translateX(-100%);
         width: var(--sidebar-width);
+        /* Above topbar (60) and user-menu (70) when the drawer is open. */
+        z-index: 110;
     }
     body.sidebar-open .portal-sidebar { transform: translateX(0); }
     body.sidebar-open::after {
@@ -552,7 +557,7 @@ body.sidebar-collapsed .sidebar-badge {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.5);
-        z-index: 90;
+        z-index: 100;
     }
     .portal-main { margin-left: 0 !important; }
     .stat-grid { grid-template-columns: 1fr 1fr; }

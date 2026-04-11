@@ -282,7 +282,7 @@
                             </div>
                             <div class="person-info">
                                 <strong><t t-esc="classroom.teacher_id.name"/></strong>
-                                <span><t t-esc="classroom.teacher_id.login"/></span>
+                                <span><t t-esc="classroom.teacher_id.work_email or classroom.subject_id.name"/></span>
                             </div>
                         </div>
                     </div>
