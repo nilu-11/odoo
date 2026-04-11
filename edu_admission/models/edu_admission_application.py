@@ -549,6 +549,10 @@ class EduAdmissionApplication(models.Model):
                  'fee_structure_id.line_ids.scholarship_allowed')
     def _compute_fee_preview(self):
         for rec in self:
+            # Once the fee is confirmed (offer accepted), the snapshot is frozen.
+            # Do not recompute — protects against fee structure edits after acceptance.
+            if rec.fee_confirmed:
+                continue
             if rec.fee_structure_id:
                 rec.base_total_fee = rec.fee_structure_id.total_amount
                 rec.scholarship_eligible_total = (
