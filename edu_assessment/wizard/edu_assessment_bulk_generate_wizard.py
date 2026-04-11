@@ -53,7 +53,6 @@ class EduAssessmentBulkGenerateWizard(models.TransientModel):
     teacher_id = fields.Many2one(
         comodel_name='hr.employee',
         string='Teacher',
-        domain="[('is_teaching_staff', '=', True)]",
         default=lambda self: self.env['hr.employee'].search(
             [('user_id', '=', self.env.uid)], limit=1,
         ),
