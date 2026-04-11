@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Placeholder — populated in Phase 3 (exam session integration) -->
+    <record id="view_edu_exam_session_form_timetable" model="ir.ui.view">
+        <field name="name">edu.exam.session.form.timetable</field>
+        <field name="model">edu.exam.session</field>
+        <field name="inherit_id" ref="edu_exam.view_edu_exam_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Scheduling">
+                    <field name="timetable_slot_id" readonly="1"/>
+                    <field name="room_id"/>
+                </group>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_schedule_on_timetable"
+                        type="object"
+                        string="Schedule on Timetable"
+                        class="oe_highlight"
+                        invisible="timetable_slot_id != False"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
