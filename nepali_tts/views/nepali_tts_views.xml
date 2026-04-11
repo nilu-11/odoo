@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="view_nepali_tts_form" model="ir.ui.view">
+        <field name="name">nepali.tts.form</field>
+        <field name="model">nepali.tts</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" placeholder="New"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="text"
+                               string="Nepali Text"
+                               placeholder="यहाँ नेपाली पाठ लेख्नुहोस्..."
+                               nolabel="1"
+                               widget="text"
+                               options="{'rows': 6}"
+                               style="font-size: 1.2rem;"/>
+                    </group>
+                    <widget name="tts_audio_player"/>
+                    <field name="audio_attachment_id" invisible="1"/>
+                    <field name="state" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_nepali_tts_list" model="ir.ui.view">
+        <field name="name">nepali.tts.list</field>
+        <field name="model">nepali.tts</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" string="Label"/>
+                <field name="create_date" string="Created On"/>
+                <field name="state" string="Status"
+                       decoration-success="state == 'generated'"
+                       decoration-muted="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_nepali_tts" model="ir.actions.act_window">
+        <field name="name">TTS Records</field>
+        <field name="res_model">nepali.tts</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="nepali_tts.TtsAudioPlayer">
+        <div class="o_tts_player mt-3">
+            <button
+                class="btn btn-primary"
+                t-att-disabled="!record.data.text || state.loading"
+                t-on-click="onGenerate"
+            >
+                <i t-attf-class="fa {{ state.loading ? 'fa-spinner fa-spin' : 'fa-volume-up' }} me-1"/>
+                <t t-if="state.loading">Generating...</t>
+                <t t-else="">Generate &amp; Play</t>
+            </button>
+
+            <t t-if="state.audioUrl">
+                <div class="mt-3">
+                    <audio t-ref="audio" controls="1" t-att-src="state.audioUrl" class="w-100"/>
+                </div>
+            </t>
+            <t t-elif="currentUrl">
+                <div class="mt-3">
+                    <audio controls="1" t-att-src="currentUrl" class="w-100"/>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

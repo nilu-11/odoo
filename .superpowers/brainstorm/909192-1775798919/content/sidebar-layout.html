@@ -1,0 +1,83 @@
+<h2>Which sidebar collapse style works best?</h2>
+<p class="subtitle">All three are collapsible with a hamburger toggle. They differ in how the sidebar behaves when collapsed.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">≡</div>
+        <div style="color: white; font-weight: bold; font-size: 14px;">EMIS Portal</div>
+      </div>
+      <div style="display: flex; gap: 10px; flex: 1; margin-top: 8px;">
+        <div style="width: 56px; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.5); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+        </div>
+        <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px;">
+          <div style="height: 6px; background: white; border-radius: 3px; width: 40%; margin-bottom: 8px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Icon Rail (Collapsed)</h3>
+      <p>When collapsed, sidebar shrinks to a narrow icon rail — icons remain visible. Clicking hamburger expands it back to show labels. <strong>Best for power users</strong> — always-on navigation without taking much space.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">≡</div>
+        <div style="color: white; font-weight: bold; font-size: 14px;">EMIS Portal</div>
+      </div>
+      <div style="display: flex; gap: 10px; flex: 1; margin-top: 8px; position: relative;">
+        <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px;">
+          <div style="height: 6px; background: white; border-radius: 3px; width: 40%; margin-bottom: 8px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Fully Hidden (Off-canvas)</h3>
+      <p>When collapsed, sidebar is completely hidden. Clicking hamburger slides it back in as an overlay. <strong>Best for content focus</strong> — maximum reading space when you don't need the menu.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">≡</div>
+        <div style="color: white; font-weight: bold; font-size: 14px;">EMIS Portal</div>
+      </div>
+      <div style="display: flex; gap: 10px; flex: 1; margin-top: 8px;">
+        <div style="width: 56px; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.5); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+          <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 6px;"></div>
+        </div>
+        <div style="position: absolute; left: 70px; top: 40px; width: 130px; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10;">
+          <div style="color: #1e293b; font-size: 10px; font-weight: bold; margin-bottom: 4px;">Dashboard</div>
+          <div style="height: 3px; background: #cbd5e1; border-radius: 2px; margin-bottom: 3px;"></div>
+          <div style="height: 3px; background: #cbd5e1; border-radius: 2px; margin-bottom: 3px;"></div>
+          <div style="height: 3px; background: #cbd5e1; border-radius: 2px;"></div>
+        </div>
+        <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px; margin-left: 120px;">
+          <div style="height: 6px; background: white; border-radius: 3px; width: 40%; margin-bottom: 8px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 4px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Icon Rail with Hover Tooltips</h3>
+      <p>Same as A but when collapsed, hovering over an icon shows a tooltip with the label and sub-items. <strong>Best of both worlds</strong> — maximum space + quick navigation.</p>
+    </div>
+  </div>
+</div>

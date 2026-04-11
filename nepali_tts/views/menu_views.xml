@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_nepali_tts_root"
+              name="Nepali TTS"
+              sequence="100"
+              web_icon="nepali_tts,static/description/icon.png"/>
+
+    <menuitem id="menu_nepali_tts_records"
+              name="TTS Records"
+              parent="menu_nepali_tts_root"
+              action="action_nepali_tts"
+              sequence="10"/>
+
+</odoo>

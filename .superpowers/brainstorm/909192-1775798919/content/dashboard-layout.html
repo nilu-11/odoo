@@ -1,0 +1,130 @@
+<h2>Which dashboard layout feels right?</h2>
+<p class="subtitle">Showing a <strong>teacher's dashboard</strong> as example — same layout would apply to student/parent with role-appropriate content.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; min-height: 280px;">
+      <div style="color: white; font-size: 13px; font-weight: bold; margin-bottom: 10px;">Welcome, Aarti Sharma</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+          <div style="color: white; font-size: 18px; font-weight: bold;">8</div>
+          <div style="color: rgba(255,255,255,0.8); font-size: 9px;">Classrooms</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+          <div style="color: white; font-size: 18px; font-weight: bold;">142</div>
+          <div style="color: rgba(255,255,255,0.8); font-size: 9px;">Students</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+          <div style="color: white; font-size: 18px; font-weight: bold;">3</div>
+          <div style="color: rgba(255,255,255,0.8); font-size: 9px;">Pending Sheets</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+          <div style="color: white; font-size: 18px; font-weight: bold;">2</div>
+          <div style="color: rgba(255,255,255,0.8); font-size: 9px;">Marks Due</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 12px;">
+        <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 6px;">QUICK ACTIONS</div>
+        <div style="display: flex; gap: 6px;">
+          <div style="background: rgba(255,255,255,0.3); border-radius: 6px; padding: 6px 10px; color: white; font-size: 9px;">Mark Attendance</div>
+          <div style="background: rgba(255,255,255,0.3); border-radius: 6px; padding: 6px 10px; color: white; font-size: 9px;">Enter Marks</div>
+          <div style="background: rgba(255,255,255,0.3); border-radius: 6px; padding: 6px 10px; color: white; font-size: 9px;">Add Assessment</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">TODAY'S CLASSES</div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 3px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px;"></div>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">RECENT ACTIVITY</div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; margin-bottom: 3px;"></div>
+          <div style="height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Stats + Quick Actions + Activity</h3>
+      <p>Top row of KPI cards (classrooms, students, pending tasks), quick action buttons, then two columns of today's schedule and recent activity feed. <strong>Action-oriented</strong> — helps teachers jump straight to what needs doing.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; min-height: 280px;">
+      <div style="color: white; font-size: 13px; font-weight: bold; margin-bottom: 10px;">Good morning, Aarti</div>
+      <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
+        <div style="color: rgba(255,255,255,0.7); font-size: 9px; font-weight: bold; margin-bottom: 6px;">NEXT CLASS</div>
+        <div style="color: white; font-size: 15px; font-weight: bold;">Grade 10 — Physics</div>
+        <div style="color: rgba(255,255,255,0.9); font-size: 10px;">Section A · Room 204 · 10:30 AM</div>
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <div style="background: white; border-radius: 6px; padding: 6px 10px; color: #667eea; font-size: 9px; font-weight: bold;">Mark Attendance</div>
+          <div style="background: rgba(255,255,255,0.3); border-radius: 6px; padding: 6px 10px; color: white; font-size: 9px;">View Roster</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">MY CLASSROOMS</div>
+          <div style="color: white; font-size: 18px; font-weight: bold;">8</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 8px;">4 with pending tasks</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">PENDING</div>
+          <div style="color: white; font-size: 18px; font-weight: bold;">5</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 8px;">Attendance &amp; marks</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">WEEK SUMMARY</div>
+          <div style="color: white; font-size: 18px; font-weight: bold;">94%</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 8px;">attendance done</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 4px;">UPCOMING EXAMS</div>
+          <div style="color: white; font-size: 18px; font-weight: bold;">3</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 8px;">next 7 days</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Next-Action Hero Card</h3>
+      <p>A large hero card at the top showing the user's next immediate action (next class to mark attendance, next marks deadline). Below it, a 2x2 grid of context cards. <strong>Context-oriented</strong> — tells you what to focus on right now.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; min-height: 280px;">
+      <div style="color: white; font-size: 13px; font-weight: bold; margin-bottom: 10px;">Dashboard</div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+        <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px;">
+          <div style="color: white; font-size: 10px; font-weight: bold; margin-bottom: 8px;">MY CLASSROOMS (8)</div>
+          <div style="background: rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: white; font-size: 9px;">Grade 10A · Physics</div>
+            <div style="background: rgba(255,100,100,0.5); border-radius: 3px; padding: 1px 4px; color: white; font-size: 8px;">Marks due</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: white; font-size: 9px;">Grade 10B · Physics</div>
+            <div style="color: rgba(255,255,255,0.6); font-size: 8px;">All caught up</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: white; font-size: 9px;">Grade 11A · Physics</div>
+            <div style="background: rgba(255,200,100,0.5); border-radius: 3px; padding: 1px 4px; color: white; font-size: 8px;">Attendance</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+            <div style="color: white; font-size: 16px; font-weight: bold;">5</div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 8px;">Tasks</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px; text-align: center;">
+            <div style="color: white; font-size: 16px; font-weight: bold;">142</div>
+            <div style="color: rgba(255,255,255,0.8); font-size: 8px;">Students</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Classroom-First List</h3>
+      <p>Main panel lists all classrooms with inline status badges (marks due, attendance pending). Side panel shows summary stats. <strong>Classroom-oriented</strong> — mirrors the backend view, one-click into each class.</p>
+    </div>
+  </div>
+</div>
