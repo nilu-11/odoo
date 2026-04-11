@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -175,10 +175,29 @@ class EduResultSession(models.Model):
         for rec in self:
             if rec.state != 'verified':
                 raise UserError('Session must be Verified before publishing.')
+
+            # Warn if unconfirmed assessment records exist in scope.
+            domain = [('state', '=', 'draft')]
+            if rec.batch_id:
+                domain.append(('batch_id', '=', rec.batch_id.id))
+            if rec.program_term_id:
+                domain.append(('program_term_id', '=', rec.program_term_id.id))
+            draft_count = self.env['edu.continuous.assessment.record'].search_count(domain)
+            if draft_count:
+                rec.message_post(
+                    body=_(
+                        '<b>Warning:</b> %d continuous assessment record(s) '
+                        'are still in <i>Draft</i> state for this batch/term. '
+                        'They were included in results as-is. '
+                        'Consider confirming or locking them before sharing results.'
+                    ) % draft_count,
+                    subtype_xmlid='mail.mt_note',
+                )
+
             rec.state = 'published'
             rec.published_on = fields.Datetime.now()
             rec.student_result_ids.write({'published_on': rec.published_on})
-            rec.message_post(body='Result published.')
+            rec.message_post(body=_('Result published.'))
 
     def action_close(self):
         for rec in self:
