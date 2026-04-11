@@ -1,1 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edu_portal_sidebar_item_admin,edu.portal.sidebar.item admin,model_edu_portal_sidebar_item,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_portal_sidebar_item_user,edu.portal.sidebar.item read internal,model_edu_portal_sidebar_item,base.group_user,1,0,0,0
+access_edu_portal_sidebar_item_portal,edu.portal.sidebar.item read portal,model_edu_portal_sidebar_item,base.group_portal,1,0,0,0
+access_edu_portal_classroom_tab_admin,edu.portal.classroom.tab admin,model_edu_portal_classroom_tab,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_portal_classroom_tab_user,edu.portal.classroom.tab read internal,model_edu_portal_classroom_tab,base.group_user,1,0,0,0
+access_edu_portal_classroom_tab_portal,edu.portal.classroom.tab read portal,model_edu_portal_classroom_tab,base.group_portal,1,0,0,0
