@@ -228,7 +228,15 @@ class EduBatchPromotionWizard(models.TransientModel):
             subtype_xmlid='mail.mt_note',
         )
 
-        # ── 8. Success notification ───────────────────────────────────────────
+        # ── 8. Auto-generate classrooms when sections are available ──────────
+        Classroom = self.env.get('edu.classroom')
+        if Classroom is not None and self.section_mode == 'keep_same_section':
+            sections = new_histories.mapped('section_id').filtered(lambda s: s)
+            next_term = self.next_program_term_id
+            for section in sections:
+                Classroom._generate_classrooms_for_section(section, next_term)
+
+        # ── 9. Success notification ───────────────────────────────────────────
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
