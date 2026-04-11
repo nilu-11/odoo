@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_edu_timetable_root"
+              name="Timetable"
+              sequence="46"
+              groups="edu_timetable.group_timetable_viewer"/>
+
+    <menuitem id="menu_edu_timetable_schedule"
+              name="Schedule"
+              parent="menu_edu_timetable_root"
+              sequence="10"/>
+
+    <menuitem id="menu_edu_timetable_template"
+              name="Templates"
+              parent="menu_edu_timetable_schedule"
+              action="action_edu_timetable_template"
+              sequence="10"/>
+
+    <menuitem id="menu_edu_timetable_slot"
+              name="Slots"
+              parent="menu_edu_timetable_schedule"
+              action="action_edu_timetable_slot"
+              sequence="20"/>
+
+    <menuitem id="menu_edu_timetable_configuration"
+              name="Configuration"
+              parent="menu_edu_timetable_root"
+              sequence="90"
+              groups="edu_timetable.group_timetable_admin"/>
+
+    <menuitem id="menu_edu_room"
+              name="Rooms"
+              parent="menu_edu_timetable_configuration"
+              action="action_edu_room"
+              sequence="10"/>
+</odoo>
