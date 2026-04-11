@@ -209,22 +209,27 @@
                         (<t t-esc="len(classmates)"/>)
                     </h3>
                     <t t-if="classmates">
-                        <div class="people-grid">
-                            <t t-foreach="classmates" t-as="cm">
-                                <div class="person-card">
-                                    <div class="person-avatar">
-                                        <t t-esc="cm.display_name[0].upper() if cm.display_name else '?'"/>
-                                    </div>
-                                    <div class="person-info">
-                                        <strong><t t-esc="cm.display_name"/></strong>
-                                    </div>
-                                </div>
-                            </t>
-                        </div>
+                        <table class="people-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:48px;">#</th>
+                                    <th>Name</th>
+                                    <th>Student ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="classmates" t-as="cm">
+                                    <tr>
+                                        <td><t t-esc="cm_index + 1"/></td>
+                                        <td><t t-esc="cm.display_name"/></td>
+                                        <td><t t-esc="cm.student_no or ''"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
                     </t>
                     <t t-else="">
                         <t t-call="edu_portal.empty_state_component">
-                            <t t-set="icon" t-value="'👥'"/>
                             <t t-set="title" t-value="'No classmates yet'"/>
                             <t t-set="message" t-value="'Your classmates will appear here.'"/>
                         </t>

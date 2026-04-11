@@ -293,23 +293,31 @@
                         (<t t-esc="len(students)"/>)
                     </h3>
                     <t t-if="students">
-                        <div class="people-grid">
-                            <t t-foreach="students" t-as="st">
-                                <div class="person-card">
-                                    <div class="person-avatar">
-                                        <t t-esc="st.display_name[0].upper() if st.display_name else '?'"/>
-                                    </div>
-                                    <div class="person-info">
-                                        <strong><t t-esc="st.display_name"/></strong>
-                                        <span><t t-esc="st.student_no or ''"/></span>
-                                    </div>
-                                </div>
-                            </t>
-                        </div>
+                        <table class="people-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:48px;">#</th>
+                                    <th>Name</th>
+                                    <th>Student ID</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="students" t-as="st">
+                                    <tr>
+                                        <td><t t-esc="st_index + 1"/></td>
+                                        <td><t t-esc="st.display_name"/></td>
+                                        <td><t t-esc="st.student_no or ''"/></td>
+                                        <td><t t-esc="st.partner_id.email or ''"/></td>
+                                        <td><t t-esc="st.partner_id.phone or ''"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
                     </t>
                     <t t-else="">
                         <t t-call="edu_portal.empty_state_component">
-                            <t t-set="icon" t-value="'👥'"/>
                             <t t-set="title" t-value="'No students enrolled'"/>
                             <t t-set="message" t-value="'Students will appear here once they are placed in this section.'"/>
                         </t>

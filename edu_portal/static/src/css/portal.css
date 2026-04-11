@@ -733,8 +733,8 @@ body.sidebar-collapsed .sidebar-badge {
     white-space: nowrap;
 }
 
-/* ─── Attendance / marks / assessments tables ────────────── */
-.attendance-table, .marks-table, .assessment-table, .result-table {
+/* ─── Attendance / marks / assessments / people tables ──── */
+.attendance-table, .marks-table, .assessment-table, .result-table, .people-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--bg-white);
@@ -742,7 +742,7 @@ body.sidebar-collapsed .sidebar-badge {
     border-radius: var(--radius-md);
     overflow: hidden;
 }
-.attendance-table th, .marks-table th, .assessment-table th, .result-table th {
+.attendance-table th, .marks-table th, .assessment-table th, .result-table th, .people-table th {
     text-align: left;
     padding: 10px 14px;
     font-size: 12px;
@@ -753,7 +753,7 @@ body.sidebar-collapsed .sidebar-badge {
     background: var(--bg-light);
     border-bottom: 1px solid var(--border-color);
 }
-.attendance-table td, .marks-table td, .assessment-table td, .result-table td {
+.attendance-table td, .marks-table td, .assessment-table td, .result-table td, .people-table td {
     padding: 12px 14px;
     font-size: 14px;
     border-bottom: 1px solid var(--border-color);
@@ -761,7 +761,9 @@ body.sidebar-collapsed .sidebar-badge {
 .attendance-table tr:last-child td,
 .marks-table tr:last-child td,
 .assessment-table tr:last-child td,
-.result-table tr:last-child td { border-bottom: none; }
+.result-table tr:last-child td,
+.people-table tr:last-child td { border-bottom: none; }
+.people-table tbody tr:hover td { background: var(--bg-light); }
 
 .attendance-status-cell { display: flex; gap: 6px; }
 .attendance-btn {
