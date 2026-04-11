@@ -45,13 +45,27 @@ class TeacherPortalController(http.Controller):
         ExamPaper = request.env['edu.exam.paper'].sudo()
         classrooms = Classroom.search([('teacher_id', '=', employee.id)])
 
+        # Batch the marks_due check — one query instead of one per classroom.
+        batch_ids = [cl.batch_id.id for cl in classrooms if cl.batch_id]
+        cl_line_ids = [cl.curriculum_line_id.id for cl in classrooms if cl.curriculum_line_id]
+        if batch_ids and cl_line_ids:
+            papers = ExamPaper.search_read(
+                [
+                    ('batch_id', 'in', batch_ids),
+                    ('curriculum_line_id', 'in', cl_line_ids),
+                    ('state', '=', 'marks_entry'),
+                ],
+                fields=['batch_id', 'curriculum_line_id'],
+            )
+            marks_due_keys = {
+                (p['batch_id'][0], p['curriculum_line_id'][0]) for p in papers
+            }
+        else:
+            marks_due_keys = set()
+
         classroom_cards = []
         for cl in classrooms:
-            marks_due = ExamPaper.search_count([
-                ('batch_id', '=', cl.batch_id.id),
-                ('curriculum_line_id', '=', cl.curriculum_line_id.id),
-                ('state', '=', 'marks_entry'),
-            ])
+            marks_due = (cl.batch_id.id, cl.curriculum_line_id.id) in marks_due_keys
             if marks_due:
                 status_label, status_class = 'Marks Due', 'badge-danger'
             elif cl.state == 'active':
