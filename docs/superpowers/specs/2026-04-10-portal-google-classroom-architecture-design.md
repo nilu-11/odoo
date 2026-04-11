@@ -73,9 +73,28 @@ Two new models in `edu_portal`.
 
 Dotted path of form `edu.some.model.method_name`. The portal helper looks up the model via `self.env['edu.some.model']` and calls the method. If the model isn't in the registry (module not installed), the record is treated as visible-with-no-badge — never crashes the portal. Routes for missing modules will still 404 if visited, which is correct.
 
+### Method resolution — dotted path parsing
+
+Model names contain dots (`edu.portal.sidebar.item`), so dotted paths must be split on the **last** dot only: everything before is the model name, everything after is the method name. Resolution:
+
+```python
+model_name, method_name = dotted.rsplit('.', 1)
+try:
+    Model = self.env[model_name]              # KeyError if module missing
+    method = getattr(Model, method_name)      # AttributeError if renamed
+except (KeyError, AttributeError):
+    continue  # silent skip — record treated as visible-no-badge
+```
+
+The method is called as a regular Odoo model method (`self.env[model].method()`) — **not** a Python `@classmethod`. It runs with the current environment and reads `self.env.user` for the actor.
+
 ### Seeding the built-ins
 
 `edu_portal/data/portal_sidebar_data.xml` and `edu_portal/data/portal_classroom_tabs_data.xml` ship records for all built-in sidebar items and classroom tabs. Bridge modules only add new ones.
+
+Both seed files load with **`noupdate="1"`** so admin edits to `active`, `sequence`, `label`, etc. survive module updates (`-u edu_portal`).
+
+**Classroom tab seeding** — because permission logic and templates diverge by role, each of the 6 built-in tabs ships as **two records** — one with `role='teacher'` and one with `role='student'`. The seed file therefore contains 12 `edu.portal.classroom.tab` records. `route_pattern` substitutes only `{classroom_id}` at render time; the role is baked into the record itself.
 
 ## Rendering Pipeline
 
@@ -140,11 +159,25 @@ def guard_classroom_access(classroom_id, role):
     """Return (classroom, actor) or redirect/404."""
 ```
 
-- Teacher → loads classroom, verifies `classroom.teacher_id == current_employee`
-- Student → loads classroom, verifies the student's active progression history has `section_id == classroom.section_id`
+- **Teacher** → loads classroom, verifies `classroom.teacher_id == request.env.user`
+- **Student** → loads classroom, verifies the student has an `active` progression history with `section_id == classroom.section_id`
 - Anything else → 404
 
 Every tab handler calls this as its first line.
+
+#### ⚠️ Pre-existing bug fix — `teacher_id` is `res.users`, not `hr.employee`
+
+`edu.classroom.teacher_id`, `edu.exam.paper.teacher_id`, `edu.attendance.register.teacher_id`, `edu.attendance.sheet.teacher_id`, and `edu.continuous.assessment.record.teacher_id` are all `Many2one('res.users')`.
+
+The current `edu_portal` code (pre-refactor) has a latent bug — `helpers.py::teacher_owns_classroom` compares `classroom.teacher_id == employee` where `employee` is an `hr.employee` record, so the equality is always False across model types. Similarly, existing `search_count([('teacher_id', '=', employee.id)])` calls in `teacher.py` pass an `hr.employee` id into a `res.users` field. These only happen to work when the user_id and employee_id match by coincidence.
+
+**The refactor fixes this.** The new guard, badge methods, and search domains all use `request.env.user` (or `request.env.user.id`) for auth checks against `teacher_id`. The `hr.employee` record is still fetched via `get_teacher_employee()` but only for display data and for linking to HR records — **never for auth comparisons**.
+
+Every rewritten site must use `user` for teacher equality and `employee` only for display. This includes the badge methods (§"Badge counts"), every tab handler, and the Stream model's teacher access rule (§"Stream — `edu.classroom.post`").
+
+#### Student guard — relies on progression constraint
+
+`edu.student.progression.history` has `@api.constrains('student_id', 'state')` enforcing at most one `active` row per student. The student guard therefore does `search([('student_id', '=', student.id), ('state', '=', 'active'), ('section_id', '=', classroom.section_id.id)], limit=1)` and treats a match as authorization. If the constraint is ever relaxed, this guard must be revisited.
 
 ### Tab behavior summary
 
@@ -155,7 +188,9 @@ Every tab handler calls this as its first line.
 | **Exams** | Exam papers list → click for marks entry | Student's marksheets for this classroom |
 | **Assessments** | Continuous-assessment records, inline edit | Student's assessment records |
 | **Results** | Published results table (all students) | Student's own result card |
-| **People** | Teacher card + grid of student cards | Same, read-only |
+| **People** | This classroom's teacher card + grid of student cards for the section | Same, read-only |
+
+**People tab scope.** Because an `edu.classroom` is one *section × subject × term* tuple, it has exactly one `teacher_id`. The People tab shows **only this classroom's teacher** — not all teachers of the section. A student who wants to see another subject's teacher opens the corresponding classroom card. This is intentional and matches Google Classroom's per-class People page.
 
 ### Home page
 
@@ -163,7 +198,11 @@ Every tab handler calls this as its first line.
 
 ### Badge counts
 
-Existing inline `search_count()` calls for sidebar badges become `badge_method` callables on registry records. Example: the `classrooms` sidebar item points its `badge_method` at `edu.classroom.portal_teacher_open_badge` — a new classmethod returning the count for the current user. Each model owns the badge math for its own domain.
+Existing inline `search_count()` calls for sidebar badges become `badge_method` callables on registry records. Example: the `classrooms` sidebar item points its `badge_method` at `edu.classroom.portal_teacher_open_badge` — a new **model method** (not a Python `@classmethod`) returning the count for the current user. Each model owns the badge math for its own domain.
+
+Badge resolution happens inside `build_portal_context()` at page-render time. Counts therefore refresh **only on full page loads** — not reactively via HTMX polling. This is an intentional simplification; per-badge live refresh is out of scope.
+
+All teacher-side badge methods must filter by `self.env.user` (not employee id) — see the `teacher_id` field-type note in §"Shared guard helper".
 
 ## Stream — `edu.classroom.post`
 
@@ -175,7 +214,7 @@ The only genuinely new feature.
 |---|---|---|
 | `classroom_id` | M2O `edu.classroom` | required, `ondelete='cascade'` |
 | `author_id` | M2O `res.users` | default = current user, set at create |
-| `author_employee_id` | M2O `hr.employee` related | for displaying author info in feed |
+| `author_employee_id` | M2O `hr.employee` | `related='author_id.employee_id'`, `store=True` — for avatar/name in feed |
 | `body` | Html | rich-text announcement body |
 | `pinned` | Boolean | pinned posts sort to top |
 | `posted_at` | Datetime | default now, not editable after create |
@@ -183,17 +222,19 @@ The only genuinely new feature.
 
 Inherits `mail.thread` + `mail.activity.mixin` for free attachment storage via `message_main_attachment_id`.
 
+`res.users.employee_id` is provided by the `hr` module (singular, company-scoped). `edu_portal` must list `hr` as a direct manifest dependency (it is currently only a transitive dependency).
+
 ### Access rules
 
-- Teachers create/edit/archive posts on classrooms they own (ACL + record rule on `classroom_id.teacher_id == current_employee`)
-- Students read-only on posts whose classroom section matches their active enrollment
+- Teachers create/edit/archive posts on classrooms they own (ACL + record rule on `classroom_id.teacher_id == user`)
+- Students read-only on posts whose classroom section matches their active progression history
 - No student create/write permissions
 - `group_education_admin` can do everything (moderation)
 
 ### Teacher UI
 
 - Top of page: compact composer ("Announce something to your class") that expands on focus, with attachment picker and a "Pin" checkbox
-- Submit via HTMX (matches existing attendance/marks pattern)
+- Submit via HTMX `POST` with `csrf=False` on the endpoint (matches the existing attendance/marks pattern — the portal is internal-only, `auth='user'`, and every POST endpoint re-validates teacher ownership via `guard_classroom_access`)
 - Below composer: pinned posts section, then chronological feed
 - Each post card: author avatar + name + timestamp + body + attachments + (for author) pin/unpin toggle + archive button with confirmation modal
 
@@ -265,6 +306,14 @@ edu_portal/
 - `base_context()` is replaced by `build_portal_context()`. All callers updated in the same change.
 - Schema additions ship via module update (`-u edu_portal`); seed data loads on update.
 - Existing teacher/student home/profile URLs are preserved — only their implementation changes (home becomes grid-only).
+- The `hr` module is promoted from transitive to direct dependency in `__manifest__.py` to support the `author_employee_id` related field.
+
+### Prerequisites (landed before the refactor starts)
+
+- `fix(edu_exam): match exam papers by batch and curriculum, not classroom_id` — clean count/marks-entry behavior on `edu.classroom`.
+- `fix(edu_portal): rename groups_id to group_ids for Odoo 19 compatibility` — portal access provisioning works at runtime.
+
+Both are landed on `staging` before the portal refactor begins, so the refactor starts from a clean, functional baseline.
 
 ## Testing Approach
 
