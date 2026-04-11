@@ -357,6 +357,38 @@ class EduExamPaper(models.Model):
                 )
             rec.write({'state': 'published'})
 
+        # When all papers in a back exam session are published, notify the
+        # linked result session so the admin knows to recompute results.
+        ResultSession = self.env.get('edu.result.session')
+        if ResultSession is None:
+            return
+        back_attempt_types = {'back', 'makeup', 'improvement', 'special'}
+        sessions_seen = set()
+        for rec in self:
+            session = rec.exam_session_id
+            if (
+                not session
+                or session.id in sessions_seen
+                or session.attempt_type not in back_attempt_types
+                or not session.based_on_result_session_id
+            ):
+                continue
+            sessions_seen.add(session.id)
+            unpublished = self.search_count([
+                ('exam_session_id', '=', session.id),
+                ('state', 'not in', ('published', 'closed')),
+            ])
+            if unpublished:
+                continue
+            session.based_on_result_session_id.message_post(
+                body=_(
+                    'Back exam session <b>%s</b> is now fully published. '
+                    'Open this result session and click '
+                    '<b>Recompute After Back Exam</b> to update results.'
+                ) % session.name,
+                subtype_xmlid='mail.mt_note',
+            )
+
     def action_close(self):
         for rec in self:
             if rec.state != 'published':
