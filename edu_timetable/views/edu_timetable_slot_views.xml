@@ -58,7 +58,7 @@
                 <filter string="Regular" name="f_regular" domain="[('slot_type','=','regular')]"/>
                 <filter string="Exam" name="f_exam" domain="[('slot_type','=','exam')]"/>
                 <filter string="Cancelled" name="f_cancelled" domain="[('slot_type','=','cancelled')]"/>
-                <group expand="0" string="Group By">
+                <group name="group_by">
                     <filter string="Teacher" name="g_teacher" context="{'group_by':'teacher_id'}"/>
                     <filter string="Room" name="g_room" context="{'group_by':'room_id'}"/>
                     <filter string="Section" name="g_section" context="{'group_by':'section_id'}"/>

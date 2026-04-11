@@ -125,7 +125,7 @@
                 <filter string="Active" name="f_active" domain="[('state','=','active')]"/>
                 <filter string="Draft" name="f_draft" domain="[('state','=','draft')]"/>
                 <filter string="Archived" name="f_archived" domain="[('state','=','archived')]"/>
-                <group expand="0" string="Group By">
+                <group name="group_by">
                     <filter string="Academic Year" name="g_year" context="{'group_by':'academic_year_id'}"/>
                     <filter string="Batch" name="g_batch" context="{'group_by':'batch_id'}"/>
                     <filter string="State" name="g_state" context="{'group_by':'state'}"/>

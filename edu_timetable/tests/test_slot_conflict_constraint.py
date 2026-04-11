@@ -16,12 +16,14 @@ class TestSlotConflictConstraint(TransactionCase):
         Employee = cls.env['hr.employee']
         cls.Slot = cls.env['edu.timetable.slot']
 
-        # edu.academic.year requires name, code, date_start, date_end
+        # edu.academic.year requires name, code, date_start, date_end.
+        # Use a far-future year (2098) to avoid _check_no_overlap collision
+        # with demo academic years in the test DB.
         cls.year = cls.env['edu.academic.year'].create({
-            'name': 'Conflict Test AY',
-            'code': 'CTAY26',
-            'date_start': date(2026, 1, 1),
-            'date_end': date(2026, 12, 31),
+            'name': 'Conflict Test AY 2098',
+            'code': 'CTAY98',
+            'date_start': date(2098, 1, 1),
+            'date_end': date(2098, 12, 31),
         })
 
         # edu.department required by edu.program
@@ -81,16 +83,16 @@ class TestSlotConflictConstraint(TransactionCase):
             'batch_id': cls.batch.id,
             'program_term_id': cls.term.id,
             'section_id': cls.section_a.id,
-            'date_start': date(2026, 2, 2),
-            'date_end': date(2026, 6, 30),
+            'date_start': date(2098, 1, 6),
+            'date_end': date(2098, 6, 30),
         })
         cls.template_b = Template.create({
             'academic_year_id': cls.year.id,
             'batch_id': cls.batch.id,
             'program_term_id': cls.term.id,
             'section_id': cls.section_b.id,
-            'date_start': date(2026, 2, 2),
-            'date_end': date(2026, 6, 30),
+            'date_start': date(2098, 1, 6),
+            'date_end': date(2098, 6, 30),
         })
         cls.period_a = Period.create({
             'template_id': cls.template_a.id,

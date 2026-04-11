@@ -59,7 +59,7 @@
                 <filter string="Classrooms" name="filter_classroom" domain="[('room_type','=','classroom')]"/>
                 <filter string="Labs" name="filter_lab" domain="[('room_type','=','lab')]"/>
                 <filter string="Archived" name="filter_inactive" domain="[('active','=',False)]"/>
-                <group expand="0" string="Group By">
+                <group name="group_by">
                     <filter string="Type" name="group_type" context="{'group_by':'room_type'}"/>
                     <filter string="Building" name="group_building" context="{'group_by':'building'}"/>
                 </group>
