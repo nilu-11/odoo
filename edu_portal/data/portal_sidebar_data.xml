@@ -62,10 +62,46 @@
     <!-- ─── Parent ─── -->
     <record id="sidebar_parent_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
-        <field name="label">Home</field>
+        <field name="label">Overview</field>
         <field name="icon">⌂</field>
         <field name="sequence">10</field>
         <field name="url">/portal/parent/home</field>
+        <field name="role">parent</field>
+    </record>
+
+    <record id="sidebar_parent_attendance" model="edu.portal.sidebar.item">
+        <field name="key">attendance</field>
+        <field name="label">Attendance</field>
+        <field name="icon">✓</field>
+        <field name="sequence">30</field>
+        <field name="url">/portal/parent/attendance</field>
+        <field name="role">parent</field>
+    </record>
+
+    <record id="sidebar_parent_results" model="edu.portal.sidebar.item">
+        <field name="key">results</field>
+        <field name="label">Results</field>
+        <field name="icon">▦</field>
+        <field name="sequence">40</field>
+        <field name="url">/portal/parent/results</field>
+        <field name="role">parent</field>
+    </record>
+
+    <record id="sidebar_parent_assessments" model="edu.portal.sidebar.item">
+        <field name="key">assessments</field>
+        <field name="label">Assessments</field>
+        <field name="icon">✎</field>
+        <field name="sequence">50</field>
+        <field name="url">/portal/parent/assessments</field>
+        <field name="role">parent</field>
+    </record>
+
+    <record id="sidebar_parent_fees" model="edu.portal.sidebar.item">
+        <field name="key">fees</field>
+        <field name="label">Fees</field>
+        <field name="icon">¤</field>
+        <field name="sequence">70</field>
+        <field name="url">/portal/parent/fees</field>
         <field name="role">parent</field>
     </record>
 

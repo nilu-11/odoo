@@ -2,7 +2,8 @@
 from odoo import http
 from odoo.http import request
 from .helpers import (
-    base_context, get_guardian_record, get_parent_children, get_active_child, get_portal_role,
+    build_portal_context, get_guardian_record, get_parent_children,
+    get_active_child, get_portal_role,
 )
 
 
@@ -14,27 +15,19 @@ class ParentPortalController(http.Controller):
             return None
         return get_guardian_record(user)
 
-    def _parent_sidebar_items(self, guardian, active=None):
-        return [
-            {'key': 'home',        'label': 'Overview',    'icon': '🏠', 'url': '/portal/parent/home'},
-            {'key': 'attendance',  'label': 'Attendance',  'icon': '✓', 'url': '/portal/parent/attendance'},
-            {'key': 'results',     'label': 'Results',     'icon': '📊', 'url': '/portal/parent/results'},
-            {'key': 'assessments', 'label': 'Assessments', 'icon': '📝', 'url': '/portal/parent/assessments'},
-            {'key': 'fees',        'label': 'Fees',        'icon': '💰', 'url': '/portal/parent/fees'},
-            {'key': 'profile',     'label': 'Profile',     'icon': '👤', 'url': '/portal/parent/profile'},
-        ]
-
     def _base_parent_context(self, active_item, page_title):
         user = request.env.user
         guardian = self._guard_parent()
         children = get_parent_children(user)
         active_child = get_active_child(user)
-        context = base_context(active_item=active_item, page_title=page_title)
+        context = build_portal_context(
+            active_sidebar_key=active_item,
+            page_title=page_title,
+        )
         context.update({
             'guardian': guardian,
             'children': children,
             'active_child': active_child,
-            'sidebar_items': self._parent_sidebar_items(guardian, active_item),
         })
         return context
 
