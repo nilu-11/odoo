@@ -17,7 +17,7 @@
 
                 <filter name="filter_my_registers"
                         string="My Registers"
-                        domain="[('teacher_id', '=', uid)]"/>
+                        domain="[('teacher_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="filter_open"
                         string="Open"

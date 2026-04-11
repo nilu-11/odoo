@@ -28,7 +28,7 @@
                 <filter name="filter_contributes" string="Contributes to Result"
                         domain="[('category_id.contributes_to_result', '=', True)]"/>
                 <filter name="filter_my_assessments" string="My Assessments"
-                        domain="[('teacher_id', '=', uid)]"/>
+                        domain="[('teacher_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archived"
                         domain="[('active', '=', False)]"/>
@@ -203,8 +203,15 @@
         <field name="name">My Assessments</field>
         <field name="res_model">edu.continuous.assessment.record</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('teacher_id', '=', uid)]</field>
-        <field name="context">{'default_teacher_id': uid, 'search_default_filter_my_assessments': 1}</field>
+        <!--
+            teacher_id is m2o to hr.employee (edu_hr override), so the
+            teacher filter must traverse teacher_id.user_id. The default
+            teacher context is intentionally omitted; it must be resolved
+            to the current user's employee record via an onchange or at
+            create time, not via a plain uid substitution.
+        -->
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
+        <field name="context">{'search_default_filter_my_assessments': 1}</field>
     </record>
 
     <record id="action_edu_continuous_assessment_record_pending" model="ir.actions.act_window">

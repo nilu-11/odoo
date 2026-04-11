@@ -19,7 +19,7 @@
                 <!-- Filters -->
                 <filter name="filter_my_classrooms"
                         string="My Classrooms"
-                        domain="[('teacher_id', '=', uid)]"/>
+                        domain="[('teacher_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="filter_draft"
                         string="Draft"
@@ -203,7 +203,7 @@
         <field name="name">My Classrooms</field>
         <field name="res_model">edu.classroom</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
         <field name="context">{'search_default_filter_my_classrooms': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

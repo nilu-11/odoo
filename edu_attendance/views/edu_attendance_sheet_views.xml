@@ -18,7 +18,7 @@
 
                 <filter name="filter_my_sheets"
                         string="My Sheets"
-                        domain="[('teacher_id', '=', uid)]"/>
+                        domain="[('teacher_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="filter_draft"
                         string="Draft"
@@ -208,7 +208,7 @@
         <field name="name">My Attendance Sheets</field>
         <field name="res_model">edu.attendance.sheet</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
         <field name="context">{'search_default_filter_my_sheets': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

@@ -14,7 +14,7 @@
                 <field name="batch_id"/>
                 <field name="teacher_id"/>
                 <!-- Filters -->
-                <filter name="filter_my_papers" string="My Papers" domain="[('teacher_id', '=', uid)]"/>
+                <filter name="filter_my_papers" string="My Papers" domain="[('teacher_id.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_scheduled" string="Scheduled" domain="[('state', '=', 'scheduled')]"/>
@@ -237,7 +237,7 @@
         <field name="name">My Exam Papers</field>
         <field name="res_model">edu.exam.paper</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('teacher_id', '=', uid)]</field>
+        <field name="domain">[('teacher_id.user_id', '=', uid)]</field>
         <field name="context">{'search_default_filter_my_papers': 1}</field>
     </record>
 </odoo>
