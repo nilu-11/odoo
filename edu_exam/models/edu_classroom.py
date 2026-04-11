@@ -20,28 +20,31 @@ class EduClassroom(models.Model):
         store=False,
     )
 
+    def _paper_domain(self, extra=None):
+        """Base domain to match exam papers for this classroom.
+
+        Papers are batch-level — classroom_id is optional and often unset.
+        Match by batch_id + curriculum_line_id instead.
+        """
+        domain = [
+            ('batch_id', '=', self.batch_id.id),
+            ('curriculum_line_id', '=', self.curriculum_line_id.id),
+        ]
+        if extra:
+            domain += extra
+        return domain
+
     def _compute_exam_paper_count(self):
-        groups = self.env['edu.exam.paper']._read_group(
-            domain=[('classroom_id', 'in', self.ids)],
-            groupby=['classroom_id'],
-            aggregates=['__count'],
-        )
-        counts = {classroom.id: cnt for classroom, cnt in groups}
         for rec in self:
-            rec.exam_paper_count = counts.get(rec.id, 0)
+            rec.exam_paper_count = self.env['edu.exam.paper'].search_count(
+                rec._paper_domain()
+            )
 
     def _compute_marks_entry_count(self):
-        groups = self.env['edu.exam.paper']._read_group(
-            domain=[
-                ('classroom_id', 'in', self.ids),
-                ('state', '=', 'marks_entry'),
-            ],
-            groupby=['classroom_id'],
-            aggregates=['__count'],
-        )
-        counts = {classroom.id: cnt for classroom, cnt in groups}
         for rec in self:
-            rec.marks_entry_count = counts.get(rec.id, 0)
+            rec.marks_entry_count = self.env['edu.exam.paper'].search_count(
+                rec._paper_domain([('state', '=', 'marks_entry')])
+            )
 
     def action_view_exam_papers(self):
         self.ensure_one()
@@ -50,9 +53,9 @@ class EduClassroom(models.Model):
             'name': _('Exam Papers — %s') % self.name,
             'res_model': 'edu.exam.paper',
             'view_mode': 'list,form',
-            'domain': [('classroom_id', '=', self.id)],
+            'domain': self._paper_domain(),
             'context': {
-                'default_classroom_id': self.id,
+                'default_batch_id': self.batch_id.id,
                 'default_section_id': self.section_id.id,
                 'default_curriculum_line_id': self.curriculum_line_id.id,
                 'default_program_term_id': self.program_term_id.id,
@@ -61,25 +64,47 @@ class EduClassroom(models.Model):
         }
 
     def action_marks_entry(self):
-        """Open exam papers awaiting marks entry for this classroom."""
+        """Open marks entry for this classroom's subject/batch exam paper.
+
+        Papers are batch-level so we match on batch_id + curriculum_line_id.
+        Marksheets are filtered to this classroom's section so each teacher
+        only sees their own students.
+        """
         self.ensure_one()
-        papers = self.env['edu.exam.paper'].search([
-            ('classroom_id', '=', self.id),
-            ('state', '=', 'marks_entry'),
-        ])
-        if len(papers) == 1:
-            # Single paper — go directly to marks entry
-            return papers.action_enter_marks()
+        papers = self.env['edu.exam.paper'].search(
+            self._paper_domain([('state', '=', 'marks_entry')])
+        )
+        if not papers:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Marks Entry Open'),
+                    'message': _(
+                        'No exam paper for "%s" is currently open for marks entry.'
+                    ) % self.name,
+                    'type': 'warning',
+                    'sticky': False,
+                },
+            }
+        # Open the marksheet entry list filtered to this section
+        paper_ids = papers.ids
         return {
             'type': 'ir.actions.act_window',
             'name': _('Marks Entry — %s') % self.name,
-            'res_model': 'edu.exam.paper',
+            'res_model': 'edu.exam.marksheet',
             'view_mode': 'list,form',
+            'views': [
+                (self.env.ref('edu_exam.view_edu_exam_marksheet_entry_list').id, 'list'),
+                (False, 'form'),
+            ],
             'domain': [
-                ('classroom_id', '=', self.id),
-                ('state', '=', 'marks_entry'),
+                ('exam_paper_id', 'in', paper_ids),
+                ('section_id', '=', self.section_id.id),
+                ('is_latest_attempt', '=', True),
             ],
             'context': {
-                'default_classroom_id': self.id,
+                'default_section_id': self.section_id.id,
+                'marks_entry_mode': True,
             },
         }
