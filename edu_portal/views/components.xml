@@ -104,6 +104,38 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
+         Classroom Tabs Component
+         Renders the Google-Classroom-style tab bar inside a
+         classroom hub page. Populated from the portal extension
+         registry (edu.portal.classroom.tab) by build_portal_context.
+
+         Expects: classroom, classroom_tabs, active_tab_key
+    ══════════════════════════════════════════════════════ -->
+    <template id="classroom_tabs_component" name="Portal Classroom Tabs">
+        <nav class="classroom-tabs">
+            <div class="classroom-tabs-header">
+                <h1 class="classroom-tabs-title"><t t-esc="classroom.name"/></h1>
+                <p class="classroom-tabs-sub">
+                    <t t-esc="classroom.section_id.name"/> ·
+                    <t t-esc="classroom.subject_id.name"/> ·
+                    <t t-esc="classroom.program_term_id.name"/>
+                </p>
+            </div>
+            <ul class="classroom-tabs-list">
+                <t t-foreach="classroom_tabs" t-as="tab">
+                    <li>
+                        <a t-att-href="tab['url']"
+                           t-attf-class="classroom-tab #{'active' if tab['key'] == active_tab_key else ''}">
+                            <span class="classroom-tab-icon"><t t-esc="tab['icon']"/></span>
+                            <span class="classroom-tab-label"><t t-esc="tab['label']"/></span>
+                        </a>
+                    </li>
+                </t>
+            </ul>
+        </nav>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
          Empty State Component
          Expects: icon, title, message
     ══════════════════════════════════════════════════════ -->

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Teacher in-classroom hub templates.
+
+         All pages t-call the portal_layout, then render the shared
+         classroom_tabs_component, then the per-tab body.
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ─── Stream ─── -->
+    <template id="teacher_classroom_stream_page" name="Teacher Classroom Stream">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="icon" t-value="'💬'"/>
+                    <t t-set="title" t-value="'Stream — coming soon'"/>
+                    <t t-set="message" t-value="'Announcements for this classroom will appear here.'"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Attendance ─── -->
+    <template id="teacher_classroom_attendance_page" name="Teacher Classroom Attendance">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <t t-if="sheet">
+                    <div class="attendance-sheet">
+                        <div class="attendance-sheet-header">
+                            <h2>Session: <t t-esc="sheet.session_date"/></h2>
+                            <span class="attendance-sheet-state">
+                                <t t-esc="dict(sheet._fields['state'].selection).get(sheet.state, sheet.state)"/>
+                            </span>
+                        </div>
+                        <table class="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll</th>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="sheet.line_ids" t-as="line">
+                                    <t t-call="edu_portal.teacher_attendance_row_partial"/>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'📋'"/>
+                        <t t-set="title" t-value="'No attendance session open'"/>
+                        <t t-set="message" t-value="'Start a new attendance session from the backend to begin marking.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- Attendance row partial (used inline and via HTMX swap) -->
+    <template id="teacher_attendance_row_partial" name="Teacher Attendance Row">
+        <tr t-att-id="'att-row-%d' % line.id" class="attendance-row">
+            <td><t t-esc="line.student_id.student_no or ''"/></td>
+            <td><t t-esc="line.student_id.display_name"/></td>
+            <td class="attendance-status-cell">
+                <t t-foreach="['present', 'absent', 'late', 'excused']" t-as="status_key">
+                    <button type="button"
+                            t-attf-class="attendance-btn #{'active' if line.status == status_key else ''} status-#{status_key}"
+                            t-att-hx-post="'/portal/teacher/classroom/attendance/mark'"
+                            hx-swap="outerHTML"
+                            t-attf-hx-target="#att-row-#{line.id}"
+                            t-att-hx-vals='"{" + "\"line_id\":" + str(line.id) + ",\"status\":\"" + status_key + "\"}"'>
+                        <t t-esc="status_key.title()"/>
+                    </button>
+                </t>
+            </td>
+        </tr>
+    </template>
+
+    <!-- ─── Exams (paper list) ─── -->
+    <template id="teacher_classroom_exams_page" name="Teacher Classroom Exams">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <t t-if="papers">
+                    <div class="paper-list">
+                        <t t-foreach="papers" t-as="paper">
+                            <a t-att-href="'/portal/teacher/classroom/%d/exams/%d' % (classroom.id, paper.id)"
+                               class="paper-card">
+                                <h3><t t-esc="paper.display_name"/></h3>
+                                <p>
+                                    <span t-attf-class="paper-state state-#{paper.state}">
+                                        <t t-esc="dict(paper._fields['state'].selection).get(paper.state, paper.state)"/>
+                                    </span>
+                                    · Max: <t t-esc="paper.max_marks"/>
+                                </p>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'📝'"/>
+                        <t t-set="title" t-value="'No exam papers yet'"/>
+                        <t t-set="message" t-value="'Exam papers for this batch and subject will appear here.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Exams → marks entry ─── -->
+    <template id="teacher_classroom_exam_marks_page" name="Teacher Classroom Exam Marks">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <div class="marks-header">
+                    <h2><t t-esc="paper.display_name"/></h2>
+                    <p>Max marks: <t t-esc="paper.max_marks"/></p>
+                </div>
+                <table class="marks-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="marksheets" t-as="marksheet">
+                            <t t-call="edu_portal.teacher_marks_row_partial">
+                                <t t-set="error" t-value="None"/>
+                            </t>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="teacher_marks_row_partial" name="Teacher Marks Row">
+        <tr t-att-id="'marks-row-%d' % marksheet.id" class="marks-row">
+            <td><t t-esc="marksheet.student_id.display_name"/></td>
+            <td>
+                <form t-att-hx-post="'/portal/teacher/classroom/exams/save'"
+                      hx-swap="outerHTML"
+                      t-attf-hx-target="#marks-row-#{marksheet.id}"
+                      class="marks-entry-form">
+                    <input type="hidden" name="marksheet_id" t-att-value="marksheet.id"/>
+                    <input type="number" step="0.25" min="0"
+                           t-att-max="marksheet.max_marks"
+                           name="marks_obtained"
+                           t-att-value="marksheet.marks_obtained or ''"/>
+                    <button type="submit" class="btn btn-sm">Save</button>
+                    <t t-if="error">
+                        <span class="marks-error"><t t-esc="error"/></span>
+                    </t>
+                </form>
+            </td>
+        </tr>
+    </template>
+
+    <!-- ─── Assessments ─── -->
+    <template id="teacher_classroom_assessments_page" name="Teacher Classroom Assessments">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <t t-if="records">
+                    <table class="assessment-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Student</th>
+                                <th>Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="records" t-as="rec">
+                                <tr>
+                                    <td><t t-esc="rec.assessment_date"/></td>
+                                    <td><t t-esc="rec.category_id.name"/></td>
+                                    <td><t t-esc="rec.student_id.display_name"/></td>
+                                    <td><t t-esc="rec.marks_obtained"/> / <t t-esc="rec.max_marks"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'📋'"/>
+                        <t t-set="title" t-value="'No assessments recorded'"/>
+                        <t t-set="message" t-value="'Continuous assessment records for this classroom will appear here.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Results ─── -->
+    <template id="teacher_classroom_results_page" name="Teacher Classroom Results">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <t t-if="results">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>GPA</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="results" t-as="r">
+                                <tr>
+                                    <td><t t-esc="r.student_id.display_name"/></td>
+                                    <td><t t-esc="r.gpa"/></td>
+                                    <td><t t-esc="r.percentage"/></td>
+                                    <td><t t-esc="r.grade_letter or ''"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'📊'"/>
+                        <t t-set="title" t-value="'No published results'"/>
+                        <t t-set="message" t-value="'Results will appear here once a result session is published.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── People ─── -->
+    <template id="teacher_classroom_people_page" name="Teacher Classroom People">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+                <section class="people-section">
+                    <h3 class="people-section-title">Teacher</h3>
+                    <div class="people-grid">
+                        <div class="person-card">
+                            <div class="person-avatar">
+                                <t t-esc="classroom.teacher_id.name[0].upper() if classroom.teacher_id.name else '?'"/>
+                            </div>
+                            <div class="person-info">
+                                <strong><t t-esc="classroom.teacher_id.name"/></strong>
+                                <span><t t-esc="classroom.teacher_id.login"/></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="people-section">
+                    <h3 class="people-section-title">
+                        Students
+                        (<t t-esc="len(students)"/>)
+                    </h3>
+                    <t t-if="students">
+                        <div class="people-grid">
+                            <t t-foreach="students" t-as="st">
+                                <div class="person-card">
+                                    <div class="person-avatar">
+                                        <t t-esc="st.display_name[0].upper() if st.display_name else '?'"/>
+                                    </div>
+                                    <div class="person-info">
+                                        <strong><t t-esc="st.display_name"/></strong>
+                                        <span><t t-esc="st.student_no or ''"/></span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-call="edu_portal.empty_state_component">
+                            <t t-set="icon" t-value="'👥'"/>
+                            <t t-set="title" t-value="'No students enrolled'"/>
+                            <t t-set="message" t-value="'Students will appear here once they are placed in this section.'"/>
+                        </t>
+                    </t>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>
