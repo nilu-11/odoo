@@ -35,3 +35,7 @@ dist/
 # Claude Code config and project instructions
 .claude/
 CLAUDE.md
+
+# Superpowers AI tooling
+.superpowers/
+docs/superpowers/
