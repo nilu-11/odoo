@@ -307,7 +307,7 @@
                                 <t t-foreach="students" t-as="st">
                                     <tr>
                                         <td><t t-esc="st_index + 1"/></td>
-                                        <td><t t-esc="st.display_name"/></td>
+                                        <td><t t-esc="st.partner_id.name or ''"/></td>
                                         <td><t t-esc="st.student_no or ''"/></td>
                                         <td><t t-esc="st.partner_id.email or ''"/></td>
                                         <td><t t-esc="st.partner_id.phone or ''"/></td>

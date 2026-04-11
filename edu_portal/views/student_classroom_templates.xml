@@ -221,7 +221,7 @@
                                 <t t-foreach="classmates" t-as="cm">
                                     <tr>
                                         <td><t t-esc="cm_index + 1"/></td>
-                                        <td><t t-esc="cm.display_name"/></td>
+                                        <td><t t-esc="cm.partner_id.name or ''"/></td>
                                         <td><t t-esc="cm.student_no or ''"/></td>
                                     </tr>
                                 </t>
