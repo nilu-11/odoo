@@ -175,6 +175,7 @@ class EduContinuousAssessmentRecord(models.Model):
     marks_obtained = fields.Float(
         string='Marks Obtained',
         default=0.0,
+        copy=False,
         tracking=True,
     )
     percentage = fields.Float(

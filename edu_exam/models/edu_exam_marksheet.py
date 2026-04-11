@@ -147,11 +147,13 @@ class EduExamMarksheet(models.Model):
     raw_marks = fields.Float(
         string='Raw Marks',
         default=0.0,
+        copy=False,
         tracking=True,
     )
     grace_marks = fields.Float(
         string='Grace Marks',
         default=0.0,
+        copy=False,
         tracking=True,
     )
     final_marks = fields.Float(
@@ -299,6 +301,7 @@ class EduExamMarksheet(models.Model):
             # Fields that are always allowed (state-tracking infra etc.)
             _always_ok = frozenset({
                 'is_locked', 'verified_by', 'verified_on',
+                'remarks',
                 'message_follower_ids', 'message_ids',
                 'activity_ids', 'activity_state', 'activity_date_deadline',
                 'activity_summary', 'activity_type_id', 'activity_user_id',
