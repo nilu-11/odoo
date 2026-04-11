@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <!-- Placeholder — populated in Phase 4 (portal sidebar item) -->
+<odoo noupdate="1">
+
+    <!-- ─── Teacher schedule sidebar item ─── -->
+    <record id="sidebar_item_teacher_schedule" model="edu.portal.sidebar.item">
+        <field name="key">schedule</field>
+        <field name="label">My Schedule</field>
+        <field name="icon">&#x25A6;</field>
+        <field name="url">/portal/teacher/schedule</field>
+        <field name="role">teacher</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <!-- ─── Student schedule sidebar item ─── -->
+    <record id="sidebar_item_student_schedule" model="edu.portal.sidebar.item">
+        <field name="key">schedule</field>
+        <field name="label">My Schedule</field>
+        <field name="icon">&#x25A6;</field>
+        <field name="url">/portal/student/schedule</field>
+        <field name="role">student</field>
+        <field name="sequence">40</field>
+    </record>
+
 </odoo>
