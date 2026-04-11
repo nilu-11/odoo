@@ -1,25 +1,23 @@
 import re
 from odoo import api, fields, models
 
+from odoo.tools import html2plaintext
 
 class MailMessage(models.Model):
     _inherit = 'mail.message'
 
-    call_feedback = fields.Char(
-        string='Feedback',
-        compute='_compute_call_feedback',
-    )
+    feedback_text = fields.Char(string='Feedback', compute='_compute_feedback_text')
 
-    def _compute_call_feedback(self):
-        feedback_re = re.compile(
-            r'Feedback:</b>\s*<br\s*/?>\s*(.*?)\s*</p>',
-            re.DOTALL | re.IGNORECASE,
-        )
-        strip_tags_re = re.compile(r'<[^>]+>')
-        for msg in self:
-            body = msg.body or ''
-            match = feedback_re.search(body)
-            if match:
-                msg.call_feedback = strip_tags_re.sub('', match.group(1)).strip()
-            else:
-                msg.call_feedback = strip_tags_re.sub('', body).strip()
+    @api.depends('body')
+    def _compute_feedback_text(self):
+        for message in self:
+            feedback = False
+            body = message.body or ''
+            if body:
+                plain = html2plaintext(body)
+                match = re.search(r'Original note:\s*(.*)', plain, re.IGNORECASE)
+                if match:
+                    feedback = match.group(1).strip()
+                    if feedback:
+                        feedback = feedback.splitlines()[0].strip()
+            message.feedback_text = feedback or False

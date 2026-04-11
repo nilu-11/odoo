@@ -6,7 +6,7 @@
     <menuitem id="menu_edu_assessment_root"
               name="Continuous Assessment"
               parent="edu_academic_structure.menu_education_root"
-              sequence="85"
+              sequence="30"
               groups="edu_assessment.group_assessment_viewer,edu_assessment.group_assessment_teacher,edu_assessment.group_assessment_officer,edu_assessment.group_assessment_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <!-- ── All Assessment Records ─────────────────────────── -->

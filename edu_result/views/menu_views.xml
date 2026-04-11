@@ -2,12 +2,12 @@
 <odoo>
 
     <!-- ══════════════════════════════════════════════════════════════════════
-         Root menu (under Education)
+         Results — nested inside the Examinations menu
     ═══════════════════════════════════════════════════════════════════════ -->
     <menuitem id="menu_edu_result_root"
               name="Results"
-              parent="edu_academic_structure.menu_education_root"
-              sequence="95"
+              parent="edu_exam.menu_edu_exam_root"
+              sequence="60"
               groups="edu_result.group_result_viewer"/>
 
     <!-- ── Operational sub-menus ──────────────────────────────────────────── -->

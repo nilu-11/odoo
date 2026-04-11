@@ -6,7 +6,7 @@
     <menuitem id="menu_edu_exam_root"
               name="Examinations"
               parent="edu_academic_structure.menu_education_root"
-              sequence="90"
+              sequence="40"
               groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <!-- ── Exam Sessions ──────────────────────────────────── -->

@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Fees sub-menu under Education root
+         Configuration > Fees (under Education Configuration menu)
     ══════════════════════════════════════════════════════ -->
-    <menuitem id="menu_edu_fees"
+    <menuitem id="menu_edu_config_fees"
               name="Fees"
-              parent="edu_academic_structure.menu_education_root"
-              sequence="30"
-              groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
-
-    <menuitem id="menu_edu_fee_structure"
-              name="Fee Structures"
-              parent="menu_edu_fees"
-              sequence="10"
-              action="action_edu_fee_structure"
-              groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+              parent="edu_academic_structure.menu_edu_configuration"
+              sequence="20"
+              groups="edu_academic_structure.group_education_admin,group_fees_officer"/>
 
     <menuitem id="menu_edu_fee_head"
               name="Fee Heads"
-              parent="menu_edu_fees"
-              sequence="20"
+              parent="menu_edu_config_fees"
+              sequence="10"
               action="action_edu_fee_head"
               groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer"/>
 
+    <menuitem id="menu_edu_fee_structure"
+              name="Fee Structures"
+              parent="menu_edu_config_fees"
+              sequence="20"
+              action="action_edu_fee_structure"
+              groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
     <menuitem id="menu_edu_fee_term"
               name="Fee Terms"
-              parent="menu_edu_fees"
+              parent="menu_edu_config_fees"
               sequence="30"
               action="action_edu_fee_term"
               groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer"/>

@@ -9,7 +9,7 @@
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
 
     <!-- ══════════════════════════════════════════════════════
-         Academic sub-menu
+         Academic sub-menu (operational: Batches, Sections)
     ══════════════════════════════════════════════════════ -->
     <menuitem id="menu_edu_academic"
               name="Academic"
@@ -17,39 +17,18 @@
               sequence="10"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
 
-    <menuitem id="menu_edu_academic_year"
-              name="Academic Years"
-              parent="menu_edu_academic"
-              sequence="10"
-              action="action_edu_academic_year"
-              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
-
-    <menuitem id="menu_edu_term"
-              name="Terms"
-              parent="menu_edu_academic"
-              sequence="20"
-              action="action_edu_term"
-              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
-
     <menuitem id="menu_edu_batch"
               name="Batches"
               parent="menu_edu_academic"
-              sequence="30"
+              sequence="10"
               action="action_edu_batch"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
 
     <menuitem id="menu_edu_section"
               name="Sections"
               parent="menu_edu_academic"
-              sequence="40"
+              sequence="20"
               action="action_edu_section"
-              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
-
-    <menuitem id="menu_edu_program_term"
-              name="Program Terms"
-              parent="menu_edu_academic"
-              sequence="25"
-              action="action_edu_program_term"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
 
     <!-- ══════════════════════════════════════════════════════
@@ -61,31 +40,66 @@
               sequence="90"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
+    <!-- ── Configuration > Academic ── -->
+    <menuitem id="menu_edu_config_academic"
+              name="Academic"
+              parent="menu_edu_configuration"
+              sequence="10"
+              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
+    <menuitem id="menu_edu_academic_year"
+              name="Academic Years"
+              parent="menu_edu_config_academic"
+              sequence="10"
+              action="action_edu_academic_year"
+              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
+    <menuitem id="menu_edu_term"
+              name="Terms"
+              parent="menu_edu_config_academic"
+              sequence="20"
+              action="action_edu_term"
+              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
+    <!-- ── Configuration > Program ── -->
+    <menuitem id="menu_edu_config_program"
+              name="Program"
+              parent="menu_edu_configuration"
+              sequence="30"
+              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+
     <menuitem id="menu_edu_department"
               name="Departments"
-              parent="menu_edu_configuration"
+              parent="menu_edu_config_program"
               sequence="10"
               action="action_edu_department"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <menuitem id="menu_edu_program"
               name="Programs"
-              parent="menu_edu_configuration"
+              parent="menu_edu_config_program"
               sequence="20"
               action="action_edu_program"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <menuitem id="menu_edu_subject"
               name="Subjects"
-              parent="menu_edu_configuration"
+              parent="menu_edu_config_program"
               sequence="30"
               action="action_edu_subject"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
+    <menuitem id="menu_edu_program_term"
+              name="Program Terms"
+              parent="menu_edu_config_program"
+              sequence="40"
+              action="action_edu_program_term"
+              groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
+
     <menuitem id="menu_edu_curriculum"
               name="Curriculum"
-              parent="menu_edu_configuration"
-              sequence="40"
+              parent="menu_edu_config_program"
+              sequence="50"
               action="action_edu_curriculum_line"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 </odoo>

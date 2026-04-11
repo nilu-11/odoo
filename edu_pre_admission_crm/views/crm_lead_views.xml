@@ -137,7 +137,7 @@
                         type="object"
                         string="Check Duplicates"
                         class="btn-secondary"
-                        invisible="is_converted_to_application"/>
+                        invisible="1"/>
                 <button name="action_convert_to_admission_application"
                         type="object"
                         string="Convert to Application"
@@ -169,6 +169,13 @@
                         <span class="o_stat_text">Applicant</span>
                         <field name="applicant_profile_id" class="o_stat_value" readonly="1"/>
                     </div>
+                </button>
+                <button name="action_open_similar_inquiries"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-clone"
+                        invisible="not is_duplicate">
+                    <field name="duplicate_lead_count" widget="statinfo" string="Similar Inquiry"/>
                 </button>
             </xpath>
 
@@ -234,8 +241,8 @@
                                 readonly="is_converted_to_application"
                                 help="Link or create the structured applicant profile. Required before conversion."
                                 invisible="not applicant_profile_id and lead_education_status not in ['qualified', 'ready_for_application', 'converted']"/>
-                        <field name="phone" widget="phone"/>
-                        <field name="email_from" widget="email"/>
+                        <field name="phone" widget="phone" required="1"/>
+                        <field name="email_from" widget="email" required="1"/>
                         <label for="street" string="Address"/>
                         <div class="o_address_format">
                             <field name="street" placeholder="Street..." class="o_address_street"/>
@@ -247,8 +254,9 @@
                                 <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
                             </div>
                         </div>
-                        <field name="qualification"
-                               placeholder="e.g. A-Levels, Bachelor of Science"/>
+                           <field name="qualification_id"
+                               options="{'no_create': False}"
+                               placeholder="Select Qualification"/>
                         <field name="cgpa_percentage"
                                string="CGPA / Percentage"/>
                     </group>
@@ -260,7 +268,7 @@
                         <field name="interested_program_id" string="Selected Program"
                                readonly="is_converted_to_application"
                                invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
-                        <field name="show_advanced_options" widget="boolean_toggle"/>
+                        <field name="show_advanced_options" widget="boolean_toggle" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
                         <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
@@ -340,23 +348,18 @@
                     <field name="done_call_message_ids" nolabel="1" mode="list" readonly="1" width="300px">
                         <list string="Done Call Activities" create="0" edit="0" delete="0">
                             <field name="date" string="Date"/>
-                            <field name="call_feedback" string="Feedback"/>
+                            <field name="feedback_text" string="Feedback"/>
                             <field name="author_id" string="Done By"/>
                         </list>
                     </field>
                 </group>
                 </group>
                 
-                <group>
-                    <group string="Notes">
-                        <field name="counseling_note" nolabel="1"
-                               placeholder="Record counseling session notes, discussion points, concerns..."/>
-                    </group>
-                    <group string="Qualification Notes" invisible="1">
-                        <field name="qualification_note" nolabel="1"
-                               placeholder="Eligibility check notes, document status, academic qualification summary..."/>
-                    </group>
+                <group string="Notes" colspan="2">
+                    <field name="counseling_note" nolabel="1" colspan="2"
+                           placeholder="Record counseling session notes, discussion points, concerns..."/>
                 </group>
+      
             </xpath>
 
             <!-- ══════════════════════════════════════════════════════════════
