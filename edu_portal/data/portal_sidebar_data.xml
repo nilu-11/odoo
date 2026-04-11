@@ -3,6 +3,10 @@
     <!-- ══════════════════════════════════════════════════════
          Built-in sidebar items.
 
+         Icons are plain monochrome Unicode glyphs so they render
+         consistently and match the professional theme. Avoid
+         emoji/color glyphs here.
+
          Bridge modules can add more by shipping their own data
          records into the same model. noupdate="1" preserves
          admin edits across -u edu_portal.
@@ -12,7 +16,7 @@
     <record id="sidebar_teacher_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
         <field name="label">Home</field>
-        <field name="icon">🏠</field>
+        <field name="icon">⌂</field>
         <field name="sequence">10</field>
         <field name="url">/portal/teacher/home</field>
         <field name="role">teacher</field>
@@ -21,7 +25,7 @@
     <record id="sidebar_teacher_profile" model="edu.portal.sidebar.item">
         <field name="key">profile</field>
         <field name="label">My Profile</field>
-        <field name="icon">👤</field>
+        <field name="icon">◉</field>
         <field name="sequence">90</field>
         <field name="url">/portal/teacher/profile</field>
         <field name="role">teacher</field>
@@ -31,7 +35,7 @@
     <record id="sidebar_student_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
         <field name="label">Home</field>
-        <field name="icon">🏠</field>
+        <field name="icon">⌂</field>
         <field name="sequence">10</field>
         <field name="url">/portal/student/home</field>
         <field name="role">student</field>
@@ -40,7 +44,7 @@
     <record id="sidebar_student_fees" model="edu.portal.sidebar.item">
         <field name="key">fees</field>
         <field name="label">Fees</field>
-        <field name="icon">💰</field>
+        <field name="icon">¤</field>
         <field name="sequence">70</field>
         <field name="url">/portal/student/fees</field>
         <field name="role">student</field>
@@ -49,7 +53,7 @@
     <record id="sidebar_student_profile" model="edu.portal.sidebar.item">
         <field name="key">profile</field>
         <field name="label">My Profile</field>
-        <field name="icon">👤</field>
+        <field name="icon">◉</field>
         <field name="sequence">90</field>
         <field name="url">/portal/student/profile</field>
         <field name="role">student</field>
@@ -59,7 +63,7 @@
     <record id="sidebar_parent_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
         <field name="label">Home</field>
-        <field name="icon">🏠</field>
+        <field name="icon">⌂</field>
         <field name="sequence">10</field>
         <field name="url">/portal/parent/home</field>
         <field name="role">parent</field>
@@ -68,7 +72,7 @@
     <record id="sidebar_parent_profile" model="edu.portal.sidebar.item">
         <field name="key">profile</field>
         <field name="label">My Profile</field>
-        <field name="icon">👤</field>
+        <field name="icon">◉</field>
         <field name="sequence">90</field>
         <field name="url">/portal/parent/profile</field>
         <field name="role">parent</field>

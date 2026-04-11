@@ -157,7 +157,7 @@
                 </div>
                 <div class="post-card-meta">
                     <t t-if="post.pinned">
-                        <span class="post-pin-badge">📌 Pinned</span>
+                        <span class="post-pin-badge">Pinned</span>
                     </t>
                 </div>
             </header>
@@ -184,11 +184,12 @@
 
     <!-- ══════════════════════════════════════════════════════
          Empty State Component
-         Expects: icon, title, message
+         Expects: title, message. (`icon` argument is ignored —
+         emoji-free professional theme uses a single subtle glyph.)
     ══════════════════════════════════════════════════════ -->
     <template id="empty_state_component" name="Portal Empty State">
         <div class="empty-state">
-            <div class="empty-state-icon"><t t-esc="icon or '&#128269;'"/></div>
+            <div class="empty-state-mark">○</div>
             <div class="empty-state-title"><t t-esc="title"/></div>
             <p><t t-esc="message or ''"/></p>
         </div>
