@@ -32,6 +32,6 @@ dist/
 .vscode/
 .idea/
 
-# Local Claude worktrees and settings
-.claude/worktrees/
-.claude/settings.local.json
+# Claude Code config and project instructions
+.claude/
+CLAUDE.md
