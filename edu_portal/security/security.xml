@@ -199,4 +199,46 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Classroom Stream Posts — Record Rules
+
+         Teachers can create/edit/archive posts on classrooms they
+         own (classroom_id.teacher_id == current user). Students can
+         read posts whose classroom matches their active progression
+         section. Parents can read posts for their children's sections.
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="rule_edu_classroom_post_teacher_own" model="ir.rule">
+        <field name="name">Portal Teacher: own classroom posts</field>
+        <field name="model_id" ref="model_edu_classroom_post"/>
+        <field name="domain_force">[('classroom_id.teacher_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_edu_classroom_post_student_read" model="ir.rule">
+        <field name="name">Portal Student: section classroom posts</field>
+        <field name="model_id" ref="model_edu_classroom_post"/>
+        <field name="domain_force">[('classroom_id.section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_edu_classroom_post_parent_read" model="ir.rule">
+        <field name="name">Portal Parent: children's section posts</field>
+        <field name="model_id" ref="model_edu_classroom_post"/>
+        <field name="domain_force">[('classroom_id.section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

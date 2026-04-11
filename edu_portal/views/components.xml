@@ -136,6 +136,53 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
+         Post Card Component
+         Renders a single Stream announcement. The `can_manage`
+         flag controls visibility of pin/archive actions (teacher
+         view only).
+
+         Expects: post (edu.classroom.post), can_manage (bool)
+    ══════════════════════════════════════════════════════ -->
+    <template id="post_card_component" name="Portal Post Card">
+        <article t-attf-class="post-card #{'post-pinned' if post.pinned else ''}">
+            <header class="post-card-header">
+                <div class="post-author">
+                    <div class="post-author-avatar">
+                        <t t-esc="post.author_id.name[0].upper() if post.author_id.name else '?'"/>
+                    </div>
+                    <div class="post-author-info">
+                        <strong><t t-esc="post.author_id.name"/></strong>
+                        <span><t t-esc="post.posted_at"/></span>
+                    </div>
+                </div>
+                <div class="post-card-meta">
+                    <t t-if="post.pinned">
+                        <span class="post-pin-badge">📌 Pinned</span>
+                    </t>
+                </div>
+            </header>
+            <div class="post-card-body">
+                <t t-out="post.body"/>
+            </div>
+            <t t-if="can_manage">
+                <footer class="post-card-actions">
+                    <form t-attf-action="/portal/teacher/classroom/stream/pin/#{post.id}"
+                          method="post" class="post-action-form">
+                        <button type="submit" class="btn btn-sm">
+                            <t t-esc="'Unpin' if post.pinned else 'Pin'"/>
+                        </button>
+                    </form>
+                    <form t-attf-action="/portal/teacher/classroom/stream/archive/#{post.id}"
+                          method="post" class="post-action-form"
+                          onsubmit="return confirm('Archive this post? Students will no longer see it.');">
+                        <button type="submit" class="btn btn-sm btn-danger">Archive</button>
+                    </form>
+                </footer>
+            </t>
+        </article>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
          Empty State Component
          Expects: icon, title, message
     ══════════════════════════════════════════════════════ -->

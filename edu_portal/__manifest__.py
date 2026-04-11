@@ -40,6 +40,7 @@
         'views/edu_student_views.xml',
         'views/edu_guardian_views.xml',
         'views/hr_employee_views.xml',
+        'views/edu_classroom_post_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

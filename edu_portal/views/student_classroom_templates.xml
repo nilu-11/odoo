@@ -4,15 +4,26 @@
          Student in-classroom hub templates — read-only views.
     ══════════════════════════════════════════════════════ -->
 
-    <!-- ─── Stream ─── -->
+    <!-- ─── Stream (read-only) ─── -->
     <template id="student_classroom_stream_page" name="Student Classroom Stream">
         <t t-call="edu_portal.portal_layout">
             <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'💬'"/>
-                    <t t-set="title" t-value="'Stream — coming soon'"/>
-                    <t t-set="message" t-value="'Announcements from your teacher will appear here.'"/>
+            <div class="classroom-body stream-body">
+                <t t-if="posts">
+                    <div class="stream-feed">
+                        <t t-foreach="posts" t-as="post">
+                            <t t-call="edu_portal.post_card_component">
+                                <t t-set="can_manage" t-value="False"/>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="icon" t-value="'💬'"/>
+                        <t t-set="title" t-value="'No announcements yet'"/>
+                        <t t-set="message" t-value="'Your teacher hasn\'t posted anything yet.'"/>
+                    </t>
                 </t>
             </div>
         </t>

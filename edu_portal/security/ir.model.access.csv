@@ -5,3 +5,7 @@ access_edu_portal_sidebar_item_portal,edu.portal.sidebar.item read portal,model_
 access_edu_portal_classroom_tab_admin,edu.portal.classroom.tab admin,model_edu_portal_classroom_tab,edu_academic_structure.group_education_admin,1,1,1,1
 access_edu_portal_classroom_tab_user,edu.portal.classroom.tab read internal,model_edu_portal_classroom_tab,base.group_user,1,0,0,0
 access_edu_portal_classroom_tab_portal,edu.portal.classroom.tab read portal,model_edu_portal_classroom_tab,base.group_portal,1,0,0,0
+access_edu_classroom_post_admin,edu.classroom.post admin,model_edu_classroom_post,edu_academic_structure.group_education_admin,1,1,1,1
+access_edu_classroom_post_teacher,edu.classroom.post teacher,model_edu_classroom_post,edu_portal.group_edu_portal_teacher,1,1,1,0
+access_edu_classroom_post_student,edu.classroom.post student,model_edu_classroom_post,edu_portal.group_edu_portal_student,1,0,0,0
+access_edu_classroom_post_parent,edu.classroom.post parent,model_edu_classroom_post,edu_portal.group_edu_portal_parent,1,0,0,0

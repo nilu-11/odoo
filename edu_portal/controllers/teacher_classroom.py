@@ -61,6 +61,10 @@ class TeacherClassroomController(http.Controller):
         if not guard:
             return request.not_found()
         classroom, employee = guard
+        posts = request.env['edu.classroom.post'].sudo().search([
+            ('classroom_id', '=', classroom.id),
+            ('active', '=', True),
+        ])  # order baked into the model: pinned desc, posted_at desc
         context = build_portal_context(
             active_sidebar_key='home',
             active_tab_key='stream',
@@ -69,8 +73,66 @@ class TeacherClassroomController(http.Controller):
         )
         context.update({
             'employee': employee,
+            'posts': posts,
         })
         return request.render('edu_portal.teacher_classroom_stream_page', context)
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/stream/post',
+        type='http', auth='user', methods=['POST'],
+        website=False, csrf=False,
+    )
+    def teacher_classroom_stream_create(self, classroom_id, body, pinned=None, **kw):
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, _employee = guard
+        if not (body or '').strip():
+            return request.redirect(f'/portal/teacher/classroom/{classroom.id}/stream')
+        request.env['edu.classroom.post'].sudo().create({
+            'classroom_id': classroom.id,
+            'author_id': request.env.user.id,
+            'body': body,
+            'pinned': bool(pinned),
+        })
+        return request.redirect(f'/portal/teacher/classroom/{classroom.id}/stream')
+
+    @http.route(
+        '/portal/teacher/classroom/stream/pin/<int:post_id>',
+        type='http', auth='user', methods=['POST'],
+        website=False, csrf=False,
+    )
+    def teacher_classroom_stream_pin(self, post_id, **kw):
+        if get_portal_role(request.env.user) != 'teacher':
+            return request.not_found()
+        post = request.env['edu.classroom.post'].sudo().browse(post_id)
+        if not post.exists():
+            return request.not_found()
+        if post.classroom_id.teacher_id != request.env.user:
+            return request.not_found()
+        post.action_toggle_pin()
+        return request.redirect(
+            f'/portal/teacher/classroom/{post.classroom_id.id}/stream'
+        )
+
+    @http.route(
+        '/portal/teacher/classroom/stream/archive/<int:post_id>',
+        type='http', auth='user', methods=['POST'],
+        website=False, csrf=False,
+    )
+    def teacher_classroom_stream_archive(self, post_id, **kw):
+        if get_portal_role(request.env.user) != 'teacher':
+            return request.not_found()
+        post = request.env['edu.classroom.post'].sudo().browse(post_id)
+        if not post.exists():
+            return request.not_found()
+        if post.classroom_id.teacher_id != request.env.user:
+            return request.not_found()
+        classroom_id = post.classroom_id.id
+        post.action_archive_post()
+        return request.redirect(
+            f'/portal/teacher/classroom/{classroom_id}/stream'
+        )
 
     # ─── Tab: Attendance ───────────────────────────────────────
 

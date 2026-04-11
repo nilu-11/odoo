@@ -52,13 +52,20 @@ class StudentClassroomController(http.Controller):
         if not guard:
             return request.not_found()
         classroom, student = guard
+        posts = request.env['edu.classroom.post'].sudo().search([
+            ('classroom_id', '=', classroom.id),
+            ('active', '=', True),
+        ])
         context = build_portal_context(
             active_sidebar_key='home',
             active_tab_key='stream',
             classroom=classroom,
             page_title=classroom.name,
         )
-        context.update({'student': student})
+        context.update({
+            'student': student,
+            'posts': posts,
+        })
         return request.render('edu_portal.student_classroom_stream_page', context)
 
     # ─── Tab: Attendance ───────────────────────────────────────

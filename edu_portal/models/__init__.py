@@ -4,3 +4,4 @@ from . import edu_guardian
 from . import hr_employee
 from . import edu_portal_sidebar_item
 from . import edu_portal_classroom_tab
+from . import edu_classroom_post
