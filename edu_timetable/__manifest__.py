@@ -46,10 +46,6 @@ Features:
         'views/menu_views.xml',
         'data/portal_sidebar_data.xml',
     ],
-    'demo': [
-        'data/edu_room_demo.xml',
-        'data/edu_timetable_demo.xml',
-    ],
     'installable': True,
     'application': False,
     'auto_install': False,
