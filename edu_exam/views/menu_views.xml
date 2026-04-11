@@ -114,17 +114,8 @@
               sequence="90"
               groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
 
-    <menuitem id="menu_edu_assessment_schemes"
-              name="Assessment Schemes"
-              parent="menu_edu_exam_config"
-              action="edu_result.action_edu_assessment_scheme"
-              sequence="10"
-              groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
-
-    <menuitem id="menu_edu_back_exam_policies"
-              name="Back Exam Policies"
-              parent="menu_edu_exam_config"
-              action="edu_result.action_edu_back_exam_policy"
-              sequence="20"
-              groups="edu_exam.group_exam_admin,edu_academic_structure.group_education_admin"/>
+    <!-- Assessment Schemes and Back Exam Policies are accessible from
+         Results > Configuration (defined in edu_result/views/menu_views.xml).
+         They cannot be referenced here because edu_exam does not depend on
+         edu_result and the actions would not exist on a fresh edu_exam install. -->
 </odoo>
