@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_timetable_period_list" model="ir.ui.view">
+        <field name="name">edu.timetable.period.list</field>
+        <field name="model">edu.timetable.period</field>
+        <field name="arch" type="xml">
+            <list string="Periods" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="is_break"/>
+            </list>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edu_timetable_template_list" model="ir.ui.view">
+        <field name="name">edu.timetable.template.list</field>
+        <field name="model">edu.timetable.template</field>
+        <field name="arch" type="xml">
+            <list string="Timetable Templates"
+                  decoration-success="state=='active'"
+                  decoration-muted="state=='archived'">
+                <field name="name"/>
+                <field name="academic_year_id"/>
+                <field name="batch_id"/>
+                <field name="program_term_id"/>
+                <field name="section_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="slot_count"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='draft'"
+                       decoration-success="state=='active'"
+                       decoration-muted="state=='archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_edu_timetable_template_form" model="ir.ui.view">
+        <field name="name">edu.timetable.template.form</field>
+        <field name="model">edu.timetable.template</field>
+        <field name="arch" type="xml">
+            <form string="Timetable Template">
+                <header>
+                    <button name="action_activate" type="object"
+                            string="Activate" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_archive_template" type="object"
+                            string="Archive"
+                            invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="academic_year_id"/>
+                            <field name="batch_id"/>
+                            <field name="program_term_id"/>
+                            <field name="section_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="slot_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Periods">
+                            <field name="period_ids" context="{'default_template_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                    <field name="is_break"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Slots">
+                            <field name="slot_ids" context="{'default_template_id': id}">
+                                <list editable="bottom">
+                                    <field name="day_of_week"/>
+                                    <field name="period_id"/>
+                                    <field name="subject_id"/>
+                                    <field name="teacher_id"/>
+                                    <field name="room_id"/>
+                                    <field name="classroom_id"/>
+                                    <field name="slot_type"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_edu_timetable_template_kanban" model="ir.ui.view">
+        <field name="name">edu.timetable.template.kanban</field>
+        <field name="model">edu.timetable.template</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="section_id"/>
+                <field name="slot_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <strong><field name="name"/></strong>
+                            <div><field name="section_id"/></div>
+                            <div><field name="slot_count"/> slots</div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_edu_timetable_template_search" model="ir.ui.view">
+        <field name="name">edu.timetable.template.search</field>
+        <field name="model">edu.timetable.template</field>
+        <field name="arch" type="xml">
+            <search string="Timetable Templates">
+                <field name="name"/>
+                <field name="academic_year_id"/>
+                <field name="batch_id"/>
+                <field name="section_id"/>
+                <filter string="Active" name="f_active" domain="[('state','=','active')]"/>
+                <filter string="Draft" name="f_draft" domain="[('state','=','draft')]"/>
+                <filter string="Archived" name="f_archived" domain="[('state','=','archived')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Academic Year" name="g_year" context="{'group_by':'academic_year_id'}"/>
+                    <filter string="Batch" name="g_batch" context="{'group_by':'batch_id'}"/>
+                    <filter string="State" name="g_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_edu_timetable_template" model="ir.actions.act_window">
+        <field name="name">Timetable Templates</field>
+        <field name="res_model">edu.timetable.template</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_edu_timetable_template_search"/>
+        <field name="context">{'search_default_f_active': 1}</field>
+    </record>
+</odoo>
