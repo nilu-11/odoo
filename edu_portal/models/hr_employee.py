@@ -23,7 +23,7 @@ class HrEmployee(models.Model):
     def _compute_portal_user_id(self):
         Group = self.env.ref('edu_portal.group_edu_portal_teacher', raise_if_not_found=False)
         for rec in self:
-            if rec.user_id and Group and Group in rec.user_id.groups_id:
+            if rec.user_id and Group and Group in rec.user_id.group_ids:
                 rec.portal_user_id = rec.user_id
             else:
                 rec.portal_user_id = False
@@ -39,11 +39,11 @@ class HrEmployee(models.Model):
 
         if self.user_id:
             # Existing user — add the teacher portal group
-            self.user_id.write({'groups_id': [(4, group.id)]})
+            self.user_id.write({'group_ids': [(4, group.id)]})
             user = self.user_id
         elif self.work_contact_id and self.work_contact_id.user_ids:
             user = self.work_contact_id.user_ids[:1]
-            user.write({'groups_id': [(4, group.id)]})
+            user.write({'group_ids': [(4, group.id)]})
             self.user_id = user
         else:
             # Create new user linked to employee
@@ -52,7 +52,7 @@ class HrEmployee(models.Model):
                 'name': self.name,
                 'login': login,
                 'password': temp_password,
-                'groups_id': [(6, 0, [group.id])],
+                'group_ids': [(6, 0, [group.id])],
             })
             self.user_id = user
 
@@ -73,7 +73,7 @@ class HrEmployee(models.Model):
         self.ensure_one()
         group = self.env.ref('edu_portal.group_edu_portal_teacher')
         if self.portal_user_id:
-            self.portal_user_id.sudo().write({'groups_id': [(3, group.id)]})
+            self.portal_user_id.sudo().write({'group_ids': [(3, group.id)]})
         self.portal_access = False
         return True
 

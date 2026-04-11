@@ -26,7 +26,7 @@ class EduGuardian(models.Model):
             if not rec.partner_id or not Group:
                 rec.portal_user_id = False
                 continue
-            users = rec.partner_id.user_ids.filtered(lambda u: Group in u.groups_id)
+            users = rec.partner_id.user_ids.filtered(lambda u: Group in u.group_ids)
             rec.portal_user_id = users[:1]
 
     def action_grant_portal_access(self):
@@ -40,7 +40,7 @@ class EduGuardian(models.Model):
         temp_password = _generate_portal_password()
 
         if existing_user:
-            existing_user.write({'groups_id': [(4, group.id)]})
+            existing_user.write({'group_ids': [(4, group.id)]})
             user = existing_user
         else:
             user = self.env['res.users'].sudo().create({
@@ -48,7 +48,7 @@ class EduGuardian(models.Model):
                 'login': self.partner_id.email or f'parent_{self.id}@portal.local',
                 'partner_id': self.partner_id.id,
                 'password': temp_password,
-                'groups_id': [(6, 0, [group.id])],
+                'group_ids': [(6, 0, [group.id])],
             })
 
         self.portal_access = True
@@ -68,7 +68,7 @@ class EduGuardian(models.Model):
         self.ensure_one()
         group = self.env.ref('edu_portal.group_edu_portal_parent')
         if self.portal_user_id:
-            self.portal_user_id.sudo().write({'groups_id': [(3, group.id)]})
+            self.portal_user_id.sudo().write({'group_ids': [(3, group.id)]})
         self.portal_access = False
         return True
 
