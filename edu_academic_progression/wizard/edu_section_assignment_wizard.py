@@ -533,6 +533,14 @@ class EduSectionAssignmentWizard(models.TransientModel):
         for sec_id, hist_ids in section_to_history_ids.items():
             ProgressionHistory.browse(hist_ids).write({'section_id': sec_id})
 
+        # Also update the student record's section_id so it stays in sync
+        Student = self.env['edu.student']
+        student_section_map: dict[int, list[int]] = defaultdict(list)
+        for line in self.line_ids:
+            student_section_map[line.new_section_id.id].append(line.student_id.id)
+        for sec_id, student_ids in student_section_map.items():
+            Student.browse(student_ids).write({'section_id': sec_id})
+
         # ── Audit trail on the batch ──────────────────────────────────────────
         method_label = dict(self._fields['assignment_method'].selection).get(
             self.assignment_method, self.assignment_method

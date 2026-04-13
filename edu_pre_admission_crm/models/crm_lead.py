@@ -117,6 +117,7 @@ class CrmLead(models.Model):
         string='Intended Intake Year',
         tracking=True,
         ondelete='restrict',
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
         help='The academic/intake year the applicant intends to join.',
     )
     preferred_batch_id = fields.Many2one(
@@ -429,21 +430,45 @@ class CrmLead(models.Model):
         """
         Attempts to find an open admission register for this lead's program/year.
         Returns the register record or None.
+
+        Tries progressively more lenient matches:
+          1. Program + year + preferred batch (strictest)
+          2. Program + year
+          3. Program only (any open register)
+
         Requires edu_admission to be installed.
         """
         self.ensure_one()
         register_model = self.env.get('edu.admission.register')
-        if not register_model:
+        if not register_model or not self.interested_program_id:
             return None
-        domain = [
+        base_domain = [
             ('program_id', '=', self.interested_program_id.id),
             ('state', '=', 'open'),
         ]
-        if self.intended_academic_year_id:
-            domain.append(
-                ('academic_year_id', '=', self.intended_academic_year_id.id)
+        # 1. Strict: year + batch
+        if self.intended_academic_year_id and self.preferred_batch_id:
+            reg = register_model.search(
+                base_domain + [
+                    ('academic_year_id', '=', self.intended_academic_year_id.id),
+                    ('batch_id', '=', self.preferred_batch_id.id),
+                ],
+                limit=1,
             )
-        return register_model.search(domain, limit=1) or None
+            if reg:
+                return reg
+        # 2. Program + year
+        if self.intended_academic_year_id:
+            reg = register_model.search(
+                base_domain + [
+                    ('academic_year_id', '=', self.intended_academic_year_id.id),
+                ],
+                limit=1,
+            )
+            if reg:
+                return reg
+        # 3. Program only
+        return register_model.search(base_domain, limit=1) or None
 
     def _prepare_admission_application_vals(self, register=None):
         """

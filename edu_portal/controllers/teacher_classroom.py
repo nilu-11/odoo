@@ -142,25 +142,81 @@ class TeacherClassroomController(http.Controller):
 
     # ─── Tab: Attendance ───────────────────────────────────────
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance',
-        type='http', auth='user', website=False,
-    )
-    def teacher_classroom_attendance(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        # Today's sheet in edit mode
-        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
+    def _get_or_create_register(self, classroom):
         register = classroom.attendance_register_id
         if not register:
             classroom._ensure_attendance_register()
             register = classroom.attendance_register_id
-        sheet = AttendanceSheet.search([
-            ('register_id', '=', register.id),
-            ('state', 'in', ['draft', 'in_progress']),
-        ], order='session_date desc', limit=1)
+        return register
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/attendance',
+        type='http', auth='user', website=False,
+    )
+    def teacher_classroom_attendance(self, classroom_id, sheet_id=None, **kw):
+        """Dashboard + optional modal editor for a selected sheet."""
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, employee = guard
+        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
+        register = self._get_or_create_register(classroom)
+
+        history = AttendanceSheet.search(
+            [('register_id', '=', register.id)],
+            order='session_date desc, time_from desc',
+            limit=50,
+        )
+
+        sheet = AttendanceSheet
+        if sheet_id:
+            try:
+                candidate = AttendanceSheet.browse(int(sheet_id))
+                if candidate.exists() and candidate.register_id == register:
+                    sheet = candidate
+            except (TypeError, ValueError):
+                pass
+        if not sheet:
+            sheet = history.filtered(
+                lambda s: s.state in ('draft', 'in_progress')
+            )[:1]
+
+        # Ensure lines exist for an open sheet so the teacher can mark.
+        if sheet and sheet.state == 'draft' and not sheet.line_ids:
+            sheet.action_start()
+
+        # ── Dashboard stats ──────────────────────────────────────
+        from datetime import date
+        today = date.today()
+
+        total_students = len(sheet.line_ids) if sheet else 0
+        if not total_students:
+            ProgHistory = request.env['edu.student.progression.history'].sudo()
+            total_students = ProgHistory.search_count([
+                ('section_id', '=', classroom.section_id.id),
+                ('state', '=', 'active'),
+            ])
+
+        submitted = history.filtered(lambda s: s.state == 'submitted')
+        sessions_count = len(submitted)
+        if submitted:
+            total_lines = sum(s.line_count for s in submitted)
+            total_present = sum(s.present_count for s in submitted)
+            avg_rate = round(total_present / total_lines * 100) if total_lines else 0
+        else:
+            avg_rate = 0
+
+        today_sheet = history.filtered(lambda s: s.session_date == today)[:1]
+
+        # Sort lines for display
+        sorted_lines = []
+        if sheet and sheet.line_ids:
+            sorted_lines = sheet.line_ids.sorted(
+                key=lambda l: (l.roll_number or '', l.student_id.display_name)
+            )
+
+        auto_open = kw.get('modal') == '1' and sheet and sheet.state == 'in_progress'
+
         context = build_portal_context(
             active_sidebar_key='home',
             active_tab_key='attendance',
@@ -170,8 +226,110 @@ class TeacherClassroomController(http.Controller):
         context.update({
             'employee': employee,
             'sheet': sheet,
+            'sorted_lines': sorted_lines,
+            'history': history,
+            'register': register,
+            'today_str': today.isoformat(),
+            'total_students': total_students,
+            'sessions_count': sessions_count,
+            'avg_rate': avg_rate,
+            'today_sheet': today_sheet,
+            'auto_open_modal': auto_open,
         })
         return request.render('edu_portal.teacher_classroom_attendance_page', context)
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/attendance/create',
+        type='http', auth='user', methods=['POST'], website=False, csrf=False,
+    )
+    def teacher_classroom_attendance_create(
+        self, classroom_id, session_date=None, **kw
+    ):
+        """Create a new attendance sheet, then redirect with modal auto-open."""
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, _employee = guard
+        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
+        register = self._get_or_create_register(classroom)
+
+        from datetime import date as _date
+        try:
+            target = (
+                _date.fromisoformat(session_date) if session_date else _date.today()
+            )
+        except ValueError:
+            target = _date.today()
+
+        existing = AttendanceSheet.search([
+            ('register_id', '=', register.id),
+            ('session_date', '=', target),
+        ], limit=1)
+        if existing:
+            sheet = existing
+        else:
+            sheet = AttendanceSheet.create({
+                'register_id': register.id,
+                'session_date': target,
+            })
+            try:
+                sheet.action_start()
+            except Exception:
+                pass
+        return request.redirect(
+            f'/portal/teacher/classroom/{classroom_id}/attendance'
+            f'?sheet_id={sheet.id}&modal=1'
+        )
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/submit',
+        type='http', auth='user', methods=['POST'], website=False, csrf=False,
+    )
+    def teacher_classroom_attendance_submit(self, classroom_id, sheet_id, **kw):
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, _employee = guard
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if not sheet.exists() or sheet.classroom_id != classroom:
+            return request.not_found()
+        if sheet.state == 'in_progress':
+            try:
+                sheet.action_submit()
+            except Exception:
+                pass
+        return request.redirect(
+            f'/portal/teacher/classroom/{classroom_id}/attendance'
+            f'?sheet_id={sheet.id}'
+        )
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/mark-all',
+        type='http', auth='user', methods=['POST'],
+        website=False, csrf=False,
+    )
+    def teacher_classroom_attendance_mark_all(
+        self, classroom_id, sheet_id, status, **kw
+    ):
+        """Bulk-mark all lines on a sheet. Returns HTMX fragment."""
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, _employee = guard
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if (not sheet.exists() or sheet.classroom_id != classroom
+                or sheet.state != 'in_progress'):
+            return request.not_found()
+        if status not in ('present', 'absent', 'late', 'excused'):
+            return request.not_found()
+        sheet.line_ids.write({'status': status})
+        sorted_lines = sheet.line_ids.sorted(
+            key=lambda l: (l.roll_number or '', l.student_id.display_name)
+        )
+        return request.render('edu_portal.teacher_attendance_modal_rows', {
+            'sorted_lines': sorted_lines,
+            'sheet': sheet,
+        })
 
     @http.route(
         '/portal/teacher/classroom/attendance/mark',
@@ -194,6 +352,95 @@ class TeacherClassroomController(http.Controller):
         return request.render('edu_portal.teacher_attendance_row_partial', {
             'line': line,
         })
+
+    # ─── Attendance matrix report ────────────────────────────
+
+    @http.route(
+        '/portal/teacher/classroom/<int:classroom_id>/attendance/matrix',
+        type='http', auth='user', website=False,
+    )
+    def teacher_classroom_attendance_matrix(
+        self, classroom_id, date_from=None, date_to=None, **kw
+    ):
+        """Student × Date attendance matrix with date-range filter."""
+        guard = self._guard(classroom_id)
+        if not guard:
+            return request.not_found()
+        classroom, employee = guard
+        register = self._get_or_create_register(classroom)
+
+        from datetime import date as _date, timedelta
+        today = _date.today()
+        try:
+            d_from = _date.fromisoformat(date_from) if date_from else None
+        except ValueError:
+            d_from = None
+        try:
+            d_to = _date.fromisoformat(date_to) if date_to else None
+        except ValueError:
+            d_to = None
+
+        # Default: last 30 days
+        if not d_to:
+            d_to = today
+        if not d_from:
+            d_from = d_to - timedelta(days=29)
+
+        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
+        sheets = AttendanceSheet.search([
+            ('register_id', '=', register.id),
+            ('session_date', '>=', d_from),
+            ('session_date', '<=', d_to),
+            ('state', '=', 'submitted'),
+        ], order='session_date asc')
+
+        # Build date columns (sorted dates with submitted sheets)
+        date_cols = [s.session_date for s in sheets]
+
+        # Build student rows: {student_id: {date: status, ...}}
+        # Collect unique students from all sheet lines
+        all_lines = request.env['edu.attendance.sheet.line'].sudo().search([
+            ('sheet_id', 'in', sheets.ids),
+        ])
+
+        student_map = {}  # student record → {date → status}
+        for ln in all_lines:
+            st = ln.student_id
+            if st.id not in student_map:
+                student_map[st.id] = {'student': st, 'dates': {}, 'present': 0, 'total': 0}
+            entry = student_map[st.id]
+            entry['dates'][ln.sheet_id.session_date] = ln.status
+            entry['total'] += 1
+            if ln.status in ('present', 'late'):
+                entry['present'] += 1
+
+        # Sort students by name
+        matrix_rows = sorted(
+            student_map.values(),
+            key=lambda r: (r['student'].roll_number or '', r['student'].display_name),
+        )
+
+        # Calculate per-student percentage
+        for row in matrix_rows:
+            row['pct'] = round(row['present'] / row['total'] * 100) if row['total'] else 0
+
+        context = build_portal_context(
+            active_sidebar_key='home',
+            active_tab_key='attendance',
+            classroom=classroom,
+            page_title=classroom.name,
+        )
+        context.update({
+            'employee': employee,
+            'date_cols': date_cols,
+            'matrix_rows': matrix_rows,
+            'date_from': d_from.isoformat(),
+            'date_to': d_to.isoformat(),
+            'total_sessions': len(sheets),
+        })
+        return request.render(
+            'edu_portal.teacher_classroom_attendance_matrix_page', context,
+        )
 
     # ─── Tab: Exams ────────────────────────────────────────────
 

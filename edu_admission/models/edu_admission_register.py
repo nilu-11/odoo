@@ -39,6 +39,7 @@ class EduAdmissionRegister(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     program_id = fields.Many2one(
         comodel_name='edu.program',
@@ -448,3 +449,37 @@ class EduAdmissionRegister(models.Model):
 
     def action_view_cancelled(self):
         return self._action_view_applications_by_state('cancelled', 'Cancelled')
+
+    def action_start_application(self):
+        """Open a blank application form with all scope & fee context pre-filled."""
+        self.ensure_one()
+        if self.state != 'open':
+            raise UserError(
+                f'Cannot start an application — register "{self.name}" is not open.'
+            )
+        ctx = {
+            'default_admission_register_id': self.id,
+            'default_program_id': self.program_id.id,
+            'default_academic_year_id': self.academic_year_id.id,
+            'default_fee_structure_id': (
+                self.fee_structure_id.id if self.fee_structure_id else False
+            ),
+            'default_selected_payment_plan_id': (
+                self.default_payment_plan_id.id
+                if self.default_payment_plan_id else False
+            ),
+        }
+        if self.batch_id:
+            ctx['default_batch_id'] = self.batch_id.id
+        if self.available_payment_plan_ids:
+            ctx['default_available_payment_plan_ids'] = [
+                (6, 0, self.available_payment_plan_ids.ids)
+            ]
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'New Application',
+            'res_model': 'edu.admission.application',
+            'view_mode': 'form',
+            'target': 'current',
+            'context': ctx,
+        }

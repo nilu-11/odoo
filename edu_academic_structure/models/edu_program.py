@@ -252,6 +252,7 @@ class EduProgram(models.Model):
                 ),
                 'type': 'success',
                 'sticky': False,
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
             },
         }
 

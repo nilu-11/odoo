@@ -1,25 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Enrollment Form — add "View Student" smart button
-         and update student_id display for edu.student
+         Enrollment Form — add student smart buttons, fields,
+         and computed helpers (all student-related UI lives here,
+         not in the base edu_enrollment module).
     ══════════════════════════════════════════════════════ -->
     <record id="view_edu_enrollment_form_student_btn" model="ir.ui.view">
         <field name="name">edu.enrollment.form.student.btn</field>
         <field name="model">edu.enrollment</field>
         <field name="inherit_id" ref="edu_enrollment.view_edu_enrollment_form"/>
         <field name="arch" type="xml">
-            <!-- Add "View Student" button next to "Create Student" -->
-            <xpath expr="//button[@name='action_create_student']" position="after">
+            <!-- Add "Create Student" + "View Student" smart buttons -->
+            <xpath expr="//button[@name='action_view_guardians']" position="after">
+                <button name="action_create_student"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-graduation-cap"
+                        invisible="state not in ('confirmed', 'active') or student_created">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Create Student</span>
+                    </div>
+                </button>
                 <button name="action_view_student"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-graduation-cap"
-                        invisible="not student_created or state != 'active'">
+                        invisible="not student_created">
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">Student</span>
                     </div>
                 </button>
+            </xpath>
+
+            <!-- Add student_created + student_id fields in the Status group -->
+            <xpath expr="//field[@name='checklist_complete']" position="after">
+                <field name="student_created" readonly="1"
+                       invisible="state not in ('confirmed', 'active')"/>
+            </xpath>
+
+            <!-- Add student_id in the System group -->
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="student_id" readonly="1"
+                       invisible="not student_id"/>
             </xpath>
         </field>
     </record>

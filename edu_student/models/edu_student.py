@@ -410,10 +410,10 @@ class EduStudent(models.Model):
         enrollment.ensure_one()
         blocks = []
 
-        if enrollment.state != 'active':
+        if enrollment.state not in ('confirmed', 'active'):
             blocks.append(
                 f'Enrollment "{enrollment.enrollment_no}" is in '
-                f'"{enrollment.state}" state — must be "active".'
+                f'"{enrollment.state}" state — must be "confirmed" or "active".'
             )
 
         if not enrollment.partner_id:

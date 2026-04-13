@@ -39,6 +39,7 @@ class EduTimetableTemplate(models.Model):
         required=True,
         ondelete='restrict',
         tracking=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     batch_id = fields.Many2one(
         comodel_name='edu.batch',

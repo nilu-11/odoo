@@ -28,6 +28,7 @@ class EduTerm(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     term_type = fields.Selection(
         selection=[

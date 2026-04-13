@@ -31,6 +31,7 @@ class EduFeeStructure(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
         help=(
             'The academic year in which students are admitted under this fee plan. '
             'This is the cohort/intake year — fee lines may span multiple '
@@ -320,6 +321,7 @@ class EduFeeStructure(models.Model):
                 'message': f'Created {len(new_terms)} fee line(s) for "{self.name}".',
                 'type': 'success',
                 'sticky': False,
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
             },
         }
 

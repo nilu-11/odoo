@@ -117,6 +117,7 @@ class EduEnrollment(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     current_program_term_id = fields.Many2one(
         comodel_name='edu.program.term',
@@ -300,22 +301,6 @@ class EduEnrollment(models.Model):
     )
 
     # ═════════════════════════════════════════════════════════════════════════
-    # Future Integration
-    # ═════════════════════════════════════════════════════════════════════════
-    student_id = fields.Many2one(
-        comodel_name='res.partner',
-        string='Student Record',
-        ondelete='set null',
-        tracking=True,
-        help='Placeholder for future edu.student integration. '
-             'Currently points to the partner record.',
-    )
-    student_created = fields.Boolean(
-        string='Student Created',
-        compute='_compute_student_created',
-    )
-
-    # ═════════════════════════════════════════════════════════════════════════
     # Audit
     # ═════════════════════════════════════════════════════════════════════════
     enrolled_by_user_id = fields.Many2one(
@@ -482,10 +467,6 @@ class EduEnrollment(models.Model):
                 )
             else:
                 rec.guardian_count = 0
-
-    def _compute_student_created(self):
-        for rec in self:
-            rec.student_created = bool(rec.student_id)
 
     # ═════════════════════════════════════════════════════════════════════════
     # Validation
@@ -815,55 +796,6 @@ class EduEnrollment(models.Model):
                     f'"{rec.enrollment_no}" is in "{rec.state}" state.'
                 )
         self.write({'state': 'completed'})
-
-    # ═════════════════════════════════════════════════════════════════════════
-    # Future Student Integration
-    # ═════════════════════════════════════════════════════════════════════════
-    def _prepare_student_vals(self):
-        """
-        Prepare values for future student record creation.
-
-        Returns a dict suitable for creating an edu.student record
-        when that module becomes available. Currently serves as the
-        integration contract.
-        """
-        self.ensure_one()
-        return {
-            'partner_id': self.partner_id.id,
-            'applicant_profile_id': self.applicant_profile_id.id,
-            'enrollment_id': self.id,
-            'program_id': self.program_id.id,
-            'batch_id': self.batch_id.id,
-            'academic_year_id': self.academic_year_id.id,
-            'current_program_term_id': self.current_program_term_id.id,
-        }
-
-    def action_create_student(self):
-        """
-        Hook for future student module integration.
-        Override this method in edu_student to create the actual record.
-        """
-        self.ensure_one()
-        if self.state != 'active':
-            raise UserError(
-                'Student record can only be created from an active '
-                'enrollment.'
-            )
-        student_model = self.env.get('edu.student')
-        if student_model is None:
-            raise UserError(
-                'Student module is not installed. Install edu_student '
-                'to create student records.'
-            )
-        vals = self._prepare_student_vals()
-        student = student_model.create(vals)
-        self.student_id = student.partner_id.id
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'edu.student',
-            'res_id': student.id,
-            'view_mode': 'form',
-        }
 
     # ═════════════════════════════════════════════════════════════════════════
     # Smart Buttons

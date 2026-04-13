@@ -64,6 +64,7 @@ class EduStudentFeePlan(models.Model):
         comodel_name='edu.academic.year',
         string='Academic Year',
         ondelete='restrict',
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
 
     # ── Fee Structure Reference ───────────────────────────────────────────────

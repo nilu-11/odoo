@@ -132,6 +132,7 @@ class EduResultSession(models.Model):
         comodel_name='edu.academic.year',
         string='Academic Year',
         ondelete='restrict',
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     exam_session_id = fields.Many2one(
         comodel_name='edu.exam.session',

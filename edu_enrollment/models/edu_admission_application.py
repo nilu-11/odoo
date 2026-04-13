@@ -1,5 +1,9 @@
+import logging
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class EduAdmissionApplication(models.Model):
@@ -132,6 +136,18 @@ class EduAdmissionApplication(models.Model):
 
         # Advance application state
         self.write({'state': 'enrolled'})
+
+        # Auto-confirm if enrollment is immediately ready (no required
+        # fees blocking).  This creates the student record and portal
+        # user in one step, saving manual button clicks.
+        if enrollment.can_confirm:
+            try:
+                enrollment.action_confirm()
+            except UserError:
+                _logger.info(
+                    'Auto-confirm skipped for enrollment %s — not ready.',
+                    enrollment.enrollment_no,
+                )
 
         return {
             'type': 'ir.actions.act_window',

@@ -60,6 +60,7 @@ class EduResultSession(models.Model):
     academic_year_id = fields.Many2one(
         'edu.academic.year', string='Academic Year',
         required=True, ondelete='restrict', index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     program_id = fields.Many2one(
         'edu.program', string='Program',

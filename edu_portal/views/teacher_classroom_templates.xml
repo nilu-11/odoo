@@ -55,59 +55,424 @@
         <t t-call="edu_portal.portal_layout">
             <t t-call="edu_portal.classroom_tabs_component"/>
             <div class="classroom-body">
-                <t t-if="sheet">
-                    <div class="attendance-sheet">
-                        <div class="attendance-sheet-header">
-                            <h2>Session: <t t-esc="sheet.session_date"/></h2>
-                            <span class="attendance-sheet-state">
-                                <t t-esc="dict(sheet._fields['state'].selection).get(sheet.state, sheet.state)"/>
-                            </span>
+
+                <!-- ══ Dashboard stat cards ══ -->
+                <div class="att-stats">
+                    <div class="att-stat-card">
+                        <div class="att-stat-icon att-stat-icon--students">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </div>
-                        <table class="attendance-table">
-                            <thead>
-                                <tr>
-                                    <th>Roll</th>
-                                    <th>Student</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="sheet.line_ids" t-as="line">
-                                    <t t-call="edu_portal.teacher_attendance_row_partial"/>
-                                </t>
-                            </tbody>
-                        </table>
+                        <div class="att-stat-body">
+                            <span class="att-stat-value"><t t-esc="total_students"/></span>
+                            <span class="att-stat-label">Total Students</span>
+                        </div>
+                    </div>
+                    <div class="att-stat-card">
+                        <div class="att-stat-icon att-stat-icon--sessions">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="att-stat-body">
+                            <span class="att-stat-value"><t t-esc="sessions_count"/></span>
+                            <span class="att-stat-label">Sessions Taken</span>
+                        </div>
+                    </div>
+                    <div class="att-stat-card">
+                        <div class="att-stat-icon att-stat-icon--rate">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <div class="att-stat-body">
+                            <span class="att-stat-value"><t t-esc="avg_rate"/>%</span>
+                            <span class="att-stat-label">Avg. Attendance</span>
+                        </div>
+                    </div>
+                    <div class="att-stat-card">
+                        <div t-attf-class="att-stat-icon #{today_sheet and 'att-stat-icon--done' or 'att-stat-icon--pending'}">
+                            <t t-if="today_sheet">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </t>
+                            <t t-else="">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            </t>
+                        </div>
+                        <div class="att-stat-body">
+                            <span class="att-stat-value">
+                                <t t-if="today_sheet">Done</t>
+                                <t t-else="">Not Yet</t>
+                            </span>
+                            <span class="att-stat-label">Today's Attendance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ New session bar ══ -->
+                <div class="att-action-bar">
+                    <form t-attf-action="/portal/teacher/classroom/#{classroom.id}/attendance/create"
+                          method="post"
+                          class="att-new-form">
+                        <input type="hidden" name="csrf_token"
+                               t-att-value="request.csrf_token()"/>
+                        <input type="date" name="session_date"
+                               class="att-date-input"
+                               t-att-value="today_str"/>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            New Session
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ══ Active session banner ══ -->
+                <t t-if="sheet and sheet.state == 'in_progress'">
+                    <div class="att-active-banner">
+                        <div class="att-active-banner-info">
+                            <span class="att-active-banner-badge">In Progress</span>
+                            <h3 class="att-active-banner-title">
+                                Session: <t t-esc="sheet.session_date"/>
+                            </h3>
+                            <p class="att-active-banner-sub">
+                                <t t-esc="sheet.present_count"/> present
+                                · <t t-esc="sheet.absent_count"/> absent
+                                · <t t-esc="sheet.line_count"/> total
+                            </p>
+                        </div>
+                        <button class="btn btn-primary" data-att-open="1">
+                            Take Attendance
+                        </button>
                     </div>
                 </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📋'"/>
-                        <t t-set="title" t-value="'No attendance session open'"/>
-                        <t t-set="message" t-value="'Start a new attendance session from the backend to begin marking.'"/>
-                    </t>
+
+                <!-- ══ Submitted sheet read-only view ══ -->
+                <t t-if="sheet and sheet.state == 'submitted'">
+                    <div class="att-readonly-card">
+                        <div class="att-readonly-header">
+                            <div>
+                                <span class="att-readonly-badge">Submitted</span>
+                                <h3 class="att-readonly-title">
+                                    Session: <t t-esc="sheet.session_date"/>
+                                </h3>
+                            </div>
+                            <div class="att-readonly-summary">
+                                <span class="att-pill att-pill--present">
+                                    P: <t t-esc="sheet.present_count"/>
+                                </span>
+                                <span class="att-pill att-pill--absent">
+                                    A: <t t-esc="sheet.absent_count"/>
+                                </span>
+                                <span class="att-pill att-pill--total">
+                                    Total: <t t-esc="sheet.line_count"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="att-readonly-list">
+                            <t t-foreach="sorted_lines" t-as="line">
+                                <div class="att-readonly-row">
+                                    <span class="att-readonly-num"><t t-esc="line_index + 1"/></span>
+                                    <div class="att-readonly-avatar">
+                                        <t t-esc="(line.student_id.partner_id.name or '?')[0].upper()"/>
+                                    </div>
+                                    <span class="att-readonly-name"><t t-esc="line.student_id.display_name"/></span>
+                                    <span t-attf-class="att-status-chip att-status-chip--#{line.status}">
+                                        <t t-esc="line.status.title()"/>
+                                    </span>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
                 </t>
+
+                <!-- ══ History ══ -->
+                <div class="att-history-section">
+                    <div class="att-history-header">
+                        <h3 class="att-history-title">Session History</h3>
+                        <a t-attf-href="/portal/teacher/classroom/#{classroom.id}/attendance/matrix"
+                           class="btn btn-secondary btn-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                            Attendance Report
+                        </a>
+                    </div>
+                    <t t-if="history">
+                        <div class="att-history-list">
+                            <t t-foreach="history" t-as="hs">
+                                <a t-attf-href="/portal/teacher/classroom/#{classroom.id}/attendance?sheet_id=#{hs.id}#{'&amp;modal=1' if hs.state == 'in_progress' else ''}"
+                                   t-attf-class="att-history-row #{'att-history-row--active' if sheet and hs.id == sheet.id else ''}">
+                                    <div class="att-history-date">
+                                        <t t-esc="hs.session_date"/>
+                                    </div>
+                                    <span t-attf-class="att-history-badge att-history-badge--#{hs.state}">
+                                        <t t-esc="dict(hs._fields['state'].selection).get(hs.state, hs.state)"/>
+                                    </span>
+                                    <div class="att-history-counts">
+                                        <span class="att-history-count att-history-count--present">
+                                            <t t-esc="hs.present_count"/> P
+                                        </span>
+                                        <span class="att-history-count att-history-count--absent">
+                                            <t t-esc="hs.absent_count"/> A
+                                        </span>
+                                        <span class="att-history-count att-history-count--total">
+                                            <t t-esc="hs.line_count"/> total
+                                        </span>
+                                    </div>
+                                    <svg class="att-history-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </t>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-call="edu_portal.empty_state_component">
+                            <t t-set="title" t-value="'No attendance sessions yet'"/>
+                            <t t-set="message" t-value="'Start a new session using the button above.'"/>
+                        </t>
+                    </t>
+                </div>
+
+                <!-- ══ Attendance Modal ══ -->
+                <t t-if="sheet and sheet.state == 'in_progress'">
+                    <div id="attendance-modal"
+                         t-attf-class="att-modal #{'att-modal--open' if auto_open_modal else ''}"
+                         t-att-data-auto-open="'1' if auto_open_modal else None">
+                        <div class="att-modal-backdrop" data-att-close="1"/>
+                        <div class="att-modal-dialog">
+                            <div class="att-modal-header">
+                                <div>
+                                    <h2 class="att-modal-title">Take Attendance</h2>
+                                    <p class="att-modal-sub">
+                                        <t t-esc="sheet.session_date"/>
+                                        · <t t-esc="classroom.section_id.name"/>
+                                        · <t t-esc="classroom.subject_id.name"/>
+                                    </p>
+                                </div>
+                                <button class="att-modal-close-btn" data-att-close="1" type="button">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                            <div class="att-modal-toolbar">
+                                <div class="att-modal-actions">
+                                    <button type="button"
+                                            class="att-bulk-btn att-bulk-btn--present"
+                                            t-attf-hx-post="/portal/teacher/classroom/#{classroom.id}/attendance/#{sheet.id}/mark-all"
+                                            hx-target="#att-student-list"
+                                            hx-swap="innerHTML"
+                                            hx-vals='{"status":"present"}'>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        All Present
+                                    </button>
+                                    <button type="button"
+                                            class="att-bulk-btn att-bulk-btn--absent"
+                                            t-attf-hx-post="/portal/teacher/classroom/#{classroom.id}/attendance/#{sheet.id}/mark-all"
+                                            hx-target="#att-student-list"
+                                            hx-swap="innerHTML"
+                                            hx-vals='{"status":"absent"}'>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        All Absent
+                                    </button>
+                                </div>
+                                <div class="att-counters" id="att-counters">
+                                    <span class="att-counter att-counter--present">
+                                        <span class="att-counter-dot"/>
+                                        <span id="att-count-present">0</span>
+                                    </span>
+                                    <span class="att-counter att-counter--absent">
+                                        <span class="att-counter-dot"/>
+                                        <span id="att-count-absent">0</span>
+                                    </span>
+                                    <span class="att-counter att-counter--late">
+                                        <span class="att-counter-dot"/>
+                                        <span id="att-count-late">0</span>
+                                    </span>
+                                    <span class="att-counter att-counter--excused">
+                                        <span class="att-counter-dot"/>
+                                        <span id="att-count-excused">0</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="att-modal-body" id="att-student-list">
+                                <t t-foreach="sorted_lines" t-as="line">
+                                    <t t-call="edu_portal.teacher_attendance_row_partial"/>
+                                </t>
+                            </div>
+                            <div class="att-modal-footer">
+                                <form t-attf-action="/portal/teacher/classroom/#{classroom.id}/attendance/#{sheet.id}/submit"
+                                      method="post"
+                                      style="display:inline">
+                                    <input type="hidden" name="csrf_token"
+                                           t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-primary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                        Submit Attendance
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-att-close="1">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
             </div>
         </t>
     </template>
 
-    <!-- Attendance row partial (used inline and via HTMX swap) -->
+    <!-- Attendance row partial (div-based card, used in modal + HTMX swap) -->
     <template id="teacher_attendance_row_partial" name="Teacher Attendance Row">
-        <tr t-att-id="'att-row-%d' % line.id" class="attendance-row">
-            <td><t t-esc="line.student_id.student_no or ''"/></td>
-            <td><t t-esc="line.student_id.display_name"/></td>
-            <td class="attendance-status-cell">
-                <t t-foreach="['present', 'absent', 'late', 'excused']" t-as="status_key">
+        <div t-att-id="'att-row-%d' % line.id"
+             class="att-student-row"
+             data-attendance-row="1"
+             t-att-data-line-id="line.id"
+             tabindex="0">
+            <div class="att-student-info">
+                <div class="att-student-avatar">
+                    <t t-esc="(line.student_id.partner_id.name or '?')[0].upper()"/>
+                </div>
+                <div class="att-student-details">
+                    <span class="att-student-name"><t t-esc="line.student_id.display_name"/></span>
+                    <span class="att-student-roll"><t t-esc="line.student_id.student_no or line.roll_number or ''"/></span>
+                </div>
+            </div>
+            <div class="att-student-actions">
+                <t t-foreach="[('present', 'P'), ('absent', 'A'), ('late', 'L'), ('excused', 'E')]" t-as="pair">
+                    <t t-set="status_key" t-value="pair[0]"/>
+                    <t t-set="status_short" t-value="pair[1]"/>
                     <button type="button"
-                            t-attf-class="attendance-btn #{'active' if line.status == status_key else ''} status-#{status_key}"
-                            t-att-hx-post="'/portal/teacher/classroom/attendance/mark'"
+                            t-attf-class="att-status-btn att-status-btn--#{status_key} #{'active' if line.status == status_key else ''}"
+                            hx-post="/portal/teacher/classroom/attendance/mark"
                             hx-swap="outerHTML"
                             t-attf-hx-target="#att-row-#{line.id}"
-                            t-att-hx-vals='"{" + "\"line_id\":" + str(line.id) + ",\"status\":\"" + status_key + "\"}"'>
-                        <t t-esc="status_key.title()"/>
+                            t-attf-hx-vals='{"line_id": #{line.id}, "status": "#{status_key}"}'>
+                        <t t-esc="status_short"/>
                     </button>
                 </t>
-            </td>
-        </tr>
+            </div>
+        </div>
+    </template>
+
+    <!-- Rows-only partial for mark-all HTMX response -->
+    <template id="teacher_attendance_modal_rows" name="Attendance Modal Rows">
+        <t t-foreach="sorted_lines" t-as="line">
+            <t t-call="edu_portal.teacher_attendance_row_partial"/>
+        </t>
+    </template>
+
+    <!-- ─── Attendance Matrix Report ─── -->
+    <template id="teacher_classroom_attendance_matrix_page" name="Attendance Matrix Report">
+        <t t-call="edu_portal.portal_layout">
+            <t t-call="edu_portal.classroom_tabs_component"/>
+            <div class="classroom-body">
+
+                <!-- Back link -->
+                <a t-attf-href="/portal/teacher/classroom/#{classroom.id}/attendance"
+                   class="att-matrix-back">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back to Attendance
+                </a>
+
+                <h2 class="att-matrix-page-title">Attendance Report</h2>
+
+                <!-- Date range filter -->
+                <form id="att-matrix-filter"
+                      t-attf-action="/portal/teacher/classroom/#{classroom.id}/attendance/matrix"
+                      method="get"
+                      class="att-matrix-filter">
+                    <div class="att-matrix-filter-group">
+                        <label class="att-matrix-filter-label">From</label>
+                        <input type="date" name="date_from" class="att-date-input"
+                               t-att-value="date_from"/>
+                    </div>
+                    <div class="att-matrix-filter-group">
+                        <label class="att-matrix-filter-label">To</label>
+                        <input type="date" name="date_to" class="att-date-input"
+                               t-att-value="date_to"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                    <span class="att-matrix-filter-info">
+                        <t t-esc="total_sessions"/> session(s)
+                        · <t t-esc="len(matrix_rows)"/> student(s)
+                    </span>
+                </form>
+
+                <!-- Matrix table -->
+                <t t-if="matrix_rows and date_cols">
+                    <div class="att-matrix-wrap">
+                        <table class="att-matrix-table">
+                            <thead>
+                                <tr>
+                                    <th class="att-matrix-th-sticky att-matrix-th-num">#</th>
+                                    <th class="att-matrix-th-sticky att-matrix-th-name">Student</th>
+                                    <t t-foreach="date_cols" t-as="dc">
+                                        <th class="att-matrix-th-date">
+                                            <span class="att-matrix-date-day"><t t-esc="dc.strftime('%d')"/></span>
+                                            <span class="att-matrix-date-mon"><t t-esc="dc.strftime('%b')"/></span>
+                                        </th>
+                                    </t>
+                                    <th class="att-matrix-th-pct">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="matrix_rows" t-as="row">
+                                    <tr>
+                                        <td class="att-matrix-td-sticky att-matrix-td-num">
+                                            <t t-esc="row_index + 1"/>
+                                        </td>
+                                        <td class="att-matrix-td-sticky att-matrix-td-name">
+                                            <div class="att-matrix-student">
+                                                <div class="att-matrix-avatar">
+                                                    <t t-esc="(row['student'].partner_id.name or '?')[0].upper()"/>
+                                                </div>
+                                                <div class="att-matrix-student-info">
+                                                    <span class="att-matrix-student-name">
+                                                        <t t-esc="row['student'].display_name"/>
+                                                    </span>
+                                                    <span class="att-matrix-student-roll">
+                                                        <t t-esc="row['student'].student_no or ''"/>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <t t-foreach="date_cols" t-as="dc">
+                                            <t t-set="cell_status" t-value="row['dates'].get(dc, '')"/>
+                                            <td t-attf-class="att-matrix-cell #{'att-matrix-cell--' + cell_status if cell_status else 'att-matrix-cell--empty'}">
+                                                <t t-if="cell_status == 'present'">P</t>
+                                                <t t-elif="cell_status == 'absent'">A</t>
+                                                <t t-elif="cell_status == 'late'">L</t>
+                                                <t t-elif="cell_status == 'excused'">E</t>
+                                                <t t-else="">-</t>
+                                            </td>
+                                        </t>
+                                        <td class="att-matrix-td-pct">
+                                            <span t-attf-class="att-matrix-pct #{'att-matrix-pct--good' if row['pct'] >= 75 else ('att-matrix-pct--warn' if row['pct'] >= 50 else 'att-matrix-pct--bad')}">
+                                                <t t-esc="row['pct']"/>%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="att-matrix-legend">
+                        <span class="att-matrix-legend-item">
+                            <span class="att-matrix-legend-dot att-matrix-legend-dot--present"/>P = Present
+                        </span>
+                        <span class="att-matrix-legend-item">
+                            <span class="att-matrix-legend-dot att-matrix-legend-dot--absent"/>A = Absent
+                        </span>
+                        <span class="att-matrix-legend-item">
+                            <span class="att-matrix-legend-dot att-matrix-legend-dot--late"/>L = Late
+                        </span>
+                        <span class="att-matrix-legend-item">
+                            <span class="att-matrix-legend-dot att-matrix-legend-dot--excused"/>E = Excused
+                        </span>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="title" t-value="'No submitted sessions in this range'"/>
+                        <t t-set="message" t-value="'Adjust the date range or submit some attendance sessions first.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
     </template>
 
     <!-- ─── Exams (paper list) ─── -->

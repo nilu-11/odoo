@@ -81,6 +81,9 @@
                     <button name="action_reset_draft" type="object"
                             string="Reset to Draft"
                             invisible="state not in ['closed', 'cancelled']"/>
+                    <button name="action_start_application" type="object"
+                            string="Start Application" class="btn-primary"
+                            invisible="state != 'open'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,open,closed"/>
                 </header>

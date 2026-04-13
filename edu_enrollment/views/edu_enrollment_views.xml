@@ -155,15 +155,6 @@
                             <field name="guardian_count"
                                    string="Guardians" widget="statinfo"/>
                         </button>
-                        <button name="action_create_student"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-graduation-cap"
-                                invisible="state != 'active' or student_created">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_text">Create Student</span>
-                            </div>
-                        </button>
                     </div>
 
                     <!-- Title -->
@@ -234,8 +225,6 @@
                             <field name="checklist_complete" readonly="1"/>
                             <field name="checklist_pending_count" readonly="1"
                                    invisible="checklist_complete"/>
-                            <field name="student_created" readonly="1"
-                                   invisible="state != 'active'"/>
                         </group>
                     </group>
 
@@ -312,8 +301,6 @@
                                     <field name="active" invisible="1"/>
                                     <field name="company_id" groups="base.group_multi_company"
                                            readonly="1"/>
-                                    <field name="student_id" readonly="1"
-                                           invisible="not student_id"/>
                                 </group>
                             </group>
                         </page>

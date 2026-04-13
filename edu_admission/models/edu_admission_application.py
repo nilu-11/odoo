@@ -97,6 +97,7 @@ class EduAdmissionApplication(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        default=lambda self: self.env['edu.academic.year']._get_current_year(),
     )
     department_id = fields.Many2one(
         related='program_id.department_id',
@@ -156,9 +157,10 @@ class EduAdmissionApplication(models.Model):
         compute='_compute_scholarship_summary',
         store=True,
     )
-    fee_summary_display = fields.Text(
+    fee_summary_display = fields.Html(
         string='Fee Summary',
         compute='_compute_fee_summary_display',
+        sanitize=False,
     )
 
     # Fee confirmation
@@ -389,6 +391,22 @@ class EduAdmissionApplication(models.Model):
         for rec in records:
             if rec.admission_register_id and not rec.fee_structure_id:
                 rec._populate_from_register()
+            # Fallback: if still no fee structure, try direct resolution from
+            # program/year/batch (e.g. when created from CRM lead without a
+            # matching open register).
+            if not rec.fee_structure_id and rec.program_id and rec.academic_year_id:
+                structure = rec._resolve_fee_structure()
+                if structure:
+                    vals_update = {'fee_structure_id': structure.id}
+                    if structure.payment_plan_ids:
+                        vals_update['available_payment_plan_ids'] = [
+                            (6, 0, structure.payment_plan_ids.ids)
+                        ]
+                        if not rec.selected_payment_plan_id:
+                            vals_update['selected_payment_plan_id'] = (
+                                structure.payment_plan_ids[0].id
+                            )
+                    rec.write(vals_update)
         return records
 
     def write(self, vals):
@@ -563,27 +581,131 @@ class EduAdmissionApplication(models.Model):
                 rec.scholarship_eligible_total = 0.0
 
     def _compute_fee_summary_display(self):
-        """Render a human-readable fee summary for the form view."""
+        """Render a tabular fee summary for the form view.
+
+        Rows = program terms (semesters/stages), columns = fee heads,
+        cells = amounts. Scholarship info is shown below the table.
+        """
+        from markupsafe import Markup
         for rec in self:
             if not rec.fee_structure_id:
-                rec.fee_summary_display = 'No fee structure assigned.'
+                rec.fee_summary_display = Markup(
+                    '<p class="text-muted">No fee structure assigned.</p>'
+                )
                 continue
             summary = rec.fee_structure_id.get_fee_summary()
-            lines = []
-            for bucket in summary:
-                lines.append(
-                    f"--- {bucket['program_term_name']} "
-                    f"(Stage {bucket['progression_no']}) ---"
+            if not summary:
+                rec.fee_summary_display = Markup(
+                    '<p class="text-muted">No fee lines configured.</p>'
                 )
+                continue
+
+            # Collect unique fee heads across all terms, preserving
+            # first-seen order (typically matches sequence within terms).
+            head_order = []
+            seen_heads = set()
+            for bucket in summary:
                 for fl in bucket['lines']:
-                    sch_flag = ' [S]' if fl['scholarship_allowed'] else ''
-                    lines.append(f"  {fl['fee_head']}: {fl['amount']:,.2f}{sch_flag}")
-                lines.append(f"  Subtotal: {bucket['subtotal']:,.2f}")
-            lines.append(f"\nTotal: {rec.base_total_fee:,.2f}")
-            lines.append(
-                f"Scholarship-Eligible: {rec.scholarship_eligible_total:,.2f}"
+                    key = fl['fee_head']
+                    if key not in seen_heads:
+                        seen_heads.add(key)
+                        head_order.append({
+                            'name': fl['fee_head'],
+                            'scholarship_allowed': fl['scholarship_allowed'],
+                        })
+
+            def _fmt(amount):
+                return f'{amount:,.2f}'
+
+            rows_html = []
+            column_totals = {h['name']: 0.0 for h in head_order}
+            for bucket in summary:
+                # Map head_name -> amount for this term
+                line_map = {fl['fee_head']: fl['amount'] for fl in bucket['lines']}
+                cells = []
+                for h in head_order:
+                    amt = line_map.get(h['name'], 0.0)
+                    column_totals[h['name']] += amt
+                    cells.append(
+                        f'<td class="text-end">{_fmt(amt) if amt else "—"}</td>'
+                    )
+                rows_html.append(
+                    '<tr>'
+                    f'<td><strong>{bucket["program_term_name"]}</strong>'
+                    f'<br/><small class="text-muted">Stage '
+                    f'{bucket["progression_no"]} · {bucket["academic_year"]}</small></td>'
+                    + ''.join(cells)
+                    + f'<td class="text-end"><strong>{_fmt(bucket["subtotal"])}</strong></td>'
+                    '</tr>'
+                )
+
+            # Totals row
+            total_cells = ''.join(
+                f'<td class="text-end"><strong>{_fmt(column_totals[h["name"]])}</strong></td>'
+                for h in head_order
             )
-            rec.fee_summary_display = '\n'.join(lines)
+            totals_row = (
+                '<tr class="table-active">'
+                '<td><strong>Total</strong></td>'
+                + total_cells
+                + f'<td class="text-end"><strong>{_fmt(rec.base_total_fee)}</strong></td>'
+                '</tr>'
+            )
+
+            # Header row
+            head_cells = ''.join(
+                f'<th class="text-end">{h["name"]}'
+                + (' <small>(S)</small>' if h['scholarship_allowed'] else '')
+                + '</th>'
+                for h in head_order
+            )
+            header = (
+                '<thead><tr>'
+                '<th>Term / Stage</th>'
+                + head_cells
+                + '<th class="text-end">Subtotal</th>'
+                '</tr></thead>'
+            )
+
+            table_html = (
+                '<div class="table-responsive">'
+                '<table class="table table-sm table-bordered">'
+                + header
+                + '<tbody>'
+                + ''.join(rows_html)
+                + totals_row
+                + '</tbody></table></div>'
+            )
+
+            # Scholarship section
+            scholarship_parts = [
+                f'<div class="mt-2"><strong>Scholarship-Eligible Total:</strong> '
+                f'{_fmt(rec.scholarship_eligible_total)}</div>'
+            ]
+            if rec.total_scholarship_discount_amount:
+                scholarship_parts.append(
+                    f'<div><strong>Scholarship Discount:</strong> '
+                    f'− {_fmt(rec.total_scholarship_discount_amount)}</div>'
+                )
+                scholarship_parts.append(
+                    f'<div><strong>Net Fee After Scholarship:</strong> '
+                    f'{_fmt(rec.net_fee_after_scholarship)}</div>'
+                )
+            if rec.scholarship_note_summary:
+                note_html = rec.scholarship_note_summary.replace('\n', '<br/>')
+                scholarship_parts.append(
+                    f'<div class="mt-2"><small class="text-muted">'
+                    f'{note_html}</small></div>'
+                )
+            if head_order and any(h['scholarship_allowed'] for h in head_order):
+                scholarship_parts.append(
+                    '<div class="mt-1"><small class="text-muted">'
+                    '(S) = Scholarship-eligible fee head</small></div>'
+                )
+
+            rec.fee_summary_display = Markup(
+                table_html + ''.join(scholarship_parts)
+            )
 
     # ═════════════════════════════════════════════════════════════════════════
     # Scholarship Summary Computation

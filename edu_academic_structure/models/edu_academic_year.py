@@ -306,6 +306,7 @@ class EduAcademicYear(models.Model):
                 'message': f'Created {len(to_create)} {label.lower()}(s) for "{self.name}".',
                 'type': 'success',
                 'sticky': False,
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
             },
         }
 

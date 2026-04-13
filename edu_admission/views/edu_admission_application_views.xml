@@ -236,7 +236,7 @@
 
                             <div class="o_horizontal_separator mt-4 mb-3">Fee Breakdown</div>
                             <field name="fee_summary_display" readonly="1"
-                                   widget="text" nolabel="1"/>
+                                   widget="html" nolabel="1" sanitize="0"/>
                         </page>
 
                         <!-- ── Scholarship Tab ── -->
