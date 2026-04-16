@@ -137,16 +137,12 @@ class EduAdmissionRegister(models.Model):
         compute='_compute_application_count',
         store=True,
     )
-    submitted_count = fields.Integer(
-        string='Submitted',
-        compute='_compute_application_state_counts',
-    )
     under_review_count = fields.Integer(
         string='Under Review',
         compute='_compute_application_state_counts',
     )
-    offered_count = fields.Integer(
-        string='Offered',
+    approved_count = fields.Integer(
+        string='Approved',
         compute='_compute_application_state_counts',
     )
     enrolled_count = fields.Integer(
@@ -195,9 +191,8 @@ class EduAdmissionRegister(models.Model):
     @api.depends('application_ids.state')
     def _compute_application_state_counts(self):
         STATE_FIELDS = {
-            'submitted': 'submitted_count',
             'under_review': 'under_review_count',
-            'offered': 'offered_count',
+            'approved': 'approved_count',
             'enrolled': 'enrolled_count',
             'cancelled': 'cancelled_count',
         }
@@ -435,14 +430,11 @@ class EduAdmissionRegister(models.Model):
             'context': {'default_admission_register_id': self.id},
         }
 
-    def action_view_submitted(self):
-        return self._action_view_applications_by_state('submitted', 'Submitted')
-
     def action_view_under_review(self):
         return self._action_view_applications_by_state('under_review', 'Under Review')
 
-    def action_view_offered(self):
-        return self._action_view_applications_by_state('offered', 'Offered')
+    def action_view_approved(self):
+        return self._action_view_applications_by_state('approved', 'Approved')
 
     def action_view_enrolled(self):
         return self._action_view_applications_by_state('enrolled', 'Enrolled')
