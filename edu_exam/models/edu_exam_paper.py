@@ -302,6 +302,23 @@ class EduExamPaper(models.Model):
                     ) % (cl.name, cl.program_term_id.name, session.program_term_id.name)
                 )
 
+    @api.constrains('exam_date', 'exam_session_id')
+    def _check_exam_date_in_session_range(self):
+        for rec in self:
+            if not rec.exam_date or not rec.exam_session_id:
+                continue
+            session = rec.exam_session_id
+            if session.date_start and rec.exam_date < session.date_start:
+                raise ValidationError(
+                    _('Exam date %s is before session start date %s on paper "%s".')
+                    % (rec.exam_date, session.date_start, rec.display_name)
+                )
+            if session.date_end and rec.exam_date > session.date_end:
+                raise ValidationError(
+                    _('Exam date %s is after session end date %s on paper "%s".')
+                    % (rec.exam_date, session.date_end, rec.display_name)
+                )
+
     # ── State transitions ────────────────────────────────────────────────────
 
     def action_schedule(self):

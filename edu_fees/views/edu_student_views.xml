@@ -47,9 +47,7 @@
                             <field name="finance_total_discount"/>
                             <field name="finance_total_due"/>
                             <field name="finance_total_paid"/>
-                            <field name="finance_total_outstanding"
-                                   decoration-danger="finance_total_outstanding > 0"
-                                   decoration-success="finance_total_outstanding == 0"/>
+                            <field name="finance_total_outstanding"/>
                         </group>
                         <group string="Deposits">
                             <field name="finance_total_deposit_paid"/>

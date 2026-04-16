@@ -132,6 +132,66 @@ class EduBatchPromotionWizard(models.TransientModel):
                 'There are no students to promote.'
             ) % self.batch_id.name)
 
+    def _check_open_records_before_archive(self, classrooms):
+        """Block promotion if any classroom has open/in-progress child records.
+
+        Checks (when the related module is installed):
+          - Attendance sheets in draft or in_progress state
+          - Continuous assessment records in draft or confirmed state
+          - Exam papers in a non-terminal state (not closed/draft)
+        """
+        classroom_ids = classrooms.ids
+        blockers = []
+
+        # ── Attendance sheets ────────────────────────────────────────────
+        AttSheet = self.env.get('edu.attendance.sheet')
+        if AttSheet is not None:
+            register_ids = classrooms.mapped('attendance_register_id').ids
+            if register_ids:
+                open_sheets = AttSheet.search([
+                    ('register_id', 'in', register_ids),
+                    ('state', 'in', ('draft', 'in_progress')),
+                ], limit=10)
+                for sheet in open_sheets:
+                    blockers.append(
+                        _('Attendance sheet "%s" is in %s state.')
+                        % (sheet.display_name, sheet.state)
+                    )
+
+        # ── Continuous assessment records ─────────────────────────────────
+        CAR = self.env.get('edu.continuous.assessment.record')
+        if CAR is not None:
+            open_cars = CAR.search([
+                ('classroom_id', 'in', classroom_ids),
+                ('state', 'in', ('draft', 'confirmed')),
+            ], limit=10)
+            for car in open_cars:
+                blockers.append(
+                    _('Assessment record "%s" is in %s state.')
+                    % (car.display_name, car.state)
+                )
+
+        # ── Exam papers ──────────────────────────────────────────────────
+        ExamPaper = self.env.get('edu.exam.paper')
+        if ExamPaper is not None:
+            open_papers = ExamPaper.search([
+                ('classroom_id', 'in', classroom_ids),
+                ('state', 'not in', ('draft', 'closed')),
+            ], limit=10)
+            for paper in open_papers:
+                blockers.append(
+                    _('Exam paper "%s" is in %s state.')
+                    % (paper.display_name, paper.state)
+                )
+
+        if blockers:
+            detail = '\n'.join(f'  • {b}' for b in blockers)
+            raise UserError(_(
+                'Cannot archive classrooms for %s — '
+                'the following records are still open:\n\n%s\n\n'
+                'Close or submit them before promoting the batch.'
+            ) % (self.current_program_term_id.name, detail))
+
     def _resolve_academic_year(self, fallback_year_id):
         """Determine the academic year to use on new progression records.
 
@@ -151,6 +211,18 @@ class EduBatchPromotionWizard(models.TransientModel):
         """Execute the batch promotion (all steps in one transaction)."""
         self.ensure_one()
         self._validate_promotion_inputs()
+
+        # ── 0. Pre-flight: check for open records in old classrooms ─────────
+        Classroom = self.env.get('edu.classroom')
+        old_classrooms = Classroom.browse() if Classroom is not None else None
+        if Classroom is not None:
+            old_classrooms = Classroom.search([
+                ('batch_id', '=', self.batch_id.id),
+                ('program_term_id', '=', self.current_program_term_id.id),
+                ('active', '=', True),
+            ])
+            if old_classrooms:
+                self._check_open_records_before_archive(old_classrooms)
 
         ProgressionHistory = self.env['edu.student.progression.history']
 
@@ -228,15 +300,22 @@ class EduBatchPromotionWizard(models.TransientModel):
             subtype_xmlid='mail.mt_note',
         )
 
-        # ── 8. Auto-generate classrooms when sections are available ──────────
-        Classroom = self.env.get('edu.classroom')
+        # ── 8. Archive old classrooms for the previous program term ──────────
+        #    (pre-flight check already ran in step 0)
+        if old_classrooms:
+            to_close = old_classrooms.filtered(lambda c: c.state == 'active')
+            for classroom in to_close:
+                classroom.action_close()
+            old_classrooms.write({'active': False})
+
+        # ── 9. Auto-generate classrooms when sections are available ──────────
         if Classroom is not None and self.section_mode == 'keep_same_section':
             sections = new_histories.mapped('section_id').filtered(lambda s: s)
             next_term = self.next_program_term_id
             for section in sections:
                 Classroom._generate_classrooms_for_section(section, next_term)
 
-        # ── 9. Success notification ───────────────────────────────────────────
+        # ── 10. Success notification ──────────────────────────────────────────
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',

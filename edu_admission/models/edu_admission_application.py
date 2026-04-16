@@ -967,6 +967,13 @@ class EduAdmissionApplication(models.Model):
     def action_mark_review_complete(self):
         self.write({'review_complete': True})
 
+    def action_print_offer_letter(self):
+        """Print the offer letter PDF report."""
+        self.ensure_one()
+        return self.env.ref(
+            'edu_admission.action_report_offer_letter'
+        ).report_action(self)
+
     def action_generate_offer(self):
         """Generate offer letter and transition to offered state."""
         for rec in self:

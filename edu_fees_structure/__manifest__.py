@@ -26,6 +26,7 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/sequences.xml',
+        'wizards/generate_fee_lines_wizard_views.xml',
         'views/edu_fee_head_views.xml',
         'views/edu_fee_term_views.xml',
         'views/edu_fee_payment_plan_views.xml',

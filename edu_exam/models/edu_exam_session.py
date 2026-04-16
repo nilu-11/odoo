@@ -65,7 +65,6 @@ class EduExamSession(models.Model):
         ],
         string='Exam Scope',
         required=True,
-        default='batch',
         tracking=True,
     )
     exam_type = fields.Selection(
@@ -309,10 +308,7 @@ class EduExamSession(models.Model):
     def _onchange_batch_id(self):
         if self.batch_id:
             self.program_id = self.batch_id.program_id
-            self.section_ids = [(5, 0, 0)]
-        else:
-            self.program_id = False
-            self.section_ids = [(5, 0, 0)]
+        self.section_ids = [(5, 0, 0)]
 
     @api.onchange('program_id')
     def _onchange_program_id(self):

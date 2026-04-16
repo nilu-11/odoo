@@ -31,6 +31,7 @@ class EduFeeStructure(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        copy=False,
         default=lambda self: self.env['edu.academic.year']._get_current_year(),
         help=(
             'The academic year in which students are admitted under this fee plan. '
@@ -45,6 +46,7 @@ class EduFeeStructure(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        copy=False,
     )
     batch_id = fields.Many2one(
         comodel_name='edu.batch',
@@ -52,6 +54,7 @@ class EduFeeStructure(models.Model):
         ondelete='restrict',
         tracking=True,
         index=True,
+        copy=False,
         help=(
             'Leave empty for a general program-level fee structure. '
             'Fill to create a batch-specific override. '
@@ -258,7 +261,7 @@ class EduFeeStructure(models.Model):
         self.write({'state': 'draft'})
 
     def action_generate_fee_lines(self):
-        """Create one fee-line stub per program term that does not yet have one."""
+        """Open wizard to select fee heads and generate structure lines."""
         self.ensure_one()
         if self.state == 'closed':
             raise UserError('Cannot modify a closed fee structure.')
@@ -275,53 +278,14 @@ class EduFeeStructure(models.Model):
                 'Generate them from the Program form first.'
             )
 
-        default_head = self.env['edu.fee.head'].search(
-            [
-                ('fee_type', '=', 'tuition'),
-                ('company_id', '=', self.company_id.id),
-                ('active', '=', True),
-            ],
-            limit=1,
-        )
-        if not default_head:
-            raise UserError(
-                'No tuition fee head found. '
-                'Create at least one tuition fee head before generating lines.'
-            )
-
-        existing_term_ids = set(self.line_ids.mapped('program_term_id').ids)
-        new_terms = program_terms.filtered(lambda t: t.id not in existing_term_ids)
-
-        if not new_terms:
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Nothing to Generate',
-                    'message': 'Fee lines for all program terms already exist.',
-                    'type': 'info',
-                    'sticky': False,
-                },
-            }
-
-        self.env['edu.fee.structure.line'].create([
-            {
-                'fee_structure_id': self.id,
-                'program_term_id': pt.id,
-                'fee_head_id': default_head.id,
-                'amount': 0.0,
-            }
-            for pt in new_terms
-        ])
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Fee Lines Generated',
-                'message': f'Created {len(new_terms)} fee line(s) for "{self.name}".',
-                'type': 'success',
-                'sticky': False,
-                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
+            'type': 'ir.actions.act_window',
+            'name': 'Generate Fee Lines',
+            'res_model': 'edu.fee.structure.generate.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_fee_structure_id': self.id,
             },
         }
 

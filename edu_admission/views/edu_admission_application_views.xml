@@ -155,6 +155,15 @@
                                 <span class="o_stat_text">Scholarships</span>
                             </div>
                         </button>
+                        <button name="action_print_offer_letter"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-pdf-o"
+                                invisible="not offer_letter_generated">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Offer Letter</span>
+                            </div>
+                        </button>
                     </div>
 
                     <!-- Title -->

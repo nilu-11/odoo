@@ -29,3 +29,5 @@ access_fee_installment_line_officer,edu.fee.installment.line officer,model_edu_f
 access_fee_installment_line_viewer,edu.fee.installment.line viewer,model_edu_fee_installment_line,group_fees_viewer,1,0,0,0
 access_fee_installment_line_academic_officer,edu.fee.installment.line academic officer,model_edu_fee_installment_line,edu_academic_structure.group_academic_officer,1,0,0,0
 access_fee_installment_line_academic_viewer,edu.fee.installment.line academic viewer,model_edu_fee_installment_line,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_fee_generate_wizard_admin,edu.fee.structure.generate.wizard admin,model_edu_fee_structure_generate_wizard,edu_academic_structure.group_education_admin,1,1,1,1
+access_fee_generate_wizard_officer,edu.fee.structure.generate.wizard officer,model_edu_fee_structure_generate_wizard,group_fees_officer,1,1,1,1
