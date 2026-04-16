@@ -2,7 +2,7 @@
 <odoo>
     <!-- ══════════════════════════════════════════════════════
          Pre-Admission Kanban
-         Columns = all 5 lead_education_status values (always visible).
+         Columns = all 4 lead_education_status values (always visible).
          No js_class="crm_kanban" — avoids CRM pipeline JS overriding grouping.
     ══════════════════════════════════════════════════════ -->
     <record id="view_pre_admission_lead_kanban" model="ir.ui.view">
@@ -118,21 +118,11 @@
             </xpath>
 
             <xpath expr="//header" position="inside">
-                <button name="action_set_prospect"
-                        type="object"
-                        string="Mark as Prospect"
-                        class="btn-secondary"
-                        invisible="lead_education_status != 'inquiry'"/>
                 <button name="action_set_qualified"
                         type="object"
-                        string="Mark as Qualified"
+                        string="Qualify"
                         class="btn-secondary"
-                        invisible="lead_education_status not in ['inquiry', 'prospect']"/>
-                <button name="action_set_ready_for_application"
-                        type="object"
-                        string="Ready for Application"
-                        class="btn-secondary"
-                        invisible="lead_education_status not in ['inquiry', 'prospect', 'qualified']"/>
+                        invisible="lead_education_status != 'inquiry'"/>
                 <button name="action_check_duplicate_applicants"
                         type="object"
                         string="Check Duplicates"
@@ -142,11 +132,11 @@
                         type="object"
                         string="Convert to Application"
                         class="btn-primary"
-                        invisible="lead_education_status != 'ready_for_application' or is_converted_to_application"
+                        invisible="lead_education_status != 'qualified' or is_converted_to_application"
                         confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
                 <field name="lead_education_status"
                        widget="statusbar"
-                       statusbar_visible="inquiry,prospect,qualified,ready_for_application,converted"/>
+                       statusbar_visible="inquiry,qualified,converted"/>
             </xpath>
 
             <!-- ══════════════════════════════════════════════════════════════
@@ -234,13 +224,13 @@
                     <group string="Profile Information" >
                         <field name="quick_applicant_name"
                                placeholder="e.g. Ram Shah"
-                               invisible="applicant_profile_id or lead_education_status in ['qualified', 'ready_for_application', 'converted', 'lost']"
+                               invisible="applicant_profile_id or lead_education_status in ['qualified', 'converted', 'lost']"
                                string="Applicant Name"/>
                         <field name="applicant_profile_id"
                                 options="{'no_create': False}"
                                 readonly="is_converted_to_application"
                                 help="Link or create the structured applicant profile. Required before conversion."
-                                invisible="not applicant_profile_id and lead_education_status not in ['qualified', 'ready_for_application', 'converted']"/>
+                                invisible="not applicant_profile_id and lead_education_status not in ['qualified', 'converted']"/>
                         <field name="phone" widget="phone" required="1"/>
                         <field name="email_from" widget="email" required="1"/>
                         <label for="street" string="Address"/>
@@ -267,8 +257,8 @@
                                placeholder="Tags..."/>
                         <field name="interested_program_id" string="Selected Program"
                                readonly="is_converted_to_application"
-                               invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
-                        <field name="show_advanced_options" widget="boolean_toggle" invisible="lead_education_status not in ['ready_for_application', 'converted']"/>
+                               invisible="lead_education_status not in ['qualified', 'converted']"/>
+                        <field name="show_advanced_options" widget="boolean_toggle" invisible="lead_education_status not in ['qualified', 'converted']"/>
                         <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
                             domain="[('program_id','=',interested_program_id),('academic_year_id','=',intended_academic_year_id)]"
@@ -382,6 +372,35 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
+            <!-- ══════════════════════════════════════════════════════════════
+                 NOTEBOOK: Inline applicant profile data tab
+            ══════════════════════════════════════════════════════════════ -->
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Applicant Profile" invisible="not applicant_profile_id">
+                    <group>
+                        <group string="Personal Details">
+                            <field name="applicant_profile_id" readonly="1" string="Profile"/>
+                            <field name="phone" readonly="1"/>
+                            <field name="email_from" readonly="1" string="Email"/>
+                        </group>
+                        <group string="Academic Interest">
+                            <field name="interested_program_id" readonly="1" string="Program"/>
+                            <field name="intended_academic_year_id" readonly="1" string="Intake Year"/>
+                            <field name="preferred_batch_id" readonly="1" string="Batch"/>
+                            <field name="qualification_id" readonly="1" string="Qualification"/>
+                            <field name="cgpa_percentage" readonly="1" string="CGPA / Percentage"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Interests">
+                            <field name="scholarship_interest" readonly="1"/>
+                            <field name="hostel_interest" readonly="1"/>
+                            <field name="transport_interest" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
 
 
         </field>
@@ -418,15 +437,9 @@
                 <filter string="Inquiry"
                         name="edu_inquiry"
                         domain="[('lead_education_status', '=', 'inquiry')]"/>
-                <filter string="Prospect"
-                        name="edu_prospect"
-                        domain="[('lead_education_status', '=', 'prospect')]"/>
                 <filter string="Qualified"
                         name="edu_qualified"
                         domain="[('lead_education_status', '=', 'qualified')]"/>
-                <filter string="Ready for Application"
-                        name="edu_ready"
-                        domain="[('lead_education_status', '=', 'ready_for_application')]"/>
                 <filter string="Converted"
                         name="edu_converted"
                         domain="[('is_converted_to_application', '=', True)]"/>
