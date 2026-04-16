@@ -17,6 +17,35 @@
                     current progression configuration.
                 </div>
 
+                <!-- Open records alert -->
+                <div class="alert alert-danger mb-2"
+                     invisible="not has_open_records or open_records_closed or admin_override"
+                     role="alert">
+                    <strong>Open records detected — promotion is blocked.</strong>
+                    <ul class="mb-1 mt-1">
+                        <li invisible="open_attendance_count == 0">
+                            Attendance sheets not yet submitted:
+                            <strong><field name="open_attendance_count" readonly="1" nolabel="1" class="d-inline"/></strong>
+                        </li>
+                        <li invisible="open_assessment_count == 0">
+                            Assessment records still in draft:
+                            <strong><field name="open_assessment_count" readonly="1" nolabel="1" class="d-inline"/></strong>
+                        </li>
+                        <li invisible="open_exam_count == 0">
+                            Exam papers not published/closed:
+                            <strong><field name="open_exam_count" readonly="1" nolabel="1" class="d-inline"/></strong>
+                        </li>
+                    </ul>
+                    Use the <em>Auto-Close All</em> button below or enable the admin override to proceed.
+                </div>
+
+                <div class="alert alert-success mb-2"
+                     invisible="not open_records_closed"
+                     role="alert">
+                    <strong>All open records have been closed.</strong>
+                    You may now promote the batch.
+                </div>
+
                 <group string="Batch">
                     <field name="batch_id"/>
                     <field name="batch_program_id" readonly="1" string="Program"/>
@@ -43,7 +72,19 @@
                            readonly="1"/>
                 </group>
 
+                <!-- Admin override (Progression Administrator only) -->
+                <group string="Admin Options"
+                       groups="edu_academic_progression.group_progression_admin"
+                       invisible="not has_open_records">
+                    <field name="admin_override"/>
+                </group>
+
                 <footer>
+                    <button name="action_auto_close_open_records"
+                            string="Auto-Close All"
+                            type="object"
+                            class="btn-warning"
+                            invisible="not has_open_records or open_records_closed"/>
                     <button name="action_promote"
                             string="Promote Batch"
                             type="object"
