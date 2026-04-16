@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.osv import expression
 
@@ -24,25 +24,17 @@ class CrmLead(models.Model):
 
     # ── Education Workflow Status ──────────────────────────────────────────────
     lead_education_status = fields.Selection(
-        selection=[
+        [
             ('inquiry', 'Inquiry'),
-            ('prospect', 'Prospect'),
             ('qualified', 'Qualified'),
-            ('ready_for_application', 'Ready for Application'),
             ('converted', 'Converted'),
             ('lost', 'Lost'),
         ],
         string='Education Status',
         default='inquiry',
-        required=True,
         tracking=True,
         index=True,
-        copy=False,
         group_expand='_group_expand_lead_education_status',
-        help=(
-            'Education workflow stage, independent of CRM pipeline stage. '
-            'Tracks pre-admission progression from first contact to application.'
-        ),
     )
 
     # ── Timeline ──────────────────────────────────────────────────────────────
@@ -374,57 +366,39 @@ class CrmLead(models.Model):
 
     @api.model
     def _group_expand_lead_education_status(self, statuses, domain):
-        """Return all selection values so kanban always shows every column."""
-        return [key for key, _label in self._fields['lead_education_status'].selection]
+        return ['inquiry', 'qualified', 'converted', 'lost']
 
     # ═══════════════════════════════════════════════════════════════════════════    # Education Status Transitions
     # ═════════════════════════════════════════════════════════════════════════
 
-    def action_set_prospect(self):
-        self.filtered(
-            lambda r: r.lead_education_status == 'inquiry'
-        ).write({'lead_education_status': 'prospect'})
-
     def action_set_qualified(self):
-        for rec in self.filtered(
-            lambda r: r.lead_education_status in ('inquiry', 'prospect')
-        ):
-            if not rec.applicant_profile_id:
-                rec._create_profile_from_quick_name()
-            rec.write({'lead_education_status': 'qualified'})
-
-    def action_set_ready_for_application(self):
-        for rec in self:
-            if not rec.applicant_profile_id:
-                raise UserError(
-                    f'Lead "{rec.name}" cannot be marked Ready for Application — '
-                    'link an Applicant Profile first.'
-                )
-        self.write({'lead_education_status': 'ready_for_application'})
+        """Qualify the lead. Auto-creates applicant profile if needed."""
+        self.ensure_one()
+        if self.lead_education_status not in ('inquiry',):
+            raise UserError(_("Only inquiries can be qualified."))
+        # Auto-create profile from quick name if needed
+        if not self.applicant_profile_id and self.quick_applicant_name:
+            self._create_profile_from_quick_name()
+        if not self.applicant_profile_id:
+            raise UserError(_("An applicant profile is required to qualify this lead."))
+        if not self.interested_program_id:
+            raise UserError(_("A program of interest is required."))
+        self.lead_education_status = 'qualified'
 
     # ═════════════════════════════════════════════════════════════════════════
     # Conversion to Admission Application
     # ═════════════════════════════════════════════════════════════════════════
 
     def _check_conversion_readiness(self):
-        """Raise UserError with all blocking issues collected in one message."""
         self.ensure_one()
-        errors = []
         if not self.partner_id:
-            errors.append('Contact (partner) is not set on the lead.')
+            raise UserError(_("A contact is required."))
         if not self.applicant_profile_id:
-            errors.append('Applicant Profile is not linked.')
+            raise UserError(_("An applicant profile is required."))
         if not self.interested_program_id:
-            errors.append('Selected Program is not set.')
+            raise UserError(_("A program of interest is required."))
         if self.is_converted_to_application:
-            errors.append(
-                'This lead has already been converted to an admission application.'
-            )
-        if errors:
-            raise UserError(
-                'Cannot convert — please resolve the following:\n'
-                + '\n'.join(f'  • {e}' for e in errors)
-            )
+            raise UserError(_("This lead has already been converted to an application."))
 
     def _suggest_admission_register(self):
         """
