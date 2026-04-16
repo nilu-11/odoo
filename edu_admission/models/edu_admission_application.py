@@ -1056,32 +1056,36 @@ class EduAdmissionApplication(models.Model):
 
     def action_enroll(self):
         """
-        Enrollment hook — base implementation for when edu_enrollment is not
-        installed.
+        Enrollment entry point — validates readiness, delegates creation to
+        _create_enrollment_on_enroll(), and advances state.
 
-        When edu_enrollment IS installed, this method is fully overridden by
-        edu_enrollment's application extension (edu_enrollment/models/
-        edu_admission_application.py) which properly creates the enrollment
-        record, handles duplicates, and returns a form view action.
-
-        Base behaviour (standalone admission without enrollment module):
-        - Validates state and readiness
-        - If enrollment module is present, delegates to it
-        - Advances application state to 'enrolled'
+        The hook _create_enrollment_on_enroll() is a no-op in the base
+        module (standalone admission). edu_enrollment overrides it to
+        create the actual enrollment record and return a form action.
         """
-        for rec in self:
-            if rec.state != 'ready_for_enrollment':
-                raise UserError(
-                    f'Application "{rec.application_no}" is not ready '
-                    'for enrollment. Use "Mark Ready for Enrollment" first.'
-                )
-            blocks = rec._get_enrollment_block_reasons()
-            if blocks:
-                raise UserError(
-                    f'Cannot enroll "{rec.application_no}":\n'
-                    + '\n'.join(f'  • {b}' for b in blocks)
-                )
+        self.ensure_one()
+        if self.state != 'ready_for_enrollment':
+            raise UserError(
+                f'Application "{self.application_no}" is not ready '
+                'for enrollment. Use "Mark Ready for Enrollment" first.'
+            )
+        blocks = self._get_enrollment_block_reasons()
+        if blocks:
+            raise UserError(
+                f'Cannot enroll "{self.application_no}":\n'
+                + '\n'.join(f'  • {b}' for b in blocks)
+            )
+        result = self._create_enrollment_on_enroll()
         self.write({'state': 'enrolled'})
+        return result
+
+    def _create_enrollment_on_enroll(self):
+        """
+        Hook for enrollment creation — overridden by edu_enrollment.
+
+        Base implementation is a no-op. Returns None (no action to open).
+        """
+        return None
 
 
     def action_cancel(self):

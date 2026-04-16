@@ -20,8 +20,8 @@ class EduAdmissionApplication(models.Model):
     - enrollment_count: smart button badge count
 
     Methods overridden:
-    - action_enroll(): full readiness validation, duplicate protection,
-      form return on success
+    - _create_enrollment_on_enroll(): hook called by base action_enroll();
+      creates enrollment record, handles duplicates, returns form action
     - action_view_enrollment(): open active enrollment form cleanly
     """
 
@@ -68,11 +68,13 @@ class EduAdmissionApplication(models.Model):
             active = rec.enrollment_ids.filtered(lambda e: e.state != 'cancelled')
             rec.enrollment_id = active[0] if active else False
 
-    # -- Override enrollment handoff ------------------------------------------
-    def action_enroll(self):
+    # -- Override enrollment creation hook ------------------------------------
+    def _create_enrollment_on_enroll(self):
         """
-        Override: validate, check for duplicates, create enrollment, advance
-        application state, and return a form view action opening the enrollment.
+        Hook override: create the enrollment record and return a form action.
+
+        Called by the base action_enroll() after state/readiness validation.
+        State is advanced to 'enrolled' by the caller (base action_enroll).
 
         Duplicate protection:
         - If an active (non-cancelled) enrollment already exists, opens it
@@ -80,25 +82,8 @@ class EduAdmissionApplication(models.Model):
           re-visits gracefully.
         - The DB UNIQUE constraint on enrollment.application_id is the final
           safety net.
-
-        Readiness:
-        - Delegates to _get_enrollment_block_reasons() (defined in edu_admission)
-          to validate all required fields before calling the enrollment module.
-        - The enrollment module re-validates via
-          _check_application_enrollment_readiness() as a second layer.
-
-        State:
-        - Advances application state to 'enrolled' after successful creation.
         """
         self.ensure_one()
-
-        # Guard: application must be in the handoff state
-        if self.state not in ('ready_for_enrollment', 'enrolled'):
-            raise UserError(
-                f'Application "{self.application_no}" is not ready for '
-                f'enrollment. Current state: "{self.state}". '
-                'Use "Mark Ready for Enrollment" first.'
-            )
 
         # Duplicate guard: if an active enrollment already exists, open it
         active_enrollment = self.enrollment_ids.filtered(
@@ -114,28 +99,8 @@ class EduAdmissionApplication(models.Model):
                 'target': 'current',
             }
 
-        # Guard: must be in exactly ready_for_enrollment to create new
-        if self.state != 'ready_for_enrollment':
-            raise UserError(
-                f'Application "{self.application_no}" is in "{self.state}" '
-                'state. Cannot create a new enrollment.'
-            )
-
-        # Full readiness validation via admission module helper
-        blocks = self._get_enrollment_block_reasons()
-        if blocks:
-            raise UserError(
-                'Cannot create enrollment for "%s":\n%s' % (
-                    self.application_no,
-                    '\n'.join('  - %s' % b for b in blocks),
-                )
-            )
-
         # Delegate to edu.enrollment canonical creation method
         enrollment = self.env['edu.enrollment'].action_create_from_application(self)
-
-        # Advance application state
-        self.write({'state': 'enrolled'})
 
         # Auto-confirm if enrollment is immediately ready (no required
         # fees blocking).  This creates the student record and portal
