@@ -109,10 +109,23 @@ class EduBatch(models.Model):
         )
 
         if not created_ids:
-            raise UserError(_(
-                'All classrooms for "%s" / "%s" already exist (%d skipped).\n'
-                'Click the Classrooms smart button to view them.'
-            ) % (self.name, term.name, skipped))
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('All Up to Date'),
+                    'message': _('All %s classrooms already exist for this batch.', skipped),
+                    'type': 'info',
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'name': _('Classrooms'),
+                        'res_model': 'edu.classroom',
+                        'view_mode': 'list,form',
+                        'domain': [('batch_id', '=', self.id)],
+                    },
+                },
+            }
 
         return {
             'type': 'ir.actions.act_window',
