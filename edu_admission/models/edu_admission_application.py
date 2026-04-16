@@ -1,6 +1,6 @@
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare, float_round
 
@@ -284,21 +284,31 @@ class EduAdmissionApplication(models.Model):
         string='Offer Rejection Reason',
     )
 
+    # ── Enrollment gates (toggled by register flow config) ──────────────────
+    payment_received = fields.Boolean(
+        string='Payment Received',
+        tracking=True,
+        copy=False,
+        help="Manually toggled by admin to confirm payment has been received.",
+    )
+    sign_request_id = fields.Many2one(
+        'sign.request',
+        string='Sign Request',
+        ondelete='set null',
+        copy=False,
+        readonly=True,
+    )
+
     # ═════════════════════════════════════════════════════════════════════════
     # Process Control / State
     # ═════════════════════════════════════════════════════════════════════════
     state = fields.Selection(
-        selection=[
+        [
             ('draft', 'Draft'),
-            ('submitted', 'Submitted'),
             ('under_review', 'Under Review'),
-            ('scholarship_review', 'Scholarship Review'),
-            ('offered', 'Offered'),
-            ('offer_accepted', 'Offer Accepted'),
-            ('offer_rejected', 'Offer Rejected'),
-            ('ready_for_enrollment', 'Ready for Enrollment'),
+            ('approved', 'Approved'),
             ('enrolled', 'Enrolled'),
-            ('cancelled', 'Cancelled'),
+            ('rejected', 'Rejected'),
         ],
         string='Status',
         default='draft',
@@ -318,27 +328,10 @@ class EduAdmissionApplication(models.Model):
         help='Placeholder for future document management integration.',
     )
 
-    # Computed process flags
-    can_generate_offer = fields.Boolean(
-        compute='_compute_process_flags',
-    )
-    can_accept_offer = fields.Boolean(
-        compute='_compute_process_flags',
-    )
-    can_mark_ready_for_enrollment = fields.Boolean(
-        compute='_compute_process_flags',
-    )
-    can_enroll = fields.Boolean(
-        compute='_compute_process_flags',
-    )
-    enrollment_ready = fields.Boolean(
-        string='Enrollment Ready',
-        compute='_compute_enrollment_readiness',
-    )
-    enrollment_block_reason = fields.Text(
-        string='Enrollment Block Reason',
-        compute='_compute_enrollment_readiness',
-    )
+    # Computed button-visibility helpers (driven by register flow config)
+    show_offer_button = fields.Boolean(compute='_compute_button_visibility')
+    show_sign_button = fields.Boolean(compute='_compute_button_visibility')
+    show_scholarship_button = fields.Boolean(compute='_compute_button_visibility')
 
     # ═════════════════════════════════════════════════════════════════════════
     # Audit / Ownership
@@ -355,9 +348,7 @@ class EduAdmissionApplication(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # Frozen-state tracking
     # ═════════════════════════════════════════════════════════════════════════
-    _FROZEN_STATES = frozenset({
-        'offer_accepted', 'ready_for_enrollment', 'enrolled',
-    })
+    _FROZEN_STATES = frozenset({'enrolled'})
     _FROZEN_FIELDS = frozenset({
         'applicant_profile_id', 'admission_register_id', 'program_id',
         'batch_id', 'academic_year_id', 'fee_structure_id',
@@ -419,7 +410,7 @@ class EduAdmissionApplication(models.Model):
                         f'Cannot modify {", ".join(frozen_change)} on '
                         f'application "{rec.application_no}" — '
                         f'the application is in "{rec.state}" state. '
-                        'These fields are frozen after offer acceptance.'
+                        'These fields are frozen after enrollment.'
                     )
         return super().write(vals)
 
@@ -435,7 +426,7 @@ class EduAdmissionApplication(models.Model):
                 ('id', '!=', rec.id),
                 ('applicant_profile_id', '=', rec.applicant_profile_id.id),
                 ('admission_register_id', '=', rec.admission_register_id.id),
-                ('state', 'not in', ['cancelled']),
+                ('state', 'not in', ['rejected']),
                 ('active', '=', True),
             ], limit=1)
             if duplicate:
@@ -838,134 +829,79 @@ class EduAdmissionApplication(models.Model):
             )
 
     # ═════════════════════════════════════════════════════════════════════════
-    # Process Flags
+    # Button Visibility
     # ═════════════════════════════════════════════════════════════════════════
-    def _compute_process_flags(self):
-        for rec in self:
-            rec.can_generate_offer = (
-                rec.state in ('under_review', 'scholarship_review')
-                and rec.review_complete
-                and bool(rec.fee_structure_id)
+    @api.depends('state', 'admission_register_id.require_offer_letter',
+                 'admission_register_id.require_odoo_sign',
+                 'admission_register_id.require_scholarship_review',
+                 'offer_letter_generated', 'sign_request_id')
+    def _compute_button_visibility(self):
+        for app in self:
+            reg = app.admission_register_id
+            app.show_offer_button = (
+                app.state == 'approved'
+                and reg.require_offer_letter
+                and not app.offer_letter_generated
             )
-            rec.can_accept_offer = (
-                rec.state == 'offered'
-                and rec.offer_status == 'sent'
+            app.show_sign_button = (
+                app.state == 'approved'
+                and reg.require_odoo_sign
+                and app.offer_letter_generated
+                and not app.sign_request_id
             )
-            # All readiness criteria must pass before "Ready for Enrollment"
-            rec.can_mark_ready_for_enrollment = (
-                rec.state == 'offer_accepted'
-                and not rec._get_enrollment_block_reasons()
-            )
-            # can_enroll: application is ready_for_enrollment
-            # (the enrollment extension overrides this to also check
-            #  enrollment_count == 0, preventing duplicate creation)
-            rec.can_enroll = rec.state == 'ready_for_enrollment'
-
-    @api.depends(
-        'state', 'offer_status', 'fee_confirmed', 'selected_payment_plan_id',
-        'applicant_profile_id', 'program_id', 'batch_id', 'academic_year_id',
-        'fee_structure_id', 'batch_id.current_program_term_id',
-    )
-    def _compute_enrollment_readiness(self):
-        """
-        Compute enrollment_ready and enrollment_block_reason based on a
-        comprehensive check of all fields required for handoff to edu_enrollment.
-        """
-        for rec in self:
-            blocks = rec._get_enrollment_block_reasons()
-            rec.enrollment_ready = not blocks
-            rec.enrollment_block_reason = (
-                '\n'.join(f'• {b}' for b in blocks) if blocks else False
-            )
-
-    def _get_enrollment_block_reasons(self):
-        """
-        Return a list of human-readable reasons blocking enrollment creation.
-        An empty list means the application is fully ready for enrollment.
-
-        Checks mirror edu.enrollment._check_application_enrollment_readiness()
-        so that the application can self-validate before calling the enrollment
-        module.
-        """
-        self.ensure_one()
-        blocks = []
-
-        # Hard stops — no point checking further
-        if self.state in ('cancelled', 'offer_rejected'):
-            blocks.append(f'Application is in "{self.state}" state.')
-            return blocks
-
-        # Offer outcome
-        if self.offer_status != 'accepted':
-            blocks.append(
-                f'Offer is not accepted (current: "{self.offer_status}").'
-            )
-
-        # Fee confirmation
-        if not self.fee_confirmed:
-            blocks.append('Fee is not confirmed.')
-
-        # Payment plan
-        if not self.selected_payment_plan_id:
-            blocks.append('No payment plan selected.')
-
-        # Identity
-        if not self.applicant_profile_id:
-            blocks.append('Applicant profile is missing.')
-
-        # Academic placement
-        if not self.program_id:
-            blocks.append('Program is missing.')
-        if not self.batch_id:
-            blocks.append('Batch is missing.')
-        if not self.academic_year_id:
-            blocks.append('Academic year is missing.')
-
-        # Fee structure
-        if not self.fee_structure_id:
-            blocks.append('Fee structure is missing.')
-
-        # Batch must have a current program term (enrollment requires it)
-        if self.batch_id and not self.batch_id.current_program_term_id:
-            blocks.append(
-                f'Batch "{self.batch_id.name}" has no current program term '
-                'configured. Set the current progression stage on the batch.'
-            )
-
-        return blocks
+            app.show_scholarship_button = bool(reg.require_scholarship_review)
 
     # ═════════════════════════════════════════════════════════════════════════
     # State Transitions
     # ═════════════════════════════════════════════════════════════════════════
     def action_submit(self):
-        for rec in self:
-            if rec.state != 'draft':
-                raise UserError(
-                    f'Application "{rec.application_no}" is not in draft state.'
-                )
-            if not rec.applicant_profile_id:
-                raise UserError('Applicant profile is required before submission.')
-            if not rec.program_id:
-                raise UserError('Program is required before submission.')
-        self.write({'state': 'submitted'})
+        """Submit application. Auto-skips review if not required by register."""
+        self.ensure_one()
+        if self.state != 'draft':
+            raise UserError(_("Only draft applications can be submitted."))
+        if not self.applicant_profile_id or not self.program_id:
+            raise UserError(_("Applicant profile and program are required."))
 
-    def action_start_review(self):
-        self.filtered(
-            lambda r: r.state == 'submitted'
-        ).write({'state': 'under_review'})
+        register = self.admission_register_id
+        if register.require_academic_review:
+            self.state = 'under_review'
+        else:
+            self.state = 'approved'
 
-    def action_start_scholarship_review(self):
-        """Move to scholarship review state."""
-        for rec in self:
-            if rec.state not in ('under_review',):
-                raise UserError(
-                    f'Application "{rec.application_no}" must be under review '
-                    'to start scholarship review.'
-                )
-        self.write({'state': 'scholarship_review'})
+    def action_approve(self):
+        """Approve application after review. Validates scholarship reviews if required."""
+        self.ensure_one()
+        if self.state != 'under_review':
+            raise UserError(_("Only applications under review can be approved."))
 
-    def action_mark_review_complete(self):
-        self.write({'review_complete': True})
+        register = self.admission_register_id
+        if register.require_scholarship_review and self.scholarship_review_ids:
+            pending = self.scholarship_review_ids.filtered(
+                lambda r: r.state in ('draft', 'under_review')
+            )
+            if pending:
+                raise UserError(_(
+                    "%(count)s scholarship review(s) are still pending. "
+                    "Please finalize all reviews before approving.",
+                    count=len(pending),
+                ))
+            # Freeze scholarships on approval
+            self._compute_final_scholarship_discount()
+            self.action_freeze_scholarship_outcome()
+
+        self.state = 'approved'
+
+    def action_generate_offer(self):
+        """Generate offer letter in approved state."""
+        self.ensure_one()
+        if self.state != 'approved':
+            raise UserError(_("Offer can only be generated for approved applications."))
+        if not self.admission_register_id.require_offer_letter:
+            raise UserError(_("Offer letters are not required for this register."))
+
+        self.offer_letter_generated = True
+        self.offer_letter_date = fields.Date.today()
+        self.offer_status = 'sent'
 
     def action_print_offer_letter(self):
         """Print the offer letter PDF report."""
@@ -974,142 +910,55 @@ class EduAdmissionApplication(models.Model):
             'edu_admission.action_report_offer_letter'
         ).report_action(self)
 
-    def action_generate_offer(self):
-        """Generate offer letter and transition to offered state."""
-        for rec in self:
-            if not rec.can_generate_offer:
-                raise UserError(
-                    f'Cannot generate offer for "{rec.application_no}". '
-                    'Ensure review is complete and a fee structure is assigned.'
-                )
-            # Validate scholarship finalization if reviews exist
-            pending = rec.scholarship_review_ids.filtered(
-                lambda r: r.state in ('draft', 'under_review')
-            )
-            if pending:
-                raise UserError(
-                    f'Application "{rec.application_no}" has {len(pending)} '
-                    'pending scholarship review(s). Finalize them first.'
-                )
-            # Recompute scholarship summary before offer
-            rec._recompute_scholarship_summary()
-
-        self.write({
-            'state': 'offered',
-            'offer_status': 'sent',
-            'offer_letter_generated': True,
-            'offer_letter_date': fields.Date.today(),
-        })
-
-    def action_accept_offer(self):
-        """Accept the offer — confirms fees and freezes scholarship outcome."""
-        for rec in self:
-            if not rec.can_accept_offer:
-                raise UserError(
-                    f'Cannot accept offer for "{rec.application_no}". '
-                    'Offer must be in "sent" status.'
-                )
-        now = fields.Datetime.now()
-        self.write({
-            'state': 'offer_accepted',
-            'offer_status': 'accepted',
-            'offer_acceptance_date': now,
-            'fee_confirmed': True,
-            'fee_confirmation_date': now,
-        })
-        # Freeze scholarship outcome immediately upon offer acceptance
-        for rec in self:
-            rec.action_freeze_scholarship_outcome()
-
-    def action_reject_offer(self):
-        for rec in self:
-            if rec.state != 'offered':
-                raise UserError(
-                    f'Application "{rec.application_no}" is not in offered state.'
-                )
-        self.write({
-            'state': 'offer_rejected',
-            'offer_status': 'rejected',
-        })
-
-    def action_mark_ready_for_enrollment(self):
-        """
-        Validate full enrollment readiness and transition to ready_for_enrollment.
-
-        All downstream requirements (fee, batch term, payment plan, etc.) are
-        checked here via _get_enrollment_block_reasons() so that the enrollment
-        module can accept the application immediately upon creation.
-        """
-        for rec in self:
-            if rec.state != 'offer_accepted':
-                raise UserError(
-                    f'Application "{rec.application_no}" must be in '
-                    '"offer_accepted" state to mark ready for enrollment.'
-                )
-            blocks = rec._get_enrollment_block_reasons()
-            if blocks:
-                raise UserError(
-                    f'Cannot mark "{rec.application_no}" ready for enrollment:\n'
-                    + '\n'.join(f'  • {b}' for b in blocks)
-                )
-        self.write({'state': 'ready_for_enrollment'})
-
     def action_enroll(self):
-        """
-        Enrollment hook — base implementation for when edu_enrollment is not
-        installed.
+        """Enroll the application. Checks all gates configured on register."""
+        self.ensure_one()
+        if self.state != 'approved':
+            raise UserError(_("Only approved applications can be enrolled."))
 
-        When edu_enrollment IS installed, this method is fully overridden by
-        edu_enrollment's application extension (edu_enrollment/models/
-        edu_admission_application.py) which properly creates the enrollment
-        record, handles duplicates, and returns a form view action.
+        register = self.admission_register_id
+        blocks = []
 
-        Base behaviour (standalone admission without enrollment module):
-        - Validates state and readiness
-        - If enrollment module is present, delegates to it
-        - Advances application state to 'enrolled'
-        """
-        for rec in self:
-            if rec.state != 'ready_for_enrollment':
-                raise UserError(
-                    f'Application "{rec.application_no}" is not ready '
-                    'for enrollment. Use "Mark Ready for Enrollment" first.'
-                )
-            blocks = rec._get_enrollment_block_reasons()
-            if blocks:
-                raise UserError(
-                    f'Cannot enroll "{rec.application_no}":\n'
-                    + '\n'.join(f'  • {b}' for b in blocks)
-                )
-        self.write({'state': 'enrolled'})
+        if register.require_offer_letter and not self.offer_letter_generated:
+            blocks.append(_("Offer letter has not been generated."))
 
+        if register.require_odoo_sign:
+            if not self.sign_request_id:
+                blocks.append(_("Offer letter has not been sent for digital signature."))
+            elif self.sign_request_id.state != 'signed':
+                blocks.append(_("Offer letter has not been digitally signed yet."))
 
-    def action_cancel(self):
-        for rec in self:
-            if rec.state in ('enrolled',):
-                raise UserError(
-                    f'Cannot cancel enrolled application "{rec.application_no}".'
-                )
-        self.write({'state': 'cancelled'})
+        if register.require_payment_confirmation and not self.payment_received:
+            blocks.append(_("Payment has not been confirmed."))
+
+        if blocks:
+            raise UserError("\n".join(str(b) for b in blocks))
+
+        self.state = 'enrolled'
+        self._create_enrollment_on_enroll()
+
+    def _create_enrollment_on_enroll(self):
+        """Hook for edu_enrollment module to create enrollment record."""
+        pass
+
+    def action_reject(self):
+        """Reject application from any non-terminal state."""
+        self.ensure_one()
+        if self.state in ('enrolled', 'rejected'):
+            raise UserError(_("Cannot reject an enrolled or already-rejected application."))
+        self.state = 'rejected'
 
     def action_reset_draft(self):
-        for rec in self:
-            if rec.state not in ('cancelled', 'submitted'):
-                raise UserError(
-                    f'Can only reset to draft from cancelled or submitted state '
-                    f'(application: "{rec.application_no}").'
-                )
-        self.write({
-            'state': 'draft',
-            'review_complete': False,
-            'offer_status': 'not_generated',
-            'offer_letter_generated': False,
-            'offer_letter_date': False,
-            'offer_letter_ref': False,
-            'offer_acceptance_date': False,
-            'fee_confirmed': False,
-            'fee_confirmation_date': False,
-        })
+        """Reset rejected applications back to draft."""
+        self.ensure_one()
+        if self.state not in ('rejected',):
+            raise UserError(_("Only rejected applications can be reset to draft."))
+        self.state = 'draft'
+        self.review_complete = False
+        self.offer_letter_generated = False
+        self.offer_status = 'not_generated'
+        self.payment_received = False
+        self.sign_request_id = False
 
     # ═════════════════════════════════════════════════════════════════════════
     # Scholarship Calculation Engine
@@ -1327,14 +1176,14 @@ class EduAdmissionApplication(models.Model):
         """
         Explicitly freeze the scholarship outcome.
 
-        Called automatically from action_accept_offer.
-        After freezing:
+        Called automatically from action_approve when scholarship review is
+        required.  After freezing:
         - approved review lines cannot be edited (protected by write() lock)
         - scholarship_frozen = True prevents further recalculation
         - scholarship_freeze_date is recorded for audit
 
         Can be called manually by admins on a non-frozen application if needed
-        to lock scholarship outcome before offer acceptance (edge case).
+        to lock scholarship outcome before enrollment (edge case).
         """
         self.ensure_one()
         if self.scholarship_frozen:
@@ -1395,7 +1244,31 @@ class EduAdmissionApplication(models.Model):
         Call before any enrollment creation logic.
         """
         self.ensure_one()
-        blocks = self._get_enrollment_block_reasons()
+        blocks = []
+
+        if self.state not in ('approved', 'enrolled'):
+            blocks.append(
+                f'Application is in "{self.state}" state (must be approved).'
+            )
+
+        if not self.applicant_profile_id:
+            blocks.append('Applicant profile is missing.')
+        if not self.program_id:
+            blocks.append('Program is missing.')
+        if not self.batch_id:
+            blocks.append('Batch is missing.')
+        if not self.academic_year_id:
+            blocks.append('Academic year is missing.')
+        if not self.fee_structure_id:
+            blocks.append('Fee structure is missing.')
+        if not self.selected_payment_plan_id:
+            blocks.append('No payment plan selected.')
+        if self.batch_id and not self.batch_id.current_program_term_id:
+            blocks.append(
+                f'Batch "{self.batch_id.name}" has no current program term '
+                'configured.'
+            )
+
         if blocks:
             raise UserError(
                 f'Application "{self.application_no}" is not ready for '
