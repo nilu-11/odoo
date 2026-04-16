@@ -126,6 +126,60 @@ class EduAdmissionRegister(models.Model):
     active = fields.Boolean(default=True)
     note = fields.Text(string='Notes')
 
+    # ── Flow Configuration ─────────────────────────────────────
+    flow_preset = fields.Selection(
+        [
+            ('fast_track', 'Fast Track'),
+            ('standard', 'Standard'),
+            ('full', 'Full'),
+            ('custom', 'Custom'),
+        ],
+        string='Admission Flow',
+        default='standard',
+        required=True,
+        tracking=True,
+        help="Controls which stages applications in this register go through.",
+    )
+    require_academic_review = fields.Boolean(
+        string='Require Academic Review',
+        default=True,
+        tracking=True,
+        help="If disabled, applications skip the review stage and go directly to approval.",
+    )
+    require_scholarship_review = fields.Boolean(
+        string='Require Scholarship Review',
+        default=False,
+        tracking=True,
+        help="If enabled, scholarship review is required before approval.",
+    )
+    require_offer_letter = fields.Boolean(
+        string='Require Offer Letter',
+        default=True,
+        tracking=True,
+        help="If enabled, an offer letter must be generated before enrollment.",
+    )
+    require_odoo_sign = fields.Boolean(
+        string='Require Digital Signature',
+        default=False,
+        tracking=True,
+        help="If enabled, offer letter must be signed via Odoo Sign before enrollment.",
+    )
+    require_payment_confirmation = fields.Boolean(
+        string='Require Payment Confirmation',
+        default=True,
+        tracking=True,
+        help="If enabled, payment must be confirmed before enrollment.",
+    )
+    sign_template_id = fields.Many2one(
+        'sign.template',
+        string='Offer Letter Sign Template',
+        ondelete='set null',
+        help="Odoo Sign template used for offer letter digital signatures.",
+    )
+    sign_module_installed = fields.Boolean(
+        compute='_compute_sign_module_installed',
+    )
+
     # ── Relations ─────────────────────────────────────────────────────────────
     application_ids = fields.One2many(
         comodel_name='edu.admission.application',
@@ -292,7 +346,47 @@ class EduAdmissionRegister(models.Model):
             self.available_payment_plan_ids = [(5, 0, 0)]
             self.default_payment_plan_id = False
 
+    # ── Flow Preset Map ───────────────────────────────────────────────────────
+    _PRESET_MAP = {
+        'fast_track': {
+            'require_academic_review': False,
+            'require_scholarship_review': False,
+            'require_offer_letter': False,
+            'require_odoo_sign': False,
+            'require_payment_confirmation': False,
+        },
+        'standard': {
+            'require_academic_review': True,
+            'require_scholarship_review': False,
+            'require_offer_letter': True,
+            'require_odoo_sign': False,
+            'require_payment_confirmation': True,
+        },
+        'full': {
+            'require_academic_review': True,
+            'require_scholarship_review': True,
+            'require_offer_letter': True,
+            'require_odoo_sign': True,
+            'require_payment_confirmation': True,
+        },
+    }
+
+    # ── Computed ──────────────────────────────────────────────────────────────
+    def _compute_sign_module_installed(self):
+        installed = bool(self.env['ir.module.module'].sudo().search(
+            [('name', '=', 'sign'), ('state', '=', 'installed')], limit=1
+        ))
+        for rec in self:
+            rec.sign_module_installed = installed
+
     # ── Onchange ──────────────────────────────────────────────────────────────
+    @api.onchange('flow_preset')
+    def _onchange_flow_preset(self):
+        preset_vals = self._PRESET_MAP.get(self.flow_preset)
+        if preset_vals:
+            for field_name, value in preset_vals.items():
+                setattr(self, field_name, value)
+
     @api.onchange('program_id', 'academic_year_id')
     def _onchange_academic_scope(self):
         """Clear batch if it no longer matches the new program/year."""
