@@ -97,14 +97,6 @@
                             <field name="application_count" string="Applications"
                                    widget="statinfo"/>
                         </button>
-                        <button name="action_view_submitted"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-paper-plane"
-                                invisible="submitted_count == 0">
-                            <field name="submitted_count" string="Submitted"
-                                   widget="statinfo"/>
-                        </button>
                         <button name="action_view_under_review"
                                 type="object"
                                 class="oe_stat_button"
@@ -113,12 +105,12 @@
                             <field name="under_review_count" string="Under Review"
                                    widget="statinfo"/>
                         </button>
-                        <button name="action_view_offered"
+                        <button name="action_view_approved"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-gift"
-                                invisible="offered_count == 0">
-                            <field name="offered_count" string="Offered"
+                                icon="fa-check-circle"
+                                invisible="approved_count == 0">
+                            <field name="approved_count" string="Approved"
                                    widget="statinfo"/>
                         </button>
                         <button name="action_view_enrolled"

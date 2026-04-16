@@ -1,6 +1,6 @@
 {
     'name': 'Education: Pre-Admission CRM',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'summary': (
         'Pre-admission pipeline — inquiries, counseling, applicant profiles, '
         'guardians, academic history, and CRM-driven conversion to admission applications.'
@@ -46,6 +46,7 @@
         'views/crm_lead_views.xml',
         'views/menu_views.xml',
         'views/edu_qualification_views.xml',
+        'wizard/edu_lead_merge_wizard_views.xml',
     ],
     'demo': [],
     'installable': True,

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════
+         Merge Duplicate Leads Wizard — Form View
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_lead_merge_wizard_form" model="ir.ui.view">
+        <field name="name">edu.lead.merge.wizard.form</field>
+        <field name="model">edu.lead.merge.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Merge Duplicate Leads">
+                <sheet>
+                    <div class="o_form_view_container">
+                        <h3 class="mb-3">Merge Duplicate Leads</h3>
+                        <p class="text-muted mb-4">
+                            Review the two leads below and choose which values to keep.
+                            The <b>Current Lead</b> will be updated and the
+                            <b>Duplicate Lead</b> will be archived.
+                        </p>
+
+                        <!-- Side-by-side lead selector row -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold">Current Lead (kept)</label>
+                                <field name="lead_id" readonly="1" nolabel="1"/>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold">Duplicate Lead (archived)</label>
+                                <field name="duplicate_lead_id" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="o_horizontal_separator mb-3">Field Comparison</div>
+
+                        <!-- Comparison table -->
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 15%;">Field</th>
+                                    <th style="width: 30%;">Current Lead</th>
+                                    <th style="width: 30%;">Duplicate Lead</th>
+                                    <th style="width: 25%;">Keep From</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>Phone</b></td>
+                                    <td>
+                                        <field name="lead_phone" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="dup_phone" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="keep_phone_from" nolabel="1"
+                                               widget="radio"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Email</b></td>
+                                    <td>
+                                        <field name="lead_email" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="dup_email" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="keep_email_from" nolabel="1"
+                                               widget="radio"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Program</b></td>
+                                    <td>
+                                        <field name="lead_program" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="dup_program" readonly="1" nolabel="1"/>
+                                    </td>
+                                    <td>
+                                        <field name="keep_program_from" nolabel="1"
+                                               widget="radio"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="alert alert-warning mt-3" role="alert">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            All messages from the duplicate lead will be moved to the
+                            current lead. This action cannot be undone.
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_merge" type="object"
+                            string="Merge Leads" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

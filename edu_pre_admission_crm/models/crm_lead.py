@@ -551,6 +551,23 @@ class CrmLead(models.Model):
         domain = expression.OR(domain_parts)
         return self.env['res.partner'].search(domain)
 
+    def action_open_merge_wizard(self):
+        self.ensure_one()
+        duplicates = self.duplicate_phone_lead_ids | self.duplicate_email_lead_ids
+        if not duplicates:
+            raise UserError(_("No duplicate leads detected."))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Merge Duplicate Lead'),
+            'res_model': 'edu.lead.merge.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_lead_id': self.id,
+                'default_duplicate_lead_id': duplicates[0].id,
+            },
+        }
+
     def action_open_similar_inquiries(self):
         """
         Opens a list of CRM leads that share the same phone or email as this lead.
