@@ -11,15 +11,12 @@ _logger = logging.getLogger(__name__)
 class EduSectionAssignmentWizard(models.TransientModel):
     """Bulk section assignment wizard for students within a batch.
 
-    Two-step flow
-    ─────────────
-    Step 1 — Configuration (wizard_state='config'):
-        Select batch, program term, target sections, assignment method and
-        options. Click "Generate Preview".
-
-    Step 2 — Preview (wizard_state='preview'):
-        Inspect the generated assignment lines. Each line can be adjusted
-        manually before confirming. Click "Confirm Assignment" to apply.
+    Single-step flow
+    ────────────────
+    Configure batch, program term, target sections, assignment method and
+    scope in the top panel. The preview grid below auto-regenerates whenever
+    any config field changes. Adjust individual lines if needed, then click
+    "Apply Assignment".
 
     Scope of changes
     ────────────────
@@ -42,7 +39,7 @@ class EduSectionAssignmentWizard(models.TransientModel):
     _description = 'Bulk Section Assignment Wizard'
 
     # ══════════════════════════════════════════════════════
-    # Step 1 — Configuration fields
+    # Configuration fields
     # ══════════════════════════════════════════════════════
 
     batch_id = fields.Many2one(
@@ -105,33 +102,18 @@ class EduSectionAssignmentWizard(models.TransientModel):
              'are treated as unlimited. The wizard will error if students '
              'cannot fit into the available capacity.',
     )
-    clear_existing_section = fields.Boolean(
-        string='Include Already-Assigned Students',
-        default=False,
-        help='When enabled, students who already have a section will be '
-             'included and potentially reassigned. If they have existing '
-             'attendance or exam records, a Section Assignment Administrator '
-             'is required to override.',
-    )
-    only_unassigned_students = fields.Boolean(
-        string='Unassigned Students Only',
-        default=True,
-        help='When enabled (default), only students without a current section '
-             'are included. Enabling this overrides "Include Already-Assigned '
-             'Students".',
+    assignment_scope = fields.Selection(
+        [
+            ('unassigned_only', 'Unassigned Students Only'),
+            ('all_students', 'All Students (Reassign)'),
+        ],
+        string='Assignment Scope',
+        default='unassigned_only',
+        required=True,
     )
 
     # ══════════════════════════════════════════════════════
-    # Wizard state control
-    # ══════════════════════════════════════════════════════
-
-    wizard_state = fields.Selection([
-        ('config',  'Configuration'),
-        ('preview', 'Preview'),
-    ], string='Wizard Step', default='config', required=True)
-
-    # ══════════════════════════════════════════════════════
-    # Step 2 — Preview lines
+    # Preview lines
     # ══════════════════════════════════════════════════════
 
     line_ids = fields.One2many(
@@ -175,17 +157,36 @@ class EduSectionAssignmentWizard(models.TransientModel):
             self.program_term_id = False
         self.section_ids = [(5, 0, 0)]
 
-    @api.onchange('only_unassigned_students')
-    def _onchange_only_unassigned(self):
-        """Enabling unassigned-only implicitly disables the reassignment flag."""
-        if self.only_unassigned_students:
-            self.clear_existing_section = False
+    @api.onchange('batch_id', 'program_term_id', 'section_ids',
+                  'assignment_method', 'sort_order', 'assignment_scope',
+                  'respect_capacity')
+    def _onchange_regenerate_preview(self):
+        """Auto-regenerate preview when any config field changes."""
+        if not (self.batch_id and self.program_term_id and self.section_ids):
+            self.line_ids = [(5, 0, 0)]
+            return
+        try:
+            self._validate_configuration()
+        except UserError:
+            self.line_ids = [(5, 0, 0)]
+            return
 
-    @api.onchange('clear_existing_section')
-    def _onchange_clear_existing(self):
-        """Enabling reassignment implicitly disables the unassigned-only flag."""
-        if self.clear_existing_section:
-            self.only_unassigned_students = False
+        histories = self._get_eligible_histories()
+        sorted_histories = self._sort_histories(histories)
+        sections = self.section_ids.sorted('name')
+        assignments = self._distribute_students(sorted_histories, sections)
+
+        lines = []
+        for i, (history, section) in enumerate(assignments):
+            lines.append((0, 0, {
+                'student_id': history.student_id.id,
+                'enrollment_id': history.enrollment_id.id if history.enrollment_id else False,
+                'progression_history_id': history.id,
+                'old_section_id': history.section_id.id if history.section_id else False,
+                'new_section_id': section.id,
+                'sequence_no': i + 1,
+            }))
+        self.line_ids = [(5, 0, 0)] + lines
 
     # ══════════════════════════════════════════════════════
     # Internal — Configuration validation
@@ -229,8 +230,8 @@ class EduSectionAssignmentWizard(models.TransientModel):
 
         Logic:
         • Always filtered to batch + program_term + state=active.
-        • Students with an existing section are included only when
-          ``clear_existing_section=True`` AND ``only_unassigned_students=False``.
+        • When scope is 'unassigned_only', only students without a current
+          section are included. When 'all_students', everyone is included.
         """
         self.ensure_one()
         domain = [
@@ -238,10 +239,7 @@ class EduSectionAssignmentWizard(models.TransientModel):
             ('program_term_id', '=', self.program_term_id.id),
             ('state', '=', 'active'),
         ]
-        include_assigned = (
-            self.clear_existing_section and not self.only_unassigned_students
-        )
-        if not include_assigned:
+        if self.assignment_scope == 'unassigned_only':
             domain.append(('section_id', '=', False))
 
         return self.env['edu.student.progression.history'].search(
@@ -396,70 +394,6 @@ class EduSectionAssignmentWizard(models.TransientModel):
     # Main wizard actions
     # ══════════════════════════════════════════════════════
 
-    def action_generate_preview(self):
-        """Validate configuration, compute assignments, transition to preview step."""
-        self.ensure_one()
-        self._validate_configuration()
-
-        histories = self._get_eligible_histories()
-        if not histories:
-            raise UserError(_(
-                'No eligible students found for batch "%s" / term "%s".\n\n'
-                'Possible causes:\n'
-                '  • No active progression records for this batch/term.\n'
-                '  • "Unassigned Students Only" is on, but all students '
-                'already have sections.\n'
-                '  • "Include Already-Assigned Students" is off and there '
-                'are no unassigned students.'
-            ) % (self.batch_id.name, self.program_term_id.name))
-
-        sorted_histories = self._sort_histories(histories)
-        assignments = self._distribute_students(sorted_histories, self.section_ids)
-
-        vals_list = []
-        for seq, (hist, section) in enumerate(assignments, start=1):
-            vals_list.append({
-                'wizard_id': self.id,
-                'student_id': hist.student_id.id,
-                'enrollment_id': hist.enrollment_id.id if hist.enrollment_id else False,
-                'progression_history_id': hist.id,
-                'old_section_id': hist.section_id.id if hist.section_id else False,
-                # Manual method: leave section empty — user fills in the table
-                'new_section_id': (
-                    section.id if self.assignment_method != 'manual' else False
-                ),
-                'sequence_no': seq,
-            })
-
-        # Atomically replace any previous lines, then write the new ones
-        self.line_ids.unlink()
-        self.env['edu.section.assignment.wizard.line'].create(vals_list)
-        self.wizard_state = 'preview'
-
-        # Re-open the same wizard record so the view refreshes to preview state
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': self.env.context,
-        }
-
-    def action_back_to_config(self):
-        """Discard preview lines and return to the configuration step."""
-        self.ensure_one()
-        self.line_ids.unlink()
-        self.wizard_state = 'config'
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': self.env.context,
-        }
-
     def action_apply(self):
         """Apply the section assignments.
 
@@ -475,7 +409,8 @@ class EduSectionAssignmentWizard(models.TransientModel):
 
         if not self.line_ids:
             raise UserError(_(
-                'No assignments to apply. Click "Generate Preview" first.'
+                'No assignments to apply. Configure the options above and '
+                'wait for the preview to populate.'
             ))
 
         # Every line must have a target section (critical for manual mode)
