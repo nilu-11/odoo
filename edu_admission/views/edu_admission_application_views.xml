@@ -16,18 +16,14 @@
                 <separator/>
                 <filter string="Draft" name="draft"
                         domain="[('state', '=', 'draft')]"/>
-                <filter string="Submitted" name="submitted"
-                        domain="[('state', '=', 'submitted')]"/>
                 <filter string="Under Review" name="under_review"
                         domain="[('state', '=', 'under_review')]"/>
-                <filter string="Scholarship Review" name="scholarship_review"
-                        domain="[('state', '=', 'scholarship_review')]"/>
-                <filter string="Offered" name="offered"
-                        domain="[('state', '=', 'offered')]"/>
-                <filter string="Offer Accepted" name="offer_accepted"
-                        domain="[('state', '=', 'offer_accepted')]"/>
-                <filter string="Ready for Enrollment" name="ready_enrollment"
-                        domain="[('state', '=', 'ready_for_enrollment')]"/>
+                <filter string="Approved" name="approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <filter string="Enrolled" name="enrolled"
+                        domain="[('state', '=', 'enrolled')]"/>
+                <filter string="Rejected" name="rejected"
+                        domain="[('state', '=', 'rejected')]"/>
                 <separator/>
                 <filter string="Scholarship Pending" name="scholarship_pending"
                         domain="[('scholarship_status', '=', 'pending')]"/>
@@ -65,7 +61,11 @@
         <field name="name">edu.admission.application.list</field>
         <field name="model">edu.admission.application</field>
         <field name="arch" type="xml">
-            <list string="Admission Applications">
+            <list string="Admission Applications"
+                  decoration-success="state == 'enrolled'"
+                  decoration-danger="state == 'rejected'"
+                  decoration-warning="state == 'under_review'"
+                  decoration-info="state == 'approved'">
                 <field name="application_no"/>
                 <field name="applicant_profile_id"/>
                 <field name="program_id"/>
@@ -79,7 +79,11 @@
                 <field name="offer_status" optional="show" widget="badge"/>
                 <field name="assigned_user_id" optional="show"
                        widget="many2one_avatar_user"/>
-                <field name="state" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'enrolled'"
+                       decoration-danger="state == 'rejected'"
+                       decoration-warning="state == 'under_review'"
+                       decoration-info="state == 'approved'"/>
             </list>
         </field>
     </record>
@@ -93,151 +97,122 @@
         <field name="arch" type="xml">
             <form string="Admission Application">
                 <header>
-                    <!-- State transition buttons -->
-                    <button name="action_submit" type="object"
-                            string="Submit" class="btn-primary"
+                    <button name="action_submit" string="Submit"
+                            type="object" class="btn-primary"
                             invisible="state != 'draft'"/>
-                    <button name="action_start_review" type="object"
-                            string="Start Review" class="btn-secondary"
-                            invisible="state != 'submitted'"/>
-                    <button name="action_mark_review_complete" type="object"
-                            string="Mark Review Complete" class="btn-secondary"
-                            invisible="state not in ['under_review', 'scholarship_review'] or review_complete"/>
-                    <button name="action_start_scholarship_review" type="object"
-                            string="Scholarship Review" class="btn-secondary"
+                    <button name="action_approve" string="Approve"
+                            type="object" class="btn-primary"
                             invisible="state != 'under_review'"/>
-                    <button name="action_generate_offer" type="object"
-                            string="Generate Offer" class="btn-primary"
-                            invisible="not can_generate_offer"/>
-                    <button name="action_accept_offer" type="object"
-                            string="Accept Offer" class="btn-primary"
-                            invisible="not can_accept_offer"
-                            confirm="Accept the offer? This confirms the fee outcome and freezes financial fields."/>
-                    <button name="action_reject_offer" type="object"
-                            string="Reject Offer" class="btn-secondary"
-                            invisible="state != 'offered'"/>
-                    <button name="action_mark_ready_for_enrollment" type="object"
-                            string="Mark Ready for Enrollment" class="btn-primary"
-                            invisible="state != 'offer_accepted'"/>
-                    <button name="action_enroll" type="object"
-                            string="Create Enrollment" class="btn-primary"
-                            invisible="not can_enroll"
-                            confirm="Create an enrollment record from this application? This will advance the application to Enrolled state."/>
-                    <button name="action_cancel" type="object"
-                            string="Cancel"
-                            invisible="state in ['enrolled', 'cancelled']"/>
-                    <button name="action_reset_draft" type="object"
-                            string="Reset to Draft"
-                            invisible="state not in ['cancelled', 'submitted']"/>
+                    <button name="action_generate_offer" string="Generate Offer"
+                            type="object" class="btn-secondary"
+                            invisible="not show_offer_button"/>
+                    <button name="action_enroll" string="Enroll"
+                            type="object" class="btn-primary"
+                            invisible="state != 'approved'"
+                            confirm="Enroll this applicant? This will create an enrollment record."/>
+                    <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="state in ('enrolled', 'rejected', 'draft')"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'rejected'"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,under_review,offered,offer_accepted,ready_for_enrollment,enrolled"/>
+                           statusbar_visible="draft,under_review,approved,enrolled"/>
                 </header>
 
                 <sheet>
+                    <!-- Ribbon badges -->
+                    <widget name="web_ribbon" title="Enrolled" bg_color="text-bg-success"
+                            invisible="state != 'enrolled'"/>
+                    <widget name="web_ribbon" title="Rejected" bg_color="text-bg-danger"
+                            invisible="state != 'rejected'"/>
+
                     <!-- Smart buttons -->
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_view_applicant_profile"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-user-circle">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_text">Applicant</span>
-                            </div>
-                        </button>
+                    <div name="button_box" class="oe_button_box">
                         <button name="action_view_scholarship_reviews"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-graduation-cap"
-                                invisible="scholarship_review_count == 0">
-                            <div class="o_stat_info">
-                                <field name="approved_scholarship_count"
-                                       widget="statinfo" string="Approved"/>
-                                <span class="o_stat_text">Scholarships</span>
-                            </div>
+                                type="object" class="oe_stat_button"
+                                icon="fa-gift"
+                                invisible="not show_scholarship_button">
+                            <field name="scholarship_review_count" widget="statinfo"
+                                   string="Scholarships"/>
                         </button>
                         <button name="action_print_offer_letter"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-file-pdf-o"
+                                type="object" class="oe_stat_button"
+                                icon="fa-file-text-o"
                                 invisible="not offer_letter_generated">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_text">Offer Letter</span>
-                            </div>
+                            <span>Offer Letter</span>
                         </button>
+                        <!-- Enrollment and Student smart buttons are added by
+                             edu_enrollment and edu_student via view inheritance. -->
                     </div>
 
                     <!-- Title -->
                     <div class="oe_title">
-                        <label for="application_no" string="Application"/>
-                        <h1>
-                            <field name="application_no" readonly="1"
-                                   placeholder="Auto-generated"/>
-                        </h1>
+                        <h1><field name="application_no" readonly="1"/></h1>
                     </div>
 
-                    <!-- Frozen state indicator -->
-                    <div class="alert alert-info mb-3"
-                         invisible="state not in ['offer_accepted', 'ready_for_enrollment', 'enrolled']">
+                    <!-- Scholarship frozen indicator -->
+                    <div class="alert alert-warning mb-3"
+                         invisible="not scholarship_frozen">
                         <i class="fa fa-lock me-2"/>
-                        Academic and financial fields are frozen after offer acceptance.
-                    </div>
-                    <!-- Scholarship freeze indicator -->
-                    <div class="alert alert-warning mb-3" invisible="not scholarship_frozen">
-                        <i class="fa fa-lock me-2"/>
-                        <strong>Scholarship outcome frozen</strong> on <field name="scholarship_freeze_date" readonly="1" class="d-inline" nolabel="1"/>. Approved scholarship lines cannot be edited.
+                        <strong>Scholarship outcome frozen</strong> on
+                        <field name="scholarship_freeze_date" readonly="1"
+                               class="d-inline" nolabel="1"/>.
+                        Approved scholarship lines cannot be edited.
                     </div>
 
-                    <!-- ── Applicant &amp; Academic Context ── -->
+                    <!-- ── Applicant &amp; Admission Context ── -->
                     <group>
                         <group string="Applicant">
                             <field name="applicant_profile_id"
-                                   readonly="state not in ['draft']"
-                                   options="{'no_create': False}"
-                                   context="{'default_partner_id': partner_id}"/>
-                            <field name="partner_id" readonly="1"/>
-                            <field name="crm_lead_id" readonly="1"/>
+                                   readonly="state != 'draft'"/>
+                            <field name="partner_id" invisible="1"/>
+                            <field name="crm_lead_id" readonly="1"
+                                   invisible="not crm_lead_id"/>
                             <field name="assigned_user_id"/>
                         </group>
-                        <group string="Academic Context">
+                        <group string="Admission">
                             <field name="admission_register_id"
-                                   readonly="state not in ['draft']"/>
+                                   readonly="state != 'draft'"/>
                             <field name="program_id"
-                                   readonly="state not in ['draft']"/>
+                                   readonly="state != 'draft'"/>
                             <field name="academic_year_id"
-                                   readonly="state not in ['draft']"/>
+                                   readonly="state != 'draft'"/>
                             <field name="batch_id"
-                                   readonly="state not in ['draft']"/>
+                                   readonly="state != 'draft'"/>
                             <field name="department_id" readonly="1"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <!-- ── Fee Tab ── -->
-                        <page string="Fee &amp; Payment" name="fee">
+                        <!-- ── Financial Tab ── -->
+                        <page string="Financial" name="financial">
                             <group>
                                 <group string="Fee Structure">
                                     <field name="fee_structure_id"
-                                           readonly="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']"/>
+                                           readonly="state == 'enrolled'"/>
                                     <field name="currency_id" invisible="1"/>
                                     <field name="base_total_fee" readonly="1"/>
                                     <field name="scholarship_eligible_total" readonly="1"/>
                                 </group>
                                 <group string="Payment Plan">
                                     <field name="available_payment_plan_ids"
-                                           widget="many2many_tags" readonly="1" force_save="1"/>
+                                           widget="many2many_tags" readonly="1"
+                                           force_save="1"/>
                                     <field name="selected_payment_plan_id"
                                            domain="[('id', 'in', available_payment_plan_ids)]"
-                                           readonly="state in ['offer_accepted', 'ready_for_enrollment', 'enrolled']"/>
+                                           readonly="state == 'enrolled'"/>
                                 </group>
                             </group>
 
                             <group>
-                                <group string="Scholarship Impact">
+                                <group string="Scholarship Summary">
                                     <field name="total_scholarship_discount_amount" readonly="1"/>
                                     <field name="net_fee_after_scholarship" readonly="1"/>
                                     <field name="scholarship_cap_applied" readonly="1"/>
                                 </group>
-                                <group string="Confirmation">
+                                <group string="Payment Confirmation">
+                                    <field name="payment_received"/>
                                     <field name="fee_confirmed" readonly="1"/>
                                     <field name="fee_confirmation_date" readonly="1"/>
                                 </group>
@@ -249,7 +224,8 @@
                         </page>
 
                         <!-- ── Scholarship Tab ── -->
-                        <page string="Scholarship" name="scholarship">
+                        <page string="Scholarship" name="scholarship"
+                              invisible="not show_scholarship_button">
                             <div class="o_row mb-3">
                                 <button name="action_suggest_scholarships"
                                         type="object"
@@ -260,17 +236,18 @@
                                         title="Auto-detect eligible scholarship schemes based on applicant profile, program, and demographics."/>
                                 <button name="action_recompute_scholarship"
                                         type="object"
-                                        string="Recalculate Scholarship"
+                                        string="Recalculate"
                                         class="btn-secondary btn-sm"
                                         invisible="scholarship_frozen"/>
                                 <button name="action_freeze_scholarship_outcome"
                                         type="object"
-                                        string="Freeze Scholarship Outcome"
+                                        string="Freeze Outcome"
                                         class="btn-secondary btn-sm"
-                                        invisible="scholarship_frozen or state not in ['scholarship_review', 'offered']"
+                                        invisible="scholarship_frozen"
                                         groups="edu_admission.group_scholarship_approver"
                                         confirm="Freeze the scholarship outcome? Approved lines will be locked and cannot be modified."/>
                             </div>
+
                             <group>
                                 <group string="Scholarship Summary">
                                     <field name="scholarship_status" readonly="1"
@@ -289,12 +266,13 @@
                                     <field name="scholarship_cap_applied" readonly="1"/>
                                 </group>
                             </group>
+
                             <group string="Cap Details"
                                    invisible="not scholarship_cap_reason_summary">
                                 <field name="scholarship_cap_reason_summary" readonly="1"
                                        nolabel="1"/>
                             </group>
-                            <group string="Scholarship Summary Notes"
+                            <group string="Scholarship Notes"
                                    invisible="not scholarship_note_summary">
                                 <field name="scholarship_note_summary" readonly="1"
                                        nolabel="1"/>
@@ -309,10 +287,8 @@
                                     <field name="eligibility_result" optional="show"
                                            widget="badge"/>
                                     <field name="approved_type"/>
-                                    <field name="approved_percent"
-                                           optional="show"/>
-                                    <field name="approved_amount"
-                                           optional="show"/>
+                                    <field name="approved_percent" optional="show"/>
+                                    <field name="approved_amount" optional="show"/>
                                     <field name="calculated_discount_amount"
                                            string="Discount" readonly="1"/>
                                     <field name="cap_applied" readonly="1"/>
@@ -323,79 +299,43 @@
                                     <button name="action_approve" type="object"
                                             string="Approve" icon="fa-check"
                                             class="btn-link text-success"
-                                            invisible="state not in ['draft', 'under_review', 'recommended']"
+                                            invisible="state not in ('draft', 'under_review', 'recommended')"
                                             groups="edu_admission.group_scholarship_approver"/>
                                     <button name="action_reject" type="object"
                                             string="Reject" icon="fa-times"
                                             class="btn-link text-danger"
-                                            invisible="state not in ['draft', 'under_review', 'recommended']"
+                                            invisible="state not in ('draft', 'under_review', 'recommended')"
                                             groups="edu_admission.group_scholarship_approver"/>
                                 </list>
                             </field>
                         </page>
 
                         <!-- ── Offer Tab ── -->
-                        <page string="Offer" name="offer">
+                        <page string="Offer" name="offer"
+                              invisible="not offer_letter_generated and state not in ('approved', 'enrolled')">
                             <group>
                                 <group string="Offer Details">
-                                    <field name="offer_status" readonly="1"/>
+                                    <field name="offer_status" readonly="1" widget="badge"/>
                                     <field name="offer_letter_generated" readonly="1"/>
                                     <field name="offer_letter_date" readonly="1"/>
                                     <field name="offer_letter_ref"/>
                                     <field name="offer_expiry_date"/>
                                 </group>
-                                <group string="Outcome">
-                                    <field name="offer_acceptance_date" readonly="1"/>
-                                    <field name="offer_rejection_reason"
-                                           invisible="offer_status != 'rejected'"/>
+                                <group string="Digital Signature">
+                                    <field name="sign_request_id" readonly="1"
+                                           invisible="not sign_request_id"/>
                                 </group>
                             </group>
 
-                            <div class="alert alert-warning mb-3"
-                                 invisible="not enrollment_block_reason or state != 'offer_accepted'">
-                                <i class="fa fa-exclamation-triangle me-2"/>
-                                <strong>Enrollment Blocks:</strong>
-                                <field name="enrollment_block_reason" readonly="1"
-                                       nolabel="1" class="d-inline"/>
-                            </div>
-                        </page>
-
-                        <!-- ── Applicant Details (via profile) ── -->
-                        <page string="Applicant Details" name="applicant_details">
-                            <group string="Demographics (from Applicant Profile)">
-                                <group>
-                                    <field name="applicant_profile_id" invisible="1"/>
-                                    <!-- Related fields shown read-only for convenience -->
-                                </group>
-                            </group>
-                            <p class="text-muted">
-                                Full applicant details, guardians, and academic history
-                                are maintained in the Applicant Profile. Click the
-                                "Applicant" smart button above to view the complete profile.
-                            </p>
-                        </page>
-
-                        <!-- ── Process ── -->
-                        <page string="Process" name="process">
-                            <group>
-                                <group string="Review Status">
-                                    <field name="review_complete"/>
-                                    <field name="documents_complete"/>
-                                </group>
-                                <group string="Readiness Flags">
-                                    <field name="can_generate_offer" readonly="1"/>
-                                    <field name="can_accept_offer" readonly="1"/>
-                                    <field name="can_mark_ready_for_enrollment" readonly="1"
-                                           string="Can Mark Ready for Enrollment"/>
-                                    <field name="enrollment_ready" readonly="1"
-                                           string="Enrollment Criteria Met"/>
-                                    <field name="can_enroll" readonly="1"
-                                           string="Can Create Enrollment"/>
-                                </group>
+                            <group string="Outcome"
+                                   invisible="offer_status == 'not_generated'">
+                                <field name="offer_acceptance_date" readonly="1"/>
+                                <field name="offer_rejection_reason"
+                                       invisible="offer_status != 'rejected'"/>
                             </group>
                         </page>
 
-                        <!-- ── Notes ── -->
+                        <!-- ── Notes Tab ── -->
                         <page string="Notes" name="notes">
                             <group string="Internal Notes">
                                 <field name="internal_note" nolabel="1"/>
@@ -408,6 +348,9 @@
 
                     <field name="active" invisible="1"/>
                     <field name="company_id" invisible="1"/>
+                    <field name="show_offer_button" invisible="1"/>
+                    <field name="show_sign_button" invisible="1"/>
+                    <field name="show_scholarship_button" invisible="1"/>
                 </sheet>
                 <chatter/>
             </form>
