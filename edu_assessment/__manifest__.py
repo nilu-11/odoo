@@ -22,7 +22,6 @@
         'views/edu_classroom_views.xml',
         'views/edu_student_views.xml',
         'views/edu_assessment_bulk_generate_wizard_views.xml',
-        'views/edu_assessment_bulk_lock_wizard_views.xml',
         'report/edu_assessment_report_actions.xml',
         'report/edu_assessment_report_templates.xml',
         'views/menu_views.xml',

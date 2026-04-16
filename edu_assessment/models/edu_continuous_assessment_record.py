@@ -10,10 +10,10 @@ _ALWAYS_WRITABLE = frozenset({
     'message_follower_ids', 'message_ids', 'message_partner_ids',
     'activity_ids', 'activity_state', 'activity_date_deadline',
     'activity_summary', 'activity_type_id', 'activity_user_id',
-    'remarks',  # allow remarks/notes even on locked records
+    'remarks',  # allow remarks/notes even on confirmed records
 })
 
-# Fields that identify the assessment outcome — locked once state='locked'
+# Fields that identify the assessment outcome — protected once state='confirmed'
 _OUTCOME_FIELDS = frozenset({
     'category_id', 'student_id', 'classroom_id', 'teacher_id',
     'assessment_date', 'max_marks', 'marks_obtained',
@@ -35,7 +35,7 @@ class EduContinuousAssessmentRecord(models.Model):
     concrete columns — never only as related fields — so historical records
     remain correct after batch promotions.
 
-    Workflow:  draft → confirmed → locked
+    Workflow:  draft → confirmed
     """
 
     _name = 'edu.continuous.assessment.record'
@@ -191,7 +191,6 @@ class EduContinuousAssessmentRecord(models.Model):
         selection=[
             ('draft', 'Draft'),
             ('confirmed', 'Confirmed'),
-            ('locked', 'Locked'),
         ],
         string='State',
         default='draft',
@@ -227,7 +226,7 @@ class EduContinuousAssessmentRecord(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        """Block edits to outcome fields when the record is locked,
+        """Block edits to outcome fields when the record is confirmed,
         unless the current user is an Assessment Admin or Education Admin.
         """
         is_admin = (
@@ -237,12 +236,12 @@ class EduContinuousAssessmentRecord(models.Model):
         if not is_admin:
             edit_fields = set(vals.keys()) - _ALWAYS_WRITABLE
             if edit_fields:
-                locked = self.filtered(lambda r: r.state == 'locked')
-                if locked:
-                    names = ', '.join(locked[:3].mapped('display_name'))
+                confirmed = self.filtered(lambda r: r.state == 'confirmed')
+                if confirmed:
+                    names = ', '.join(confirmed[:3].mapped('display_name'))
                     raise UserError(
                         _(
-                            'Assessment record(s) "%s" are locked and cannot be edited. '
+                            'Assessment record(s) "%s" are confirmed and cannot be edited. '
                             'Ask an admin to reset them if a correction is needed.'
                         ) % names
                     )
@@ -342,39 +341,40 @@ class EduContinuousAssessmentRecord(models.Model):
     # ── State transitions ────────────────────────────────────────────────────
 
     def action_confirm(self):
-        for rec in self:
-            if rec.state != 'draft':
-                raise UserError(
-                    _('Only Draft assessment records can be confirmed. "%s" is in state: %s.')
-                    % (rec.display_name, rec.state)
-                )
-        self.write({'state': 'confirmed'})
-
-    def action_lock(self):
-        """Lock — prevent further edits to assessment data."""
-        for rec in self:
-            if rec.state not in ('draft', 'confirmed'):
-                raise UserError(
-                    _('Assessment record "%s" is already locked or in an invalid state.')
-                    % rec.display_name
-                )
-        self.write({'state': 'locked'})
+        """Confirm all draft records in self; silently skip already-confirmed ones."""
+        self.filtered(lambda r: r.state == 'draft').write({'state': 'confirmed'})
 
     def action_reset_draft(self):
-        """Admin-only reset: locked/confirmed → draft."""
+        """Admin-only reset: confirmed → draft."""
         is_admin = (
             self.env.user.has_group('edu_assessment.group_assessment_admin')
             or self.env.user.has_group('edu_academic_structure.group_education_admin')
         )
         if not is_admin:
-            raise UserError(_('Only Assessment Admins can reset locked records.'))
+            raise UserError(_('Only Assessment Admins can reset confirmed records.'))
         for rec in self:
-            if rec.state not in ('locked', 'confirmed'):
+            if rec.state != 'confirmed':
                 raise UserError(
-                    _('Only Locked or Confirmed records can be reset to Draft. '
+                    _('Only Confirmed records can be reset to Draft. '
                       '"%s" is in state: %s.') % (rec.display_name, rec.state)
                 )
         self.write({'state': 'draft'})
+
+    def action_bulk_confirm(self):
+        """Confirm all selected draft records."""
+        draft = self.filtered(lambda r: r.state == 'draft')
+        if draft:
+            draft.write({'state': 'confirmed'})
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Confirmed'),
+                'message': _('%s records confirmed.', len(draft)),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     # ── Smart button / classroom action ──────────────────────────────────────
 
