@@ -91,11 +91,6 @@
         <field name="arch" type="xml">
             <form string="Attendance Sheet">
                 <header>
-                    <button name="action_start"
-                            string="Start Session"
-                            type="object"
-                            class="btn-primary"
-                            invisible="state != 'draft'"/>
                     <button name="action_generate_lines"
                             string="Reload Students"
                             type="object"
@@ -107,10 +102,20 @@
                             class="btn-primary"
                             invisible="state != 'in_progress'"/>
                     <button name="action_mark_all_present"
-                            string="Mark All Present"
+                            string="All Present"
                             type="object"
-                            invisible="state != 'in_progress'"
-                            groups="edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                            class="btn-success"
+                            invisible="state == 'submitted'"/>
+                    <button name="action_mark_all_absent"
+                            string="All Absent"
+                            type="object"
+                            class="btn-warning"
+                            invisible="state == 'submitted'"/>
+                    <button name="action_mark_all_late"
+                            string="All Late"
+                            type="object"
+                            class="btn-info"
+                            invisible="state == 'submitted'"/>
                     <button name="action_reset_to_draft"
                             string="Reset to Draft"
                             type="object"
