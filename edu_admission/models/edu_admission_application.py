@@ -910,6 +910,72 @@ class EduAdmissionApplication(models.Model):
             'edu_admission.action_report_offer_letter'
         ).report_action(self)
 
+    def action_send_sign_request(self):
+        """Create and send Odoo Sign request for the offer letter."""
+        self.ensure_one()
+        if self.state != 'approved':
+            raise UserError(_("Sign requests can only be sent for approved applications."))
+
+        # Check sign module is installed
+        if not self.env['ir.module.module'].sudo().search(
+            [('name', '=', 'sign'), ('state', '=', 'installed')], limit=1
+        ):
+            raise UserError(_("The Odoo Sign module is not installed."))
+
+        register = self.admission_register_id
+        if not register.sign_template_id:
+            raise UserError(_(
+                "No Sign template configured on the admission register '%s'. "
+                "Please configure a template first.",
+                register.name,
+            ))
+
+        if not self.offer_letter_generated:
+            raise UserError(_("Please generate the offer letter before sending for signature."))
+
+        if self.sign_request_id:
+            raise UserError(_("A sign request already exists for this application."))
+
+        if not self.partner_id.email:
+            raise UserError(_("The applicant must have an email address for digital signing."))
+
+        # Create sign request
+        try:
+            SignRequest = self.env['sign.request']
+            sign_request = SignRequest.create({
+                'template_id': register.sign_template_id.id,
+                'reference': _("Offer Letter - %s", self.application_no),
+                'request_item_ids': [(0, 0, {
+                    'partner_id': self.partner_id.id,
+                    'role_id': self.env.ref('sign.sign_item_role_customer').id,
+                })],
+            })
+            sign_request.action_sent()
+        except Exception as e:
+            _logger.exception(
+                "Failed to create Odoo Sign request for application %s",
+                self.application_no,
+            )
+            raise UserError(
+                _("Failed to create the sign request: %s", str(e))
+            ) from e
+
+        self.write({
+            'sign_request_id': sign_request.id,
+            'offer_status': 'sent',
+        })
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Signature Request Sent'),
+                'message': _('The offer letter has been sent to %s for digital signature.', self.partner_id.email),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
     def action_enroll(self):
         """Enroll the application. Checks all gates configured on register."""
         self.ensure_one()
