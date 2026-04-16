@@ -177,6 +177,12 @@
                         invisible="not is_duplicate">
                     <field name="duplicate_lead_count" widget="statinfo" string="Similar Inquiry"/>
                 </button>
+                <button name="action_open_merge_wizard"
+                        type="object"
+                        string="Merge Lead"
+                        class="oe_stat_button btn-secondary"
+                        icon="fa-compress"
+                        invisible="not is_duplicate"/>
             </xpath>
 
             <!-- ══════════════════════════════════════════════════════════════
