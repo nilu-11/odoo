@@ -90,6 +90,65 @@ class EduBatchPromotionWizard(models.TransientModel):
             else:
                 wiz.active_progression_count = 0
 
+    # ── Open record counts ────────────────────────────────────────────────────
+
+    open_attendance_count = fields.Integer(compute='_compute_open_records')
+    open_assessment_count = fields.Integer(compute='_compute_open_records')
+    open_exam_count = fields.Integer(compute='_compute_open_records')
+    has_open_records = fields.Boolean(compute='_compute_open_records')
+    open_records_closed = fields.Boolean(default=False)
+    admin_override = fields.Boolean(
+        string='Override: Promote Without Closing',
+        default=False,
+    )
+
+    @api.depends('batch_id', 'current_program_term_id')
+    def _compute_open_records(self):
+        for wiz in self:
+            att_count = 0
+            assess_count = 0
+            exam_count = 0
+
+            Classroom = self.env.get('edu.classroom')
+            if Classroom is not None and wiz.batch_id and wiz.current_program_term_id:
+                classrooms = Classroom.search([
+                    ('batch_id', '=', wiz.batch_id.id),
+                    ('program_term_id', '=', wiz.current_program_term_id.id),
+                    ('active', '=', True),
+                ])
+                classroom_ids = classrooms.ids
+
+                # Attendance sheets not yet submitted
+                AttSheet = self.env.get('edu.attendance.sheet')
+                if AttSheet is not None and classroom_ids:
+                    register_ids = classrooms.mapped('attendance_register_id').ids
+                    if register_ids:
+                        att_count = AttSheet.search_count([
+                            ('register_id', 'in', register_ids),
+                            ('state', '!=', 'submitted'),
+                        ])
+
+                # Continuous assessment records still draft
+                CAR = self.env.get('edu.continuous.assessment.record')
+                if CAR is not None and classroom_ids:
+                    assess_count = CAR.search_count([
+                        ('classroom_id', 'in', classroom_ids),
+                        ('state', '=', 'draft'),
+                    ])
+
+                # Exam papers not yet published or closed
+                ExamPaper = self.env.get('edu.exam.paper')
+                if ExamPaper is not None and classroom_ids:
+                    exam_count = ExamPaper.search_count([
+                        ('classroom_id', 'in', classroom_ids),
+                        ('state', 'not in', ('published', 'closed')),
+                    ])
+
+            wiz.open_attendance_count = att_count
+            wiz.open_assessment_count = assess_count
+            wiz.open_exam_count = exam_count
+            wiz.has_open_records = bool(att_count or assess_count or exam_count)
+
     # ── Onchange ──────────────────────────────────────────────────────────────
 
     @api.onchange('batch_id')
@@ -132,65 +191,96 @@ class EduBatchPromotionWizard(models.TransientModel):
                 'There are no students to promote.'
             ) % self.batch_id.name)
 
-    def _check_open_records_before_archive(self, classrooms):
-        """Block promotion if any classroom has open/in-progress child records.
+    def action_auto_close_open_records(self):
+        """Auto-close open attendance sheets and draft assessment records.
 
-        Checks (when the related module is installed):
-          - Attendance sheets in draft or in_progress state
-          - Continuous assessment records in draft or confirmed state
-          - Exam papers in a non-terminal state (not closed/draft)
+        - Attendance sheets: start if draft, then submit if they have lines.
+        - Continuous assessment records: confirm draft records.
+        - Sets open_records_closed = True when done.
         """
+        self.ensure_one()
+
+        Classroom = self.env.get('edu.classroom')
+        if Classroom is None:
+            self.open_records_closed = True
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Nothing to Close'),
+                    'message': _('No classroom module found; nothing to auto-close.'),
+                    'type': 'info',
+                    'sticky': False,
+                },
+            }
+
+        classrooms = Classroom.search([
+            ('batch_id', '=', self.batch_id.id),
+            ('program_term_id', '=', self.current_program_term_id.id),
+            ('active', '=', True),
+        ])
         classroom_ids = classrooms.ids
-        blockers = []
+
+        att_closed = 0
+        assess_confirmed = 0
 
         # ── Attendance sheets ────────────────────────────────────────────
         AttSheet = self.env.get('edu.attendance.sheet')
-        if AttSheet is not None:
+        if AttSheet is not None and classroom_ids:
             register_ids = classrooms.mapped('attendance_register_id').ids
             if register_ids:
                 open_sheets = AttSheet.search([
                     ('register_id', 'in', register_ids),
-                    ('state', 'in', ('draft', 'in_progress')),
-                ], limit=10)
+                    ('state', '!=', 'submitted'),
+                ])
                 for sheet in open_sheets:
-                    blockers.append(
-                        _('Attendance sheet "%s" is in %s state.')
-                        % (sheet.display_name, sheet.state)
-                    )
+                    if sheet.state == 'draft' and hasattr(sheet, 'action_start'):
+                        try:
+                            sheet.action_start()
+                        except Exception:
+                            pass
+                    if sheet.state != 'submitted' and hasattr(sheet, 'action_submit'):
+                        if sheet.attendance_line_ids:
+                            try:
+                                sheet.action_submit()
+                                att_closed += 1
+                            except Exception:
+                                pass
 
         # ── Continuous assessment records ─────────────────────────────────
         CAR = self.env.get('edu.continuous.assessment.record')
-        if CAR is not None:
-            open_cars = CAR.search([
+        if CAR is not None and classroom_ids:
+            draft_cars = CAR.search([
                 ('classroom_id', 'in', classroom_ids),
-                ('state', 'in', ('draft', 'confirmed')),
-            ], limit=10)
-            for car in open_cars:
-                blockers.append(
-                    _('Assessment record "%s" is in %s state.')
-                    % (car.display_name, car.state)
-                )
+                ('state', '=', 'draft'),
+            ])
+            for car in draft_cars:
+                if hasattr(car, 'action_confirm'):
+                    try:
+                        car.action_confirm()
+                        assess_confirmed += 1
+                    except Exception:
+                        pass
 
-        # ── Exam papers ──────────────────────────────────────────────────
-        ExamPaper = self.env.get('edu.exam.paper')
-        if ExamPaper is not None:
-            open_papers = ExamPaper.search([
-                ('classroom_id', 'in', classroom_ids),
-                ('state', 'not in', ('draft', 'closed')),
-            ], limit=10)
-            for paper in open_papers:
-                blockers.append(
-                    _('Exam paper "%s" is in %s state.')
-                    % (paper.display_name, paper.state)
-                )
+        self.open_records_closed = True
 
-        if blockers:
-            detail = '\n'.join(f'  • {b}' for b in blockers)
-            raise UserError(_(
-                'Cannot archive classrooms for %s — '
-                'the following records are still open:\n\n%s\n\n'
-                'Close or submit them before promoting the batch.'
-            ) % (self.current_program_term_id.name, detail))
+        parts = []
+        if att_closed:
+            parts.append(_('%d attendance sheet(s) submitted') % att_closed)
+        if assess_confirmed:
+            parts.append(_('%d assessment record(s) confirmed') % assess_confirmed)
+        summary = ', '.join(parts) if parts else _('no records needed closing')
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Records Closed'),
+                'message': summary,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     def _resolve_academic_year(self, fallback_year_id):
         """Determine the academic year to use on new progression records.
@@ -212,7 +302,12 @@ class EduBatchPromotionWizard(models.TransientModel):
         self.ensure_one()
         self._validate_promotion_inputs()
 
-        # ── 0. Pre-flight: check for open records in old classrooms ─────────
+        # ── 0. Soft check for open records (can be bypassed by admin_override) ─
+        if self.has_open_records and not self.open_records_closed and not self.admin_override:
+            raise UserError(_(
+                "Open records exist. Close them first or enable the admin override."
+            ))
+
         Classroom = self.env.get('edu.classroom')
         old_classrooms = Classroom.browse() if Classroom is not None else None
         if Classroom is not None:
@@ -221,8 +316,6 @@ class EduBatchPromotionWizard(models.TransientModel):
                 ('program_term_id', '=', self.current_program_term_id.id),
                 ('active', '=', True),
             ])
-            if old_classrooms:
-                self._check_open_records_before_archive(old_classrooms)
 
         ProgressionHistory = self.env['edu.student.progression.history']
 
