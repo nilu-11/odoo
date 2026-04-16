@@ -137,15 +137,15 @@ class EduAdmissionApplication(models.Model):
         # Advance application state
         self.write({'state': 'enrolled'})
 
-        # Auto-confirm if enrollment is immediately ready (no required
-        # fees blocking).  This creates the student record and portal
-        # user in one step, saving manual button clicks.
-        if enrollment.can_confirm:
+        # Auto-activate if enrollment is immediately ready (checklist
+        # complete).  This creates the student record and portal user
+        # in one step, saving manual button clicks.
+        if enrollment.can_activate:
             try:
-                enrollment.action_confirm()
+                enrollment.action_activate()
             except UserError:
                 _logger.info(
-                    'Auto-confirm skipped for enrollment %s — not ready.',
+                    'Auto-activate skipped for enrollment %s — not ready.',
                     enrollment.enrollment_no,
                 )
 

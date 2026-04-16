@@ -178,7 +178,7 @@ class EduEnrollment(models.Model):
     def _compute_readiness_flags(self):
         """Extend the base readiness check to include fee eligibility."""
         for rec in self:
-            rec.can_confirm = (
+            rec.can_activate = (
                 rec.state == 'draft'
                 and rec.application_id
                 and rec.applicant_profile_id
@@ -186,11 +186,8 @@ class EduEnrollment(models.Model):
                 and rec.batch_id
                 and rec.current_program_term_id
                 and rec.fee_confirmed
-                and rec.enrollment_fee_eligible
-            )
-            rec.can_activate = (
-                rec.state == 'confirmed'
                 and rec.checklist_complete
+                and rec.enrollment_fee_eligible
             )
 
     def _compute_enrollment_block_reason(self):
@@ -225,7 +222,7 @@ class EduEnrollment(models.Model):
             return True
 
         raise UserError(
-            f'Enrollment "{self.enrollment_no}" cannot be confirmed.\n\n'
+            f'Enrollment "{self.enrollment_no}" cannot be activated.\n\n'
             f'{self.enrollment_fee_block_detail or "Required fees are outstanding."}\n\n'
             'Pay the outstanding required fees or request a manager '
             'override.'
@@ -275,16 +272,16 @@ class EduEnrollment(models.Model):
         )
 
     # ═════════════════════════════════════════════════════════════════════════
-    # Override Confirm to enforce fee eligibility
+    # Override Activate to enforce fee eligibility
     # ═════════════════════════════════════════════════════════════════════════
-    def action_confirm(self):
+    def action_activate(self):
         """
-        Extended: validate enrollment fee eligibility before confirming.
+        Extended: validate enrollment fee eligibility before activating.
         """
         for rec in self:
             if not rec.enrollment_fee_eligible:
                 rec.check_enrollment_fee_eligibility()
-        return super().action_confirm()
+        return super().action_activate()
 
     # ═════════════════════════════════════════════════════════════════════════
     # Auto-generate Fee Plan on Enrollment Creation

@@ -7,7 +7,7 @@ class EduEnrollmentChecklistLine(models.Model):
     Lightweight checklist item for enrollment readiness.
 
     Tracks whether final enrollment requirements (documents, verifications)
-    are complete. Required items gate the draft → confirmed → active flow.
+    are complete. Required items gate the draft → active flow.
     """
 
     _name = 'edu.enrollment.checklist.line'

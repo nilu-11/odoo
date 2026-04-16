@@ -38,7 +38,7 @@
             </xpath>
 
             <!-- ── Generate Fee Plan button in header ── -->
-            <xpath expr="//button[@name='action_confirm']" position="before">
+            <xpath expr="//button[@name='action_activate']" position="before">
                 <button name="action_generate_fee_plan" type="object"
                         string="Generate Fee Plan" class="btn-secondary"
                         invisible="state != 'draft' or fee_plan_count > 0 or not fee_structure_id"/>
@@ -48,7 +48,7 @@
             </xpath>
 
             <!-- ── Override button in header ── -->
-            <xpath expr="//button[@name='action_confirm']" position="after">
+            <xpath expr="//button[@name='action_activate']" position="after">
                 <button name="action_override_enrollment_fee_block" type="object"
                         string="Override Fee Block" class="btn-warning"
                         invisible="state != 'draft' or enrollment_fee_eligible"
