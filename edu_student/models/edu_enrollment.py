@@ -48,15 +48,14 @@ class EduEnrollment(models.Model):
 
     def action_create_student(self):
         """
-        Create an edu.student record from this confirmed/active enrollment.
+        Create an edu.student record from this active enrollment.
         If a student already exists, navigate to it instead of creating a duplicate.
         """
         self.ensure_one()
 
-        if self.state not in ('confirmed', 'active'):
+        if self.state not in ('active',):
             raise UserError(
-                'Student record can only be created from a '
-                'confirmed or active enrollment.'
+                'Student record can only be created from an active enrollment.'
             )
 
         # If student already exists, open it
@@ -93,27 +92,22 @@ class EduEnrollment(models.Model):
             'target': 'current',
         }
 
-    def action_confirm(self):
-        """
-        Override: after confirming, auto-create the student record and
-        a portal user for the student's contact.
-        """
-        res = super().action_confirm()
-        for rec in self:
-            if rec.state != 'confirmed':
-                continue
-            if not rec.student_id:
+    def action_activate(self):
+        """Override to auto-create student and portal user on activation."""
+        result = super().action_activate()
+        for enrollment in self:
+            if not enrollment.student_id:
                 try:
-                    student = self.env['edu.student'].action_create_from_enrollment(rec)
-                    rec.student_id = student.id
+                    student = self.env['edu.student'].action_create_from_enrollment(enrollment)
+                    enrollment.student_id = student.id
                 except UserError as e:
-                    # Don't block confirm — surface the reason as a log note.
-                    rec.message_post(
+                    # Don't block activation — surface the reason as a log note.
+                    enrollment.message_post(
                         body=f'Automatic student creation skipped: {e}',
                     )
                     continue
-            rec._ensure_portal_user()
-        return res
+            enrollment._ensure_portal_user()
+        return result
 
     def _ensure_portal_user(self):
         """Create a portal user for the student's contact if one doesn't exist.

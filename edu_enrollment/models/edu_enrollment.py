@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -28,7 +28,7 @@ class EduEnrollment(models.Model):
     # Locking configuration
     # ═════════════════════════════════════════════════════════════════════════
     _LOCKED_STATES = frozenset({'active', 'completed'})
-    _CONTROLLED_STATES = frozenset({'confirmed'})
+    _CONTROLLED_STATES = frozenset()
     _FROZEN_FIELDS = frozenset({
         'application_id', 'applicant_profile_id', 'program_id',
         'batch_id', 'academic_year_id', 'current_program_term_id',
@@ -243,7 +243,6 @@ class EduEnrollment(models.Model):
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
-            ('confirmed', 'Confirmed'),
             ('active', 'Active'),
             ('cancelled', 'Cancelled'),
             ('completed', 'Completed'),
@@ -259,11 +258,6 @@ class EduEnrollment(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # Readiness / Computed
     # ═════════════════════════════════════════════════════════════════════════
-    can_confirm = fields.Boolean(
-        string='Can Confirm',
-        compute='_compute_readiness_flags',
-        store=False,
-    )
     can_activate = fields.Boolean(
         string='Can Activate',
         compute='_compute_readiness_flags',
@@ -388,7 +382,7 @@ class EduEnrollment(models.Model):
         frozen_change = self._FROZEN_FIELDS & changing_fields
         if frozen_change:
             for rec in self:
-                if rec.state in self._LOCKED_STATES | self._CONTROLLED_STATES:
+                if rec.state in self._LOCKED_STATES:
                     raise UserError(
                         f'Cannot modify {", ".join(frozen_change)} on '
                         f'enrollment "{rec.enrollment_no}" — record is '
@@ -399,22 +393,11 @@ class EduEnrollment(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # Computed Fields
     # ═════════════════════════════════════════════════════════════════════════
-    @api.depends('state', 'checklist_complete', 'fee_confirmed',
-                 'application_id', 'applicant_profile_id',
-                 'program_id', 'batch_id', 'current_program_term_id')
+    @api.depends('state', 'checklist_complete')
     def _compute_readiness_flags(self):
         for rec in self:
-            rec.can_confirm = (
-                rec.state == 'draft'
-                and rec.application_id
-                and rec.applicant_profile_id
-                and rec.program_id
-                and rec.batch_id
-                and rec.current_program_term_id
-                and rec.fee_confirmed
-            )
             rec.can_activate = (
-                rec.state == 'confirmed'
+                rec.state == 'draft'
                 and rec.checklist_complete
             )
 
@@ -431,8 +414,6 @@ class EduEnrollment(models.Model):
                 blocks.append('Batch is required.')
             if not rec.current_program_term_id:
                 blocks.append('Current program term is required.')
-            if not rec.fee_confirmed:
-                blocks.append('Fee must be confirmed on the application.')
             if not rec.checklist_complete:
                 pending = rec.checklist_pending_count
                 blocks.append(
@@ -689,56 +670,32 @@ class EduEnrollment(models.Model):
     # ═════════════════════════════════════════════════════════════════════════
     # State Transitions
     # ═════════════════════════════════════════════════════════════════════════
-    def action_confirm(self):
-        """
-        Draft → Confirmed.
-        Validates that all critical fields are present and consistent.
-        """
-        for rec in self:
-            if rec.state != 'draft':
-                raise UserError(
-                    f'Enrollment "{rec.enrollment_no}" is not in draft state.'
-                )
-            if not rec.can_confirm:
-                raise UserError(
-                    f'Cannot confirm enrollment "{rec.enrollment_no}":\n'
-                    f'{rec.enrollment_block_reason or "Unknown issue."}'
-                )
-        self.write({
-            'state': 'confirmed',
-            'confirmed_by_user_id': self.env.uid,
-            'confirmed_on': fields.Datetime.now(),
-        })
-
     def action_activate(self):
-        """
-        Confirmed → Active.
-        Requires all checklist items to be complete.
-        """
-        for rec in self:
-            if rec.state != 'confirmed':
-                raise UserError(
-                    f'Enrollment "{rec.enrollment_no}" must be confirmed '
-                    'before activation.'
-                )
-            if not rec.can_activate:
-                pending = rec.checklist_pending_count
-                raise UserError(
-                    f'Cannot activate enrollment "{rec.enrollment_no}" — '
-                    f'{pending} required checklist item(s) still pending.'
-                    if pending else
-                    f'Cannot activate enrollment "{rec.enrollment_no}" — '
-                    'checklist is not complete.'
-                )
+        """Activate enrollment — single step from draft to active."""
+        self.ensure_one()
+        if self.state != 'draft':
+            raise UserError(_("Only draft enrollments can be activated."))
+        # Check checklist if items exist
+        if self.checklist_line_ids:
+            required_pending = self.checklist_line_ids.filtered(
+                lambda l: l.required and not l.complete
+            )
+            if required_pending:
+                raise UserError(_(
+                    "%(count)s required checklist item(s) are incomplete.",
+                    count=len(required_pending),
+                ))
         self.write({
             'state': 'active',
             'activated_by_user_id': self.env.uid,
             'activated_on': fields.Datetime.now(),
+            'confirmed_by_user_id': self.env.uid,
+            'confirmed_on': fields.Datetime.now(),
         })
 
     def action_cancel(self):
         """
-        Cancel enrollment. Allowed from draft or confirmed only.
+        Cancel enrollment. Allowed from draft only.
         Active enrollments require admin action.
         """
         for rec in self:
@@ -747,10 +704,10 @@ class EduEnrollment(models.Model):
                     f'Cannot cancel completed enrollment '
                     f'"{rec.enrollment_no}".'
                 )
-            if rec.state == 'active':
+            if rec.state != 'draft':
                 raise UserError(
-                    f'Cannot cancel active enrollment '
-                    f'"{rec.enrollment_no}" — use administrative '
+                    f'Cannot cancel enrollment "{rec.enrollment_no}" '
+                    f'from "{rec.state}" state — use administrative '
                     'procedures to withdraw an active enrollment.'
                 )
         self.write({'state': 'cancelled'})

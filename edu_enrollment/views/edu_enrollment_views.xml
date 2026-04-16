@@ -17,8 +17,6 @@
                 <separator/>
                 <filter string="Draft" name="draft"
                         domain="[('state', '=', 'draft')]"/>
-                <filter string="Confirmed" name="confirmed"
-                        domain="[('state', '=', 'confirmed')]"/>
                 <filter string="Active" name="active_state"
                         domain="[('state', '=', 'active')]"/>
                 <filter string="Completed" name="completed"
@@ -86,7 +84,6 @@
                        widget="boolean"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'active'"
-                       decoration-info="state == 'confirmed'"
                        decoration-muted="state in ('cancelled', 'completed')"
                        decoration-warning="state == 'draft'"/>
             </list>
@@ -102,12 +99,9 @@
         <field name="arch" type="xml">
             <form string="Enrollment">
                 <header>
-                    <button name="action_confirm" type="object"
-                            string="Confirm" class="btn-primary"
-                            invisible="state != 'draft' or not can_confirm"/>
                     <button name="action_activate" type="object"
                             string="Activate" class="btn-primary"
-                            invisible="state != 'confirmed' or not can_activate"
+                            invisible="state != 'draft'"
                             confirm="Activate this enrollment? The record will become mostly locked."/>
                     <button name="action_complete" type="object"
                             string="Complete" class="btn-secondary"
@@ -115,7 +109,7 @@
                             confirm="Mark this enrollment as completed?"/>
                     <button name="action_cancel" type="object"
                             string="Cancel"
-                            invisible="state not in ['draft', 'confirmed']"/>
+                            invisible="state != 'draft'"/>
                     <button name="action_force_cancel" type="object"
                             string="Administrative Cancel"
                             invisible="state not in ['active']"
@@ -125,7 +119,7 @@
                             string="Reset to Draft"
                             invisible="state != 'cancelled'"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,confirmed,active"/>
+                           statusbar_visible="draft,active"/>
                 </header>
 
                 <sheet>
@@ -168,7 +162,7 @@
 
                     <!-- Locked state indicator -->
                     <div class="alert alert-info mb-3"
-                         invisible="state not in ['confirmed', 'active', 'completed']">
+                         invisible="state not in ['active', 'completed']">
                         <i class="fa fa-lock me-2"/>
                         Academic and financial fields are locked in this state.
                     </div>
@@ -177,7 +171,7 @@
                     <div class="alert alert-warning mb-3"
                          invisible="not enrollment_block_reason or state != 'draft'">
                         <i class="fa fa-exclamation-triangle me-2"/>
-                        <strong>Confirmation Blocks:</strong>
+                        <strong>Activation Blocks:</strong>
                         <field name="enrollment_block_reason" readonly="1"
                                nolabel="1" class="d-inline" widget="text"/>
                     </div>
@@ -197,7 +191,7 @@
                             <field name="enrollment_date"
                                    readonly="state not in ['draft']"/>
                             <field name="enrollment_type"
-                                   readonly="state not in ['draft', 'confirmed']"/>
+                                   readonly="state != 'draft'"/>
                             <field name="enrolled_by_user_id" readonly="1"/>
                         </group>
                     </group>
@@ -218,10 +212,8 @@
                             <field name="department_id" readonly="1"/>
                         </group>
                         <group string="Readiness">
-                            <field name="can_confirm" readonly="1"
-                                   invisible="state != 'draft'"/>
                             <field name="can_activate" readonly="1"
-                                   invisible="state != 'confirmed'"/>
+                                   invisible="state != 'draft'"/>
                             <field name="checklist_complete" readonly="1"/>
                             <field name="checklist_pending_count" readonly="1"
                                    invisible="checklist_complete"/>
