@@ -323,6 +323,20 @@ class EduAttendanceSheet(models.Model):
             if lines:
                 lines.write({'status': 'present'})
 
+    def action_mark_all_absent(self):
+        """Mark all students as absent."""
+        self.ensure_one()
+        if self.state == 'draft':
+            self.action_start()
+        self.line_ids.write({'status': 'absent'})
+
+    def action_mark_all_late(self):
+        """Mark all students as late."""
+        self.ensure_one()
+        if self.state == 'draft':
+            self.action_start()
+        self.line_ids.write({'status': 'late'})
+
     def action_reset_to_draft(self):
         """Admin only: submitted → draft."""
         for rec in self:

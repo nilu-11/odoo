@@ -123,11 +123,19 @@ class EduAttendanceSheetLine(models.Model):
     # ── ORM override ──────────────────────────────────────────────────────────
 
     def write(self, vals):
-        """Lock all fields when the parent sheet is submitted."""
+        """Lock all fields when the parent sheet is submitted.
+        Auto-start draft sheets when a status change is made.
+        """
         locked = self.filtered(lambda l: l.sheet_id.state == 'submitted')
         if locked:
             raise UserError(_(
                 'Cannot edit attendance lines on a submitted sheet. '
                 'Reset the sheet to draft first.'
             ))
+        if 'status' in vals:
+            draft_sheets = self.mapped('sheet_id').filtered(lambda s: s.state == 'draft')
+            for sheet in draft_sheets:
+                if not sheet.line_ids:
+                    sheet.action_generate_lines()
+                sheet.state = 'in_progress'
         return super().write(vals)
