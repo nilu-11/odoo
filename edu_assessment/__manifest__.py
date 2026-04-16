@@ -1,6 +1,6 @@
 {
     'name': 'Education: Continuous Assessment',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'summary': 'Continuous and non-exam assessment records for the EMIS — assignments, tests, projects, class performance.',
     'author': 'Innovax Solutions',
     'category': 'Education',

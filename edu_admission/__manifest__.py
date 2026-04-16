@@ -1,6 +1,6 @@
 {
     'name': 'Education: Admission',
-    'version': '19.0.1.0.0',
+    'version': '19.0.2.0.0',
     'summary': (
         'Formal admission lifecycle — registers, applications, '
         'scholarship review, offer letters, and enrollment handoff.'
