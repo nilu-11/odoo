@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#B71C1C"/>
+  <!-- Exam paper -->
+  <rect x="24" y="18" width="64" height="82" rx="5" fill="white"/>
+  <!-- Folded corner -->
+  <polygon points="72,18 88,18 88,34" fill="#B71C1C"/>
+  <polygon points="72,18 88,34 72,34" fill="#E57373"/>
+  <!-- Lines -->
+  <rect x="34" y="36" width="28" height="5" rx="2" fill="#B71C1C"/>
+  <rect x="34" y="48" width="44" height="4" rx="2" fill="#E0E0E0"/>
+  <rect x="34" y="59" width="44" height="4" rx="2" fill="#E0E0E0"/>
+  <rect x="34" y="70" width="44" height="4" rx="2" fill="#E0E0E0"/>
+  <!-- Grade circle -->
+  <circle cx="92" cy="88" r="24" fill="#B71C1C" stroke="white" stroke-width="5"/>
+  <text x="92" y="95" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle">A+</text>
+</svg>

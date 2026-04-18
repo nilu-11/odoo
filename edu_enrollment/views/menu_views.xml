@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Enrollment menu — under Admission root
+         Enrollment — top-level root menu
     ══════════════════════════════════════════════════════ -->
     <menuitem id="menu_enrollment_main"
               name="Enrollment"
-              parent="edu_admission.menu_admission_main"
-              sequence="40"/>
+              sequence="52"
+              web_icon="edu_enrollment,static/description/icon.svg"/>
 
     <menuitem id="menu_enrollment_records"
               name="Enrollments"

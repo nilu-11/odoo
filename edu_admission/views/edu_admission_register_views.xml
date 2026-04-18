@@ -175,7 +175,6 @@
 
                     <!-- Flow Configuration -->
                     <group string="Flow Configuration">
-                        <field name="sign_module_installed" invisible="1"/>
                         <field name="flow_preset" widget="radio"
                                options="{'horizontal': true}"/>
                         <!-- Toggle fields — visible only when preset is custom -->
@@ -185,12 +184,8 @@
                                invisible="flow_preset != 'custom'"/>
                         <field name="require_offer_letter"
                                invisible="flow_preset != 'custom'"/>
-                        <field name="require_odoo_sign"
-                               invisible="flow_preset != 'custom' or not sign_module_installed"/>
                         <field name="require_payment_confirmation"
                                invisible="flow_preset != 'custom'"/>
-                        <field name="sign_template_id"
-                               invisible="not require_odoo_sign or not sign_module_installed"/>
                     </group>
 
                     <notebook>

@@ -5,11 +5,11 @@
          Placed under the existing Education root menu.
     ══════════════════════════════════════════════════════ -->
 
-    <!-- ── Top-level Student Finance section ── -->
+    <!-- ── Student Finance — top-level root menu ── -->
     <menuitem id="menu_student_finance"
               name="Student Finance"
-              parent="edu_academic_structure.menu_education_root"
-              sequence="50"/>
+              sequence="66"
+              web_icon="edu_fees,static/description/icon.svg"/>
 
     <!-- ── Operations ── -->
     <menuitem id="menu_student_finance_operations"

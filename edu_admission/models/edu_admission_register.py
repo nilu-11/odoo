@@ -170,16 +170,6 @@ class EduAdmissionRegister(models.Model):
         tracking=True,
         help="If enabled, payment must be confirmed before enrollment.",
     )
-    sign_template_id = fields.Many2one(
-        'sign.template',
-        string='Offer Letter Sign Template',
-        ondelete='set null',
-        help="Odoo Sign template used for offer letter digital signatures.",
-    )
-    sign_module_installed = fields.Boolean(
-        compute='_compute_sign_module_installed',
-    )
-
     # ── Relations ─────────────────────────────────────────────────────────────
     application_ids = fields.One2many(
         comodel_name='edu.admission.application',
@@ -365,14 +355,6 @@ class EduAdmissionRegister(models.Model):
             'require_payment_confirmation': True,
         },
     }
-
-    # ── Computed ──────────────────────────────────────────────────────────────
-    def _compute_sign_module_installed(self):
-        installed = bool(self.env['ir.module.module'].sudo().search(
-            [('name', '=', 'sign'), ('state', '=', 'installed')], limit=1
-        ))
-        for rec in self:
-            rec.sign_module_installed = installed
 
     # ── Onchange ──────────────────────────────────────────────────────────────
     @api.onchange('flow_preset')

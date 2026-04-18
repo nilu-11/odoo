@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#1565C0"/>
+  <!-- Graduation cap -->
+  <polygon points="64,28 104,50 64,72 24,50" fill="white"/>
+  <rect x="59" y="72" width="10" height="20" fill="white"/>
+  <ellipse cx="64" cy="94" rx="16" ry="7" fill="white"/>
+  <line x1="104" y1="50" x2="104" y2="72" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="104" cy="75" r="6" fill="white"/>
+</svg>

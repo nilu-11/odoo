@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Staff Management — top-level menu under Education -->
+    <!-- Staff Management — top-level root menu -->
     <menuitem id="menu_edu_hr_root"
               name="Staff Management"
-              parent="edu_academic_structure.menu_education_root"
-              sequence="25"
+              sequence="70"
+              web_icon="edu_hr,static/description/icon.svg"
               groups="hr.group_hr_user,hr.group_hr_manager,edu_academic_structure.group_education_admin"/>
 
     <menuitem id="menu_edu_staff_all"

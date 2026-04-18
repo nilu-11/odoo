@@ -8,9 +8,9 @@
 
     <!-- Separator-level parent under Academic -->
     <menuitem id="menu_edu_progression"
-              name="Progression"
-              parent="edu_academic_structure.menu_edu_academic"
-              sequence="50"
+              name="Academic Progression"
+              sequence="68"
+              web_icon="edu_academic_progression,static/description/icon.svg"
               groups="edu_academic_progression.group_progression_viewer,edu_academic_progression.group_progression_officer,edu_academic_progression.group_progression_admin,edu_academic_structure.group_education_admin"/>
 
     <menuitem id="menu_edu_progression_history"

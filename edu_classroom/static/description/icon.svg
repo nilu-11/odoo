@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#E65100"/>
+  <!-- Chalkboard -->
+  <rect x="16" y="28" width="96" height="64" rx="5" fill="white"/>
+  <rect x="24" y="36" width="80" height="48" rx="3" fill="#E65100"/>
+  <!-- Chalk lines -->
+  <line x1="34" y1="52" x2="64" y2="52" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="34" y1="62" x2="74" y2="62" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="34" y1="72" x2="58" y2="72" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Eraser -->
+  <rect x="76" y="76" width="20" height="8" rx="2" fill="white"/>
+  <!-- Legs -->
+  <line x1="40" y1="92" x2="34" y2="108" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  <line x1="88" y1="92" x2="94" y2="108" stroke="white" stroke-width="6" stroke-linecap="round"/>
+</svg>

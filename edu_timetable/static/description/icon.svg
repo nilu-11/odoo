@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#37474F"/>
+  <!-- Calendar grid -->
+  <rect x="14" y="28" width="100" height="84" rx="6" fill="white"/>
+  <rect x="14" y="28" width="100" height="26" rx="6" fill="#37474F"/>
+  <rect x="14" y="44" width="100" height="10" fill="#37474F"/>
+  <!-- Hooks -->
+  <rect x="34" y="18" width="10" height="18" rx="5" fill="white"/>
+  <rect x="84" y="18" width="10" height="18" rx="5" fill="white"/>
+  <!-- Grid lines vertical -->
+  <line x1="39" y1="54" x2="39" y2="112" stroke="#90A4AE" stroke-width="1.5"/>
+  <line x1="64" y1="54" x2="64" y2="112" stroke="#90A4AE" stroke-width="1.5"/>
+  <line x1="89" y1="54" x2="89" y2="112" stroke="#90A4AE" stroke-width="1.5"/>
+  <!-- Grid lines horizontal -->
+  <line x1="14" y1="70" x2="114" y2="70" stroke="#90A4AE" stroke-width="1.5"/>
+  <line x1="14" y1="87" x2="114" y2="87" stroke="#90A4AE" stroke-width="1.5"/>
+  <line x1="14" y1="103" x2="114" y2="103" stroke="#90A4AE" stroke-width="1.5"/>
+  <!-- Colored blocks in grid cells -->
+  <rect x="40" y="55" width="24" height="14" rx="2" fill="#37474F" opacity="0.5"/>
+  <rect x="65" y="72" width="24" height="14" rx="2" fill="#37474F" opacity="0.5"/>
+  <rect x="15" y="88" width="23" height="14" rx="2" fill="#37474F" opacity="0.5"/>
+  <rect x="65" y="55" width="24" height="14" rx="2" fill="#37474F" opacity="0.3"/>
+  <rect x="15" y="55" width="23" height="14" rx="2" fill="#37474F" opacity="0.3"/>
+  <rect x="40" y="88" width="24" height="14" rx="2" fill="#37474F" opacity="0.3"/>
+</svg>

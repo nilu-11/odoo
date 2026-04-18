@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#00838F"/>
+  <!-- Calendar -->
+  <rect x="16" y="32" width="96" height="80" rx="6" fill="white"/>
+  <rect x="16" y="32" width="96" height="26" rx="6" fill="#00838F"/>
+  <rect x="16" y="46" width="96" height="12" fill="#00838F"/>
+  <!-- Calendar hooks -->
+  <rect x="36" y="22" width="10" height="18" rx="5" fill="white"/>
+  <rect x="82" y="22" width="10" height="18" rx="5" fill="white"/>
+  <!-- Grid dots -->
+  <circle cx="38" cy="76" r="6" fill="#00838F"/>
+  <circle cx="64" cy="76" r="6" fill="#00838F"/>
+  <circle cx="90" cy="76" r="6" fill="#00838F"/>
+  <circle cx="38" cy="98" r="6" fill="#00838F"/>
+  <!-- Checkmark in one cell -->
+  <circle cx="64" cy="98" r="10" fill="#00838F"/>
+  <polyline points="59,98 63,103 70,92" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

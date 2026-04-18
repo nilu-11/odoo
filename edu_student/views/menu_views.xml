@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Student — Top-level menu under Admission root
+         Students — top-level root menu
     ══════════════════════════════════════════════════════ -->
     <menuitem id="menu_student_main"
               name="Students"
-              parent="edu_admission.menu_admission_main"
-              sequence="50"/>
+              sequence="54"
+              web_icon="edu_student,static/description/icon.svg"/>
 
     <menuitem id="menu_student_records"
               name="Student Records"

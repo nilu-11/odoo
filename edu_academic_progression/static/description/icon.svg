@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#0277BD"/>
+  <!-- Steps / staircase going up with arrow -->
+  <polyline points="18,100 18,80 42,80 42,60 66,60 66,40 90,40 90,20" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Arrow head -->
+  <polyline points="74,20 90,20 90,36" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Dots on steps -->
+  <circle cx="18" cy="100" r="6" fill="white"/>
+  <circle cx="42" cy="80" r="6" fill="white"/>
+  <circle cx="66" cy="60" r="6" fill="white"/>
+  <circle cx="90" cy="40" r="6" fill="white"/>
+</svg>

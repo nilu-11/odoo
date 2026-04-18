@@ -6,6 +6,7 @@
     <menuitem id="menu_admission_root"
               name="Admission"
               sequence="50"
+              web_icon="edu_admission,static/description/icon.svg"
               groups="group_admission_viewer,group_admission_officer,group_admission_admin,edu_academic_structure.group_education_admin"/>
 
     <!-- ── Main Operational Items ────────────────────────────────── -->

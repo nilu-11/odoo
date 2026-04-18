@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#4527A0"/>
+  <!-- Bar chart -->
+  <rect x="18" y="100" width="92" height="6" rx="3" fill="white"/>
+  <!-- Bars -->
+  <rect x="26" y="70" width="20" height="30" rx="3" fill="white" opacity="0.7"/>
+  <rect x="54" y="48" width="20" height="52" rx="3" fill="white"/>
+  <rect x="82" y="58" width="20" height="42" rx="3" fill="white" opacity="0.85"/>
+  <!-- Trophy star on top bar -->
+  <polygon points="64,28 67,38 78,38 69,44 72,55 64,48 56,55 59,44 50,38 61,38" fill="#FFD600"/>
+</svg>

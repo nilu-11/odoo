@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#2E7D32"/>
+  <!-- Person with checkmark -->
+  <circle cx="52" cy="42" r="18" fill="white"/>
+  <path d="M16,104 C16,80 36,68 52,68 C62,68 72,72 79,79" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/>
+  <!-- Checkmark circle -->
+  <circle cx="88" cy="88" r="24" fill="white"/>
+  <polyline points="76,88 85,97 101,78" fill="none" stroke="#2E7D32" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

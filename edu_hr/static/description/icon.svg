@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#4E342E"/>
+  <!-- Two people / staff -->
+  <!-- Back person (left) -->
+  <circle cx="46" cy="42" r="16" fill="white" opacity="0.7"/>
+  <path d="M10,104 C10,84 28,72 46,72 C54,72 62,75 68,81" fill="none" stroke="white" stroke-width="9" stroke-linecap="round" opacity="0.7"/>
+  <!-- Front person (right) -->
+  <circle cx="80" cy="44" r="18" fill="white"/>
+  <path d="M44,108 C44,84 60,72 80,72 C100,72 116,84 116,108" fill="white"/>
+</svg>

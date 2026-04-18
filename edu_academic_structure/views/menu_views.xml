@@ -6,6 +6,7 @@
     <menuitem id="menu_education_root"
               name="Education"
               sequence="10"
+              web_icon="edu_academic_structure,static/description/icon.svg"
               groups="edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
 
     <!-- ══════════════════════════════════════════════════════

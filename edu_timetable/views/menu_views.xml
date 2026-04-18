@@ -3,6 +3,7 @@
     <menuitem id="menu_edu_timetable_root"
               name="Timetable"
               sequence="46"
+              web_icon="edu_timetable,static/description/icon.svg"
               groups="edu_timetable.group_timetable_viewer"/>
 
     <menuitem id="menu_edu_timetable_schedule"

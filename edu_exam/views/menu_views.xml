@@ -5,8 +5,8 @@
     ══════════════════════════════════════════════════════ -->
     <menuitem id="menu_edu_exam_root"
               name="Examinations"
-              parent="edu_academic_structure.menu_education_root"
-              sequence="40"
+              sequence="62"
+              web_icon="edu_exam,static/description/icon.svg"
               groups="edu_exam.group_exam_viewer,edu_exam.group_exam_teacher,edu_exam.group_exam_officer,edu_exam.group_exam_publish_manager,edu_exam.group_exam_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <!-- ── Exam Sessions ──────────────────────────────────── -->

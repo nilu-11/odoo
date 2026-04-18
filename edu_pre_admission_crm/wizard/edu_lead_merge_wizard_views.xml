@@ -20,11 +20,11 @@
                         <!-- Side-by-side lead selector row -->
                         <div class="row mb-3">
                             <div class="col-6">
-                                <label class="fw-bold">Current Lead (kept)</label>
+                                <div class="o_form_label fw-bold">Current Lead (kept)</div>
                                 <field name="lead_id" readonly="1" nolabel="1"/>
                             </div>
                             <div class="col-6">
-                                <label class="fw-bold">Duplicate Lead (archived)</label>
+                                <div class="o_form_label fw-bold">Duplicate Lead (archived)</div>
                                 <field name="duplicate_lead_id" nolabel="1"/>
                             </div>
                         </div>

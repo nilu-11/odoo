@@ -321,10 +321,7 @@
                                     <field name="offer_letter_ref"/>
                                     <field name="offer_expiry_date"/>
                                 </group>
-                                <group string="Digital Signature">
-                                    <field name="sign_request_id" readonly="1"
-                                           invisible="not sign_request_id"/>
-                                </group>
+
                             </group>
 
                             <group string="Outcome"

@@ -7,6 +7,7 @@
     <menuitem id="menu_pre_admission_root"
               name="Pre-Admission"
               sequence="40"
+              web_icon="edu_pre_admission_crm,static/description/icon.svg"
               groups="group_pre_admission_viewer,group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
 
     <!-- ── Main Operational Items ──────────────────────────────────────── -->

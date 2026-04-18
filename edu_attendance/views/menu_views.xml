@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Attendance — Top-level menu (under Education root) -->
-    <menuitem id="menu_edu_attendance_root" name="Attendance" parent="edu_academic_structure.menu_education_root" sequence="20" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
+    <!-- Attendance — top-level root menu -->
+    <menuitem id="menu_edu_attendance_root" name="Attendance" sequence="58" web_icon="edu_attendance,static/description/icon.svg" groups="edu_attendance.group_attendance_viewer,edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
 
     <!-- Registers -->
     <menuitem id="menu_edu_attendance_registers" name="Registers" parent="menu_edu_attendance_root" action="action_edu_attendance_register_all" sequence="10" groups="edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin,edu_academic_structure.group_academic_officer"/>
