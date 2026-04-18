@@ -42,6 +42,6 @@ class EduContinuousAssessmentRecord(models.Model):
             )
             if not self.teacher_id or self.teacher_id == current_employee:
                 self.teacher_id = cl.teacher_id or current_employee
-            # Derive academic_year from program_term if available
-            if cl.program_term_id and cl.program_term_id.academic_year_id:
-                self.academic_year_id = cl.program_term_id.academic_year_id
+            # Derive academic_year from classroom's batch (via related field)
+            if cl.academic_year_id:
+                self.academic_year_id = cl.academic_year_id
