@@ -33,6 +33,11 @@ class MailActivity(models.Model):
         if std_call:
             edu_type_ids.setdefault(std_call.id, 'call')
 
+        # Look up employee for current user (for counselor_id)
+        current_employee = self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        )
+
         log_vals_list = []
         for activity in self:
             if activity.res_model != 'crm.lead':
@@ -45,7 +50,7 @@ class MailActivity(models.Model):
                 'lead_id': activity.res_id,
                 'interaction_type': interaction_type,
                 'date': activity.date_deadline,
-                'counselor_id': self.env.uid,
+                'counselor_id': current_employee.id if current_employee else False,
                 'summary': feedback or activity.summary or activity.activity_type_id.name,
                 'activity_id': activity.id,
             })

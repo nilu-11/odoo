@@ -42,12 +42,18 @@
               action="action_edu_interaction_log"
               groups="group_pre_admission_viewer,group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
 
+    <menuitem id="menu_edu_counselors"
+              name="Counselors"
+              parent="menu_pre_admission_main"
+              sequence="50"
+              action="action_edu_counselors"
+              groups="group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
+
     <!-- ── Configuration ──────────────────────────────────────────────── -->
     <menuitem id="menu_pre_admission_configuration"
               name="Configuration"
               parent="menu_pre_admission_root"
               sequence="90"
               groups="group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
-
 
 </odoo>

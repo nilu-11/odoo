@@ -53,9 +53,11 @@ class EduInteractionLog(models.Model):
     )
     duration_minutes = fields.Integer(string='Duration (min)')
     counselor_id = fields.Many2one(
-        comodel_name='res.users',
+        comodel_name='hr.employee',
         string='Counselor',
-        default=lambda self: self.env.user,
+        default=lambda self: self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        ),
         index=True,
     )
     outcome = fields.Selection(

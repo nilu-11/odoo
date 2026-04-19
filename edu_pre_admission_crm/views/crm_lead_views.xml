@@ -85,7 +85,7 @@
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <field name="tag_ids" widget="many2many_tags"
                                    options="{'color_field': 'color'}"/>
-                            <field name="counselor_id" widget="many2one_avatar_user" class="ms-auto"/>
+                            <field name="counselor_id" widget="many2one_avatar_employee" class="ms-auto"/>
                         </div>
 
                         <!-- Profile completeness bar -->
@@ -459,7 +459,7 @@
                         <field name="date" widget="datetime"/>
                         <field name="interaction_type" widget="badge"/>
                         <field name="summary"/>
-                        <field name="counselor_id" widget="many2one_avatar_user"/>
+                        <field name="counselor_id" widget="many2one_avatar_employee"/>
                         <field name="outcome" widget="badge"
                                decoration-success="outcome == 'positive'"
                                decoration-warning="outcome == 'neutral'"

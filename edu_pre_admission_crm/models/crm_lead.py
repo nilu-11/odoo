@@ -61,11 +61,11 @@ class CrmLead(models.Model):
 
     # ── Counseling ────────────────────────────────────────────────────────────
     counselor_id = fields.Many2one(
-        comodel_name='res.users',
+        comodel_name='hr.employee',
         string='Counselor',
         tracking=True,
-        domain="['|', ('share', '=', False), ('share', '=', True)]",
-        help='User responsible for counseling this prospect. Can be an internal or portal user.',
+        domain="[('is_counselor', '=', True)]",
+        help='Employee responsible for counseling this prospect.',
     )
     referred_by_id = fields.Many2one(
         comodel_name='res.partner',
@@ -481,13 +481,18 @@ class CrmLead(models.Model):
                 applicant = self.env['edu.applicant.profile'].browse(applicant_id)
                 if applicant.exists() and applicant.partner_id:
                     vals['partner_id'] = applicant.partner_id.id
-            # Auto-assign counselor from sales team
+            # Auto-assign counselor from sales team leader's employee
             if not vals.get('counselor_id'):
                 team_id = vals.get('team_id')
                 if team_id:
                     team = self.env['crm.team'].browse(team_id)
                     if team.user_id:
-                        vals['counselor_id'] = team.user_id.id
+                        employee = self.env['hr.employee'].search([
+                            ('user_id', '=', team.user_id.id),
+                            ('is_counselor', '=', True),
+                        ], limit=1)
+                        if employee:
+                            vals['counselor_id'] = employee.id
         return super().create(vals_list)
 
     def write(self, vals):
@@ -780,16 +785,19 @@ class CrmLead(models.Model):
             'context': {
                 'default_res_model': 'crm.lead',
                 'default_res_id': self.id,
-                'default_user_id': self.counselor_id.id or self.env.uid,
+                'default_user_id': (self.counselor_id.user_id.id if self.counselor_id else False) or self.env.uid,
             },
         }
 
     def action_log_interaction(self):
         """Open form to manually log an interaction, auto-linking the earliest open activity."""
         self.ensure_one()
+        employee = self.env['hr.employee'].search(
+            [('user_id', '=', self.env.uid)], limit=1,
+        )
         ctx = {
             'default_lead_id': self.id,
-            'default_counselor_id': self.env.uid,
+            'default_counselor_id': employee.id if employee else False,
         }
         # Auto-select the earliest open activity on this lead
         earliest = self.activity_ids.sorted('date_deadline')[:1]

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ══════════════════════════════════════════════════════
+         HR Employee Form — Add is_counselor flag
+    ══════════════════════════════════════════════════════ -->
     <record id="view_employee_form_is_counselor" model="ir.ui.view">
         <field name="name">hr.employee.form.is_counselor</field>
         <field name="model">hr.employee</field>
@@ -8,6 +11,23 @@
             <xpath expr="//field[@name='job_title']" position="after">
                 <field name="is_counselor"/>
             </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Counselors — Action (filtered hr.employee list)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_edu_counselors" model="ir.actions.act_window">
+        <field name="name">Counselors</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_counselor', '=', True)]</field>
+        <field name="context">{'default_is_counselor': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first counselor</p>
+            <p>Counselors are employees who handle pre-admission inquiries,
+               campus visits, and applicant counseling sessions.
+               Mark any employee as a counselor to make them available for lead assignment.</p>
         </field>
     </record>
 </odoo>
