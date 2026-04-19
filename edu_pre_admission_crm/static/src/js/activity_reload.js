@@ -3,6 +3,7 @@
 import { patch } from "@web/core/utils/patch";
 import { FormController } from "@web/views/form/form_controller";
 import { Activity } from "@mail/core/common/activity_model";
+import { Store } from "@mail/core/common/store_service";
 
 /**
  * Reload crm.lead form when activities change.
@@ -45,6 +46,19 @@ patch(FormController.prototype, {
             this.render(true);
         }
         return result;
+    },
+});
+
+// ── Store: signal form reload after scheduling an activity ─────────
+patch(Store.prototype, {
+    async scheduleActivity(resModel, resIds, defaultActivityTypeId = undefined) {
+        await super.scheduleActivity(...arguments);
+        if (resModel === "crm.lead" && resIds?.length) {
+            new BroadcastChannel(CHANNEL_NAME).postMessage({
+                type: "RELOAD_FORM",
+                payload: { id: resIds[0], model: resModel },
+            });
+        }
     },
 });
 
