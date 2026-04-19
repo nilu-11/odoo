@@ -102,17 +102,20 @@ class TeacherPortalController(http.Controller):
                     'slot_type': slot.slot_type,
                 })
 
-        # ── Attention queue ──
+        # ── Attention queue (matches Kopilā design) ──
         attention_items = []
-        # Pending marks
+        today_date = fields.Date.today()
+
+        # Pending marks (featured item)
         if marks_due_count:
             attention_items.append({
-                'kind': 'danger',
-                'icon': '!',
-                'text': '%d exam paper(s) awaiting marks entry' % marks_due_count,
+                'text': '%d paper(s) to mark' % marks_due_count,
+                'detail': 'Marks entry pending',
+                'url': '/portal/teacher/marking',
+                'featured': True,
             })
+
         # Attendance not taken today
-        today_date = fields.Date.today()
         for cl in classrooms:
             if cl.state != 'active' or not cl.attendance_register_id:
                 continue
@@ -122,9 +125,8 @@ class TeacherPortalController(http.Controller):
             ])
             if not has_today:
                 attention_items.append({
-                    'kind': 'warn',
-                    'icon': '○',
-                    'text': '%s — attendance not taken today' % cl.name,
+                    'text': '%s — attendance not taken' % cl.name,
+                    'detail': 'Today',
                     'url': '/portal/teacher/classroom/%d/attendance' % cl.id,
                 })
 
@@ -282,6 +284,20 @@ class TeacherPortalController(http.Controller):
         )
         context.update({'employee': employee})
         return request.render('edu_portal.teacher_reports_overview_page', context)
+
+    # ─── Calendar (hold — placeholder) ─────────────────────────
+
+    @http.route('/portal/teacher/calendar', type='http', auth='user', website=False)
+    def teacher_calendar(self, **kw):
+        employee = self._guard_teacher()
+        if not employee:
+            return request.redirect('/portal')
+        context = build_portal_context(
+            active_sidebar_key='calendar',
+            page_title='Calendar',
+        )
+        context.update({'employee': employee})
+        return request.render('edu_portal.teacher_calendar_page', context)
 
     # ─── Profile ────────────────────────────────────────────────
 

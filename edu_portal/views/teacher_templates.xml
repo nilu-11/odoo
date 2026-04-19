@@ -1,125 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Teacher Home — Today Dashboard
-         Schedule, attention queue, courses, quick stats.
+         Today — Teacher dashboard (hero view)
+         Matches Kopilā today.jsx exactly.
     ══════════════════════════════════════════════════════ -->
-    <template id="teacher_home_page" name="Teacher Home">
+    <template id="teacher_home_page" name="Teacher Today">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
+            <div class="page-wrap">
 
-                <!-- ── Page header ── -->
-                <div class="today-header">
+                <!-- ── Page head ── -->
+                <div class="page-head">
                     <div>
-                        <h1 class="page-title">Today</h1>
-                        <p class="today-sub"><t t-esc="today_date"/></p>
+                        <div style="font-size:12px; color:var(--ink-softer); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px;">
+                            <t t-esc="today_date"/>
+                        </div>
+                        <h1 class="page-title">Good morning, <em style="font-style:italic"><t t-esc="employee.name.split(' ')[0] if employee.name else 'Teacher'"/></em>.</h1>
+                        <div class="page-sub">
+                            You have <b style="color:var(--ink)"><t t-esc="sessions_today"/> class(es)</b> today,
+                            <b style="color:var(--ink)"><t t-esc="marks_due_count"/> paper(s)</b> awaiting marking,
+                            and <b style="color:var(--ink)"><t t-esc="total_courses"/> course(s)</b> active.
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <a href="/portal/teacher/attendance" class="btn primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            Take attendance
+                        </a>
                     </div>
                 </div>
 
-                <!-- ── Stat cards ── -->
-                <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
-                    <div class="card today-stat">
-                        <p class="card-title">My Courses</p>
-                        <p class="card-value display"><t t-esc="total_courses"/></p>
-                        <p class="card-sub">Active classrooms</p>
+                <!-- ── Stat strip (4 cards) ── -->
+                <div class="grid cols-4" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="card-sub" style="margin:0;">Classes today</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="sessions_today"/></div>
+                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Scheduled sessions</div>
                     </div>
-                    <div class="card today-stat">
-                        <p class="card-title">Total Students</p>
-                        <p class="card-value display"><t t-esc="total_students"/></p>
-                        <p class="card-sub">Across all courses</p>
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="card-sub" style="margin:0;">To grade</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        </div>
+                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="marks_due_count"/></div>
+                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Papers awaiting marks</div>
                     </div>
-                    <div class="card today-stat">
-                        <p class="card-title">Sessions Today</p>
-                        <p class="card-value display"><t t-esc="sessions_today"/></p>
-                        <p class="card-sub">Scheduled classes</p>
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="card-sub" style="margin:0;">Total students</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="total_students"/></div>
+                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Across <t t-esc="total_courses"/> courses</div>
                     </div>
-                    <div class="card today-stat">
-                        <p class="card-title">Pending Marks</p>
-                        <p class="card-value display" t-attf-style="#{marks_due_count and 'color: var(--accent-danger)' or ''}">
-                            <t t-esc="marks_due_count"/>
-                        </p>
-                        <p class="card-sub">Papers to grade</p>
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="card-sub" style="margin:0;">My courses</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        </div>
+                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="total_courses"/></div>
+                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Active classrooms</div>
                     </div>
                 </div>
 
-                <!-- ── Two-column layout ── -->
-                <div class="dashboard-grid">
-
-                    <!-- LEFT COLUMN -->
-                    <div>
-                        <!-- Today's Schedule -->
+                <!-- ── Schedule + Attention (two columns) ── -->
+                <div class="grid" style="grid-template-columns:1.4fr 1fr; gap:16px;">
+                    <!-- Today's schedule -->
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
+                            <div>
+                                <h3 class="card-title">Today's schedule</h3>
+                                <div class="card-sub" style="margin-bottom:0;"><t t-esc="len(today_slots)"/> items</div>
+                            </div>
+                            <a href="/portal/teacher/calendar" class="btn ghost sm">
+                                Open calendar
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        </div>
                         <t t-if="today_slots">
-                            <h3 class="today-section-title">Today's Schedule</h3>
-                            <div class="today-schedule">
+                            <div style="display:flex; flex-direction:column;">
                                 <t t-foreach="today_slots" t-as="slot">
-                                    <a t-att-href="slot['classroom_id'] and ('/portal/teacher/classroom/%d' % slot['classroom_id']) or '#'"
-                                       class="today-slot-row">
-                                        <span class="today-slot-time mono"><t t-esc="slot['time']"/></span>
-                                        <div class="today-slot-info">
-                                            <span class="today-slot-title"><t t-esc="slot['title']"/></span>
-                                            <span class="today-slot-meta">
-                                                <t t-if="slot['room']"><t t-esc="slot['room']"/></t>
-                                                <t t-if="slot['room'] and slot['section']"> · </t>
-                                                <t t-if="slot['section']"><t t-esc="slot['section']"/></t>
-                                            </span>
+                                    <div style="display:grid; grid-template-columns:80px 4px 1fr auto; gap:14px; padding:12px 0; border-bottom:1px solid var(--border);"
+                                         t-att-style="'' if not slot_last else 'border-bottom:none;'">
+                                        <div class="mono" style="font-size:12px; color:var(--ink-soft);"><t t-esc="slot['time']"/></div>
+                                        <div t-attf-style="background:var(--accent); border-radius:2px;"/>
+                                        <div>
+                                            <div style="font-weight:500;"><t t-esc="slot['title']"/></div>
+                                            <div style="font-size:12px; color:var(--ink-softer);">
+                                                <t t-esc="slot['room'] or '—'"/>
+                                                <t t-if="slot['section']"> · <t t-esc="slot['section']"/></t>
+                                            </div>
                                         </div>
-                                        <span t-if="slot['slot_type'] == 'exam'" class="classroom-card-badge badge-warning">Exam</span>
-                                    </a>
-                                </t>
-                            </div>
-                        </t>
-
-                        <!-- Attention Queue -->
-                        <t t-if="attention_items">
-                            <h3 class="today-section-title" style="margin-top: 24px;">Needs Attention</h3>
-                            <div class="today-attention">
-                                <t t-foreach="attention_items" t-as="item">
-                                    <a t-att-href="item.get('url', '#')"
-                                       t-attf-class="today-attention-item today-attention-#{item['kind']}">
-                                        <span class="today-attention-icon"><t t-esc="item['icon']"/></span>
-                                        <span><t t-esc="item['text']"/></span>
-                                    </a>
-                                </t>
-                            </div>
-                        </t>
-
-                        <!-- No schedule + no attention = calm state -->
-                        <t t-if="not today_slots and not attention_items">
-                            <div class="card" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
-                                <p class="display" style="font-size:28px; margin:0 0 8px;">All clear</p>
-                                <p style="margin:0; font-size:13px;">No classes scheduled and nothing needs attention today.</p>
-                            </div>
-                        </t>
-                    </div>
-
-                    <!-- RIGHT COLUMN -->
-                    <div>
-                        <h3 class="today-section-title">My Courses</h3>
-                        <t t-if="classroom_cards">
-                            <div class="today-courses">
-                                <t t-foreach="classroom_cards" t-as="card">
-                                    <a t-att-href="card['detail_url']" class="today-course-card">
-                                        <div class="today-course-info">
-                                            <strong><t t-esc="card['classroom'].name"/></strong>
-                                            <span>
-                                                <t t-esc="card['classroom'].section_id.name"/> ·
-                                                <t t-esc="card['classroom'].subject_id.name"/>
-                                            </span>
+                                        <div style="display:flex; gap:6px; align-items:center;">
+                                            <t t-if="slot['classroom_id']">
+                                                <a t-attf-href="/portal/teacher/classroom/#{slot['classroom_id']}" class="btn sm ghost">Open</a>
+                                                <a t-attf-href="/portal/teacher/classroom/#{slot['classroom_id']}/attendance" class="btn sm">Attendance</a>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="pill"><t t-esc="slot['slot_type']"/></span>
+                                            </t>
                                         </div>
-                                        <span t-attf-class="classroom-card-badge #{card['status_class']}">
-                                            <t t-esc="card['status_label']"/>
-                                        </span>
-                                    </a>
+                                    </div>
                                 </t>
                             </div>
                         </t>
                         <t t-else="">
-                            <t t-call="edu_portal.empty_state_component">
-                                <t t-set="title" t-value="'No classrooms assigned'"/>
-                                <t t-set="message" t-value="'Classrooms appear here once assigned.'"/>
-                            </t>
+                            <div class="empty">No classes scheduled today.</div>
                         </t>
                     </div>
+
+                    <!-- Attention queue -->
+                    <div class="card">
+                        <h3 class="card-title">Needs your attention</h3>
+                        <div class="card-sub">Across all courses</div>
+
+                        <t t-if="attention_items">
+                            <t t-foreach="attention_items" t-as="item">
+                                <a t-att-href="item.get('url', '#')"
+                                   t-attf-style="display:flex; padding:10px 12px; border-radius:8px; justify-content:space-between; align-items:center; #{'background:var(--accent-soft); margin-bottom:8px;' if item_first else 'border-top:1px solid var(--border);'}">
+                                    <div>
+                                        <div t-attf-style="font-size:13.5px; #{'font-weight:500; color:var(--accent-ink);' if item_first else ''}">
+                                            <t t-esc="item['text']"/>
+                                        </div>
+                                        <t t-if="item.get('detail')">
+                                            <div style="font-size:12px; color:var(--ink-softer);"><t t-esc="item['detail']"/></div>
+                                        </t>
+                                    </div>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </a>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="empty">All clear — nothing needs attention.</div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- ── Course cards ── -->
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:28px; margin-bottom:12px;">
+                    <h2 class="display" style="font-size:24px; margin:0;">Your courses</h2>
+                    <a href="/portal/teacher/courses" class="btn ghost sm">
+                        View all
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </div>
+                <div class="grid cols-4">
+                    <t t-foreach="classroom_cards" t-as="card">
+                        <a t-att-href="card['detail_url']" class="card" style="display:flex; flex-direction:column; gap:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="mono" style="font-size:11px; color:var(--ink-softer);"><t t-esc="card['classroom'].subject_id.code or card['classroom'].subject_id.name"/></span>
+                                <span class="course-dot saffron" style="width:10px; height:10px;"/>
+                            </div>
+                            <div style="font-family:var(--font-display); font-size:22px; line-height:1.1;"><t t-esc="card['classroom'].name"/></div>
+                            <div style="font-size:12px; color:var(--ink-softer);">
+                                <t t-esc="card['classroom'].section_id.name"/> ·
+                                <t t-esc="card['classroom'].program_term_id.name or ''"/>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:auto;">
+                                <span><t t-esc="card['classroom'].student_count or 0"/> students</span>
+                            </div>
+                            <span t-attf-class="pill #{card['status_class']}"><t t-esc="card['status_label']"/></span>
+                        </a>
+                    </t>
                 </div>
 
             </div>
@@ -127,29 +171,50 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Courses — full classroom card grid
+         Courses — full grid with detail cards
+         Matches Kopilā courses.jsx.
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_courses_page" name="Teacher Courses">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
-                <h1 class="page-title">Courses</h1>
-                <t t-if="classroom_cards">
-                    <div class="classroom-grid">
-                        <t t-foreach="classroom_cards" t-as="card">
-                            <t t-call="edu_portal.classroom_card_component">
-                                <t t-set="classroom" t-value="card['classroom']"/>
-                                <t t-set="status_label" t-value="card['status_label']"/>
-                                <t t-set="status_class" t-value="card['status_class']"/>
-                                <t t-set="detail_url" t-value="card['detail_url']"/>
-                            </t>
-                        </t>
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Courses</h1>
+                        <div class="page-sub">
+                            <t t-esc="len(classroom_cards)"/> active courses ·
+                            <t t-esc="total_students"/> students total
+                        </div>
                     </div>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="title" t-value="'No classrooms assigned'"/>
-                        <t t-set="message" t-value="'Classrooms will appear here once an administrator assigns you as the teacher.'"/>
+                </div>
+
+                <div class="grid cols-2" style="gap:16px;">
+                    <t t-foreach="classroom_cards" t-as="card">
+                        <a t-att-href="card['detail_url']" class="card" style="display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:flex-start;">
+                            <div style="width:56px; height:56px; background:var(--accent-soft); border-radius:12px; display:grid; place-items:center; color:var(--accent-ink); font-family:var(--font-display); font-size:22px;">
+                                <t t-esc="(card['classroom'].subject_id.code or card['classroom'].subject_id.name or '?')[:3]"/>
+                            </div>
+                            <div>
+                                <div class="mono" style="font-size:11px; color:var(--ink-softer);">
+                                    <t t-esc="card['classroom'].subject_id.code or ''"/> ·
+                                    <t t-esc="card['classroom'].section_id.name"/>
+                                </div>
+                                <div style="font-family:var(--font-display); font-size:22px; margin:4px 0;">
+                                    <t t-esc="card['classroom'].name"/>
+                                </div>
+                                <div style="font-size:12px; color:var(--ink-soft);">
+                                    <t t-esc="card['classroom'].program_term_id.name or ''"/>
+                                </div>
+                                <div style="display:flex; gap:12px; margin-top:10px; font-size:12px; color:var(--ink-soft);">
+                                    <span><t t-esc="card['classroom'].student_count or 0"/> students</span>
+                                </div>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        </a>
                     </t>
+                </div>
+
+                <t t-if="not classroom_cards">
+                    <div class="empty">No classrooms assigned yet. Classrooms will appear here once an administrator assigns you as the teacher.</div>
                 </t>
             </div>
         </t>
@@ -160,123 +225,141 @@
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_attendance_overview_page" name="Teacher Attendance Overview">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
-                <h1 class="page-title">Attendance</h1>
-                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
-                    <t t-esc="today_date"/> — select a classroom to take or view attendance
-                </p>
-                <div class="today-courses">
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Attendance</h1>
+                        <div class="page-sub">
+                            <t t-esc="today_date"/> — select a classroom to take or view attendance
+                        </div>
+                    </div>
+                </div>
+                <div class="grid cols-2" style="gap:12px;">
                     <t t-foreach="classroom_att" t-as="item">
-                        <a t-att-href="item['url']" class="today-course-card">
-                            <div class="today-course-info">
-                                <strong><t t-esc="item['classroom'].name"/></strong>
-                                <span>
+                        <a t-att-href="item['url']" class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:500;"><t t-esc="item['classroom'].name"/></div>
+                                <div style="font-size:12px; color:var(--ink-softer);">
                                     <t t-esc="item['classroom'].section_id.name"/> ·
                                     <t t-esc="item['classroom'].subject_id.name"/>
-                                </span>
+                                </div>
                             </div>
                             <t t-if="item['today_done']">
-                                <span class="classroom-card-badge badge-success">Done</span>
+                                <span class="pill success">Done</span>
                             </t>
                             <t t-else="">
-                                <span class="classroom-card-badge badge-warning">Pending</span>
+                                <span class="pill warn">Pending</span>
                             </t>
                         </a>
                     </t>
                 </div>
                 <t t-if="not classroom_att">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="title" t-value="'No active classrooms'"/>
-                        <t t-set="message" t-value="'Attendance will be available once classrooms are activated.'"/>
-                    </t>
+                    <div class="empty">No active classrooms. Attendance will be available once classrooms are activated.</div>
                 </t>
             </div>
         </t>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Marking — exam papers needing marks
+         Marking — papers needing marks
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_marking_overview_page" name="Teacher Marking Overview">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
-                <h1 class="page-title">Marking</h1>
-                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
-                    Exam papers awaiting marks entry
-                </p>
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Marking</h1>
+                        <div class="page-sub">Exam papers awaiting marks entry</div>
+                    </div>
+                </div>
                 <t t-if="papers">
-                    <div class="today-courses">
+                    <div class="grid cols-2" style="gap:12px;">
                         <t t-foreach="papers" t-as="paper">
-                            <div class="today-course-card">
-                                <div class="today-course-info">
-                                    <strong><t t-esc="paper.name or paper.exam_session_id.name"/></strong>
-                                    <span>
+                            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:500;"><t t-esc="paper.name or paper.exam_session_id.name"/></div>
+                                    <div style="font-size:12px; color:var(--ink-softer);">
                                         <t t-esc="paper.batch_id.name"/> ·
                                         <t t-esc="paper.curriculum_line_id.subject_id.name or ''"/>
-                                    </span>
+                                    </div>
                                 </div>
-                                <span class="classroom-card-badge badge-danger">Marks Due</span>
+                                <span class="pill danger">Marks Due</span>
                             </div>
                         </t>
                     </div>
                 </t>
                 <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="title" t-value="'All caught up'"/>
-                        <t t-set="message" t-value="'No exam papers need marks entry right now.'"/>
-                    </t>
+                    <div class="empty">All caught up — no exam papers need marks entry right now.</div>
                 </t>
             </div>
         </t>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Gradebook — classroom results overview
+         Gradebook — course selector
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_gradebook_overview_page" name="Teacher Gradebook Overview">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
-                <h1 class="page-title">Gradebook</h1>
-                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
-                    Select a course to view student results
-                </p>
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Gradebook</h1>
+                        <div class="page-sub">Select a course to view student results</div>
+                    </div>
+                </div>
                 <t t-if="classroom_cards">
-                    <div class="today-courses">
+                    <div class="grid cols-2" style="gap:12px;">
                         <t t-foreach="classroom_cards" t-as="card">
-                            <a t-att-href="card['url']" class="today-course-card">
-                                <div class="today-course-info">
-                                    <strong><t t-esc="card['classroom'].name"/></strong>
-                                    <span>
+                            <a t-att-href="card['url']" class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:500;"><t t-esc="card['classroom'].name"/></div>
+                                    <div style="font-size:12px; color:var(--ink-softer);">
                                         <t t-esc="card['classroom'].section_id.name"/> ·
                                         <t t-esc="card['classroom'].subject_id.name"/>
-                                    </span>
+                                    </div>
                                 </div>
-                                <span style="font-size:12px; color:var(--text-muted);">View →</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                             </a>
                         </t>
                     </div>
                 </t>
                 <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="title" t-value="'No classrooms'"/>
-                        <t t-set="message" t-value="'Results will appear once classrooms are assigned.'"/>
-                    </t>
+                    <div class="empty">No classrooms. Results will appear once classrooms are assigned.</div>
                 </t>
             </div>
         </t>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Report Cards — placeholder
+         Report Cards — hold (backend not complete)
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_reports_overview_page" name="Teacher Reports Overview">
         <t t-call="edu_portal.portal_layout">
-            <div class="classroom-grid-wrap">
-                <h1 class="page-title">Report Cards</h1>
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="title" t-value="'Coming soon'"/>
-                    <t t-set="message" t-value="'Report card generation will be available once the backend feature is complete.'"/>
-                </t>
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Report Cards</h1>
+                        <div class="page-sub">CA marks submission and report generation</div>
+                    </div>
+                </div>
+                <div class="empty">Coming soon — report card generation will be available once the backend feature is complete.</div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Calendar — hold (needs timetable wiring)
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_calendar_page" name="Teacher Calendar">
+        <t t-call="edu_portal.portal_layout">
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Calendar</h1>
+                        <div class="page-sub">Weekly timetable and upcoming events</div>
+                    </div>
+                </div>
+                <div class="empty">Coming soon — calendar view will be available after timetable integration is complete.</div>
             </div>
         </t>
     </template>
@@ -286,25 +369,25 @@
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_profile_page" name="Teacher Profile">
         <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">My Profile</h2>
-            <div class="card">
-                <p class="card-title">Name</p>
-                <p class="card-value"><t t-esc="employee.name"/></p>
-            </div>
-            <div class="stat-grid">
-                <div class="card">
-                    <p class="card-title">Employee Code</p>
-                    <p class="card-value" style="font-size:18px;"><t t-esc="employee.employee_code or '—'"/></p>
+            <div class="page-wrap">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">My Profile</h1>
+                    </div>
                 </div>
-                <div class="card">
-                    <p class="card-title">Department</p>
-                    <p class="card-value" style="font-size:18px;"><t t-esc="employee.edu_department_id.name or '—'"/></p>
-                </div>
-                <div class="card">
-                    <p class="card-title">Staff Type</p>
-                    <p class="card-value" style="font-size:18px;">
-                        <t t-esc="dict(employee._fields['staff_type'].selection).get(employee.staff_type, '—')"/>
-                    </p>
+                <div class="grid cols-3" style="gap:16px;">
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Name</div>
+                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.name"/></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Employee Code</div>
+                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.employee_code or '—'"/></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Department</div>
+                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.edu_department_id.name or '—'"/></div>
+                    </div>
                 </div>
             </div>
         </t>

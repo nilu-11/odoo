@@ -68,6 +68,17 @@
         <field name="role">teacher</field>
     </record>
 
+    <!-- ─── Teacher: Communicate ─── -->
+    <record id="sidebar_teacher_calendar" model="edu.portal.sidebar.item">
+        <field name="key">calendar</field>
+        <field name="label">Calendar</field>
+        <field name="icon">▦</field>
+        <field name="group">Communicate</field>
+        <field name="sequence">60</field>
+        <field name="url">/portal/teacher/calendar</field>
+        <field name="role">teacher</field>
+    </record>
+
     <!-- ─── Teacher: Account ─── -->
     <record id="sidebar_teacher_profile" model="edu.portal.sidebar.item">
         <field name="key">profile</field>
