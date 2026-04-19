@@ -22,11 +22,4 @@
               sequence="20"
               action="action_edu_fee_structure"
               groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer,edu_academic_structure.group_academic_officer,edu_academic_structure.group_academic_viewer"/>
-
-    <menuitem id="menu_edu_fee_term"
-              name="Fee Terms"
-              parent="menu_edu_config_fees"
-              sequence="30"
-              action="action_edu_fee_term"
-              groups="edu_academic_structure.group_education_admin,group_fees_officer,group_fees_viewer"/>
 </odoo>

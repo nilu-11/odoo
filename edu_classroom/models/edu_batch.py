@@ -109,23 +109,9 @@ class EduBatch(models.Model):
         )
 
         if not created_ids:
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('All Up to Date'),
-                    'message': _('All %s classrooms already exist for this batch.', skipped),
-                    'type': 'info',
-                    'sticky': False,
-                    'next': {
-                        'type': 'ir.actions.act_window',
-                        'name': _('Classrooms'),
-                        'res_model': 'edu.classroom',
-                        'view_mode': 'list,form',
-                        'domain': [('batch_id', '=', self.id)],
-                    },
-                },
-            }
+            msg = _('All %s classrooms already exist for this batch.', skipped)
+        else:
+            msg = _('%s classrooms created, %s already existed.', len(created_ids), skipped)
 
         return {
             'type': 'ir.actions.act_window',

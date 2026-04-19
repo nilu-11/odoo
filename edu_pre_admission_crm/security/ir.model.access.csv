@@ -34,3 +34,6 @@ access_edu_qualification_academic_officer,edu.qualification academic officer,mod
 access_edu_qualification_academic_viewer,edu.qualification academic viewer,model_edu_qualification,edu_academic_structure.group_academic_viewer,1,0,0,0
 access_lead_merge_wizard_admin,edu.lead.merge.wizard admin,model_edu_lead_merge_wizard,edu_academic_structure.group_education_admin,1,1,1,1
 access_lead_merge_wizard_officer,edu.lead.merge.wizard officer,model_edu_lead_merge_wizard,group_pre_admission_officer,1,1,1,1
+access_interaction_log_admin,edu.interaction.log admin,model_edu_interaction_log,edu_academic_structure.group_education_admin,1,1,1,1
+access_interaction_log_officer,edu.interaction.log officer,model_edu_interaction_log,group_pre_admission_officer,1,1,1,0
+access_interaction_log_viewer,edu.interaction.log viewer,model_edu_interaction_log,group_pre_admission_viewer,1,0,0,0

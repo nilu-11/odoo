@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="edu_fees_structure.FeeMatrixWidget">
+        <div class="fee-matrix-container">
+            <!-- Loading -->
+            <t t-if="state.loading">
+                <div class="text-center p-4 text-muted">
+                    <i class="fa fa-spinner fa-spin me-1"/>Loading fee matrix...
+                </div>
+            </t>
+
+            <!-- Empty state -->
+            <t t-elif="!state.terms.length or !state.feeHeads.length">
+                <div class="text-muted text-center p-4">
+                    <i class="fa fa-table fa-2x mb-2 d-block"/>
+                    <p>No fee lines to display in matrix.</p>
+                    <p class="small">Use <b>Generate Fee Lines</b> to add fee heads, then the matrix will appear here.</p>
+                </div>
+            </t>
+
+            <!-- Matrix table -->
+            <t t-else="">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle me-1"/>
+                        <t t-if="editable">
+                            Edit amounts directly in the cells. Changes are saved automatically.
+                        </t>
+                        <t t-else="">
+                            Read-only view. Reset to Draft to edit.
+                        </t>
+                    </small>
+                    <button class="btn btn-sm btn-link" t-on-click="onRefresh" title="Refresh matrix data">
+                        <i class="fa fa-refresh"/>
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm mb-0 fee-matrix-table">
+                        <thead>
+                            <tr class="table-light">
+                                <th class="fee-matrix-label-col">Semester / Stage</th>
+                                <t t-foreach="state.feeHeads" t-as="head" t-key="head.id">
+                                    <th class="text-center fee-matrix-head-col">
+                                        <t t-esc="head.name"/>
+                                        <br/>
+                                        <small class="text-muted" t-esc="head.code"/>
+                                    </th>
+                                </t>
+                                <th class="text-end fee-matrix-total-col table-active">Row Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.terms" t-as="term" t-key="term.id">
+                                <tr>
+                                    <td class="fee-matrix-label-col fw-semibold align-middle">
+                                        <t t-esc="term.name"/>
+                                    </td>
+                                    <t t-foreach="state.feeHeads" t-as="head" t-key="head.id">
+                                        <td class="p-0 text-end">
+                                            <t t-if="editable">
+                                                <input type="number"
+                                                       class="form-control form-control-sm text-end border-0 rounded-0 fee-matrix-input"
+                                                       t-att-value="getAmount(term.id, head.id)"
+                                                       t-on-change="(ev) => this.onCellChange(term.id, head.id, ev)"
+                                                       step="0.01"
+                                                       min="0"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="d-block p-2">
+                                                    <t t-esc="fmt(getAmount(term.id, head.id))"/>
+                                                </span>
+                                            </t>
+                                        </td>
+                                    </t>
+                                    <td class="text-end align-middle fw-bold table-active">
+                                        <t t-esc="fmt(getRowTotal(term.id))"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td class="align-middle">Column Total</td>
+                                <t t-foreach="state.feeHeads" t-as="head" t-key="head.id">
+                                    <td class="text-end align-middle">
+                                        <t t-esc="fmt(getColTotal(head.id))"/>
+                                    </td>
+                                </t>
+                                <td class="text-end align-middle table-active">
+                                    <t t-esc="state.currencySymbol"/>
+                                    <t t-esc="fmt(getGrandTotal())"/>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

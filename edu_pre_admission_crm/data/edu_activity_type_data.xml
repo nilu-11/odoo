@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_activity_type_followup_call" model="mail.activity.type">
+        <field name="name">Follow-up Call</field>
+        <field name="res_model">crm.lead</field>
+        <field name="category">default</field>
+        <field name="icon">fa-phone</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="sequence">100</field>
+    </record>
+    <record id="mail_activity_type_campus_visit" model="mail.activity.type">
+        <field name="name">Campus Visit</field>
+        <field name="res_model">crm.lead</field>
+        <field name="category">default</field>
+        <field name="icon">fa-university</field>
+        <field name="delay_count">3</field>
+        <field name="delay_unit">days</field>
+        <field name="sequence">101</field>
+    </record>
+    <record id="mail_activity_type_counseling_session" model="mail.activity.type">
+        <field name="name">Counseling Session</field>
+        <field name="res_model">crm.lead</field>
+        <field name="category">default</field>
+        <field name="icon">fa-comments</field>
+        <field name="delay_count">2</field>
+        <field name="delay_unit">days</field>
+        <field name="sequence">102</field>
+    </record>
+    <record id="mail_activity_type_parent_meeting" model="mail.activity.type">
+        <field name="name">Parent Meeting</field>
+        <field name="res_model">crm.lead</field>
+        <field name="category">default</field>
+        <field name="icon">fa-users</field>
+        <field name="delay_count">3</field>
+        <field name="delay_unit">days</field>
+        <field name="sequence">103</field>
+    </record>
+</odoo>

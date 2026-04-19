@@ -143,12 +143,8 @@
                     </group>
 
                     <notebook>
-                        <!-- ── Fee Lines — what is owed per progression stage ──────────
-                             Each row = one fee component for one semester/stage.
-                             Payment scheduling (how/when to collect) is configured
-                             separately in the Payment Plans tab.
-                        ─────────────────────────────────────────────────────────── -->
-                        <page string="Fee Lines" name="fee_lines">
+                        <!-- ── Fee Matrix — tabular entry ───────────────────────── -->
+                        <page string="Fee Matrix" name="fee_matrix">
                             <div class="mb-2">
                                 <button name="action_generate_fee_lines"
                                         string="Generate Fee Lines"
@@ -157,6 +153,11 @@
                                         invisible="state == 'closed'"
                                         icon="fa-magic"/>
                             </div>
+                            <widget name="fee_matrix"/>
+                        </page>
+
+                        <!-- ── Fee Lines (Detail) — flat list for advanced editing ── -->
+                        <page string="Fee Lines (Detail)" name="fee_lines">
                             <field name="line_ids"
                                    readonly="state == 'closed'"
                                    context="{'default_fee_structure_id': id}">

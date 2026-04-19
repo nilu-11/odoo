@@ -106,6 +106,13 @@
                     <button name="action_generate_offer" string="Generate Offer"
                             type="object" class="btn-secondary"
                             invisible="not show_offer_button"/>
+                    <button name="action_accept_offer" string="Accept Offer"
+                            type="object" class="btn-primary"
+                            invisible="not show_accept_offer_button"/>
+                    <button name="action_reject_offer" string="Reject Offer"
+                            type="object" class="btn-danger"
+                            invisible="not show_accept_offer_button"
+                            confirm="Reject this offer? The applicant has declined."/>
                     <button name="action_enroll" string="Enroll"
                             type="object" class="btn-primary"
                             invisible="state != 'approved'"
@@ -129,6 +136,11 @@
 
                     <!-- Smart buttons -->
                     <div name="button_box" class="oe_button_box">
+                        <button name="action_view_applicant_profile"
+                                type="object" class="oe_stat_button"
+                                icon="fa-user">
+                            <span>Applicant</span>
+                        </button>
                         <button name="action_view_scholarship_reviews"
                                 type="object" class="oe_stat_button"
                                 icon="fa-gift"
@@ -346,6 +358,7 @@
                     <field name="active" invisible="1"/>
                     <field name="company_id" invisible="1"/>
                     <field name="show_offer_button" invisible="1"/>
+                    <field name="show_accept_offer_button" invisible="1"/>
                     <field name="show_sign_button" invisible="1"/>
                     <field name="show_scholarship_button" invisible="1"/>
                 </sheet>

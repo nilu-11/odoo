@@ -322,6 +322,7 @@ class EduAdmissionApplication(models.Model):
 
     # Computed button-visibility helpers (driven by register flow config)
     show_offer_button = fields.Boolean(compute='_compute_button_visibility')
+    show_accept_offer_button = fields.Boolean(compute='_compute_button_visibility')
     show_sign_button = fields.Boolean(compute='_compute_button_visibility')
     show_scholarship_button = fields.Boolean(compute='_compute_button_visibility')
 
@@ -821,11 +822,26 @@ class EduAdmissionApplication(models.Model):
             )
 
     # ═════════════════════════════════════════════════════════════════════════
+    # Smart Button Actions
+    # ═════════════════════════════════════════════════════════════════════════
+
+    def action_view_applicant_profile(self):
+        """Open the linked applicant profile."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'edu.applicant.profile',
+            'res_id': self.applicant_profile_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    # ═════════════════════════════════════════════════════════════════════════
     # Button Visibility
     # ═════════════════════════════════════════════════════════════════════════
     @api.depends('state', 'admission_register_id.require_offer_letter',
                  'admission_register_id.require_scholarship_review',
-                 'offer_letter_generated')
+                 'offer_letter_generated', 'offer_status')
     def _compute_button_visibility(self):
         for app in self:
             reg = app.admission_register_id
@@ -833,6 +849,10 @@ class EduAdmissionApplication(models.Model):
                 app.state == 'approved'
                 and reg.require_offer_letter
                 and not app.offer_letter_generated
+            )
+            app.show_accept_offer_button = (
+                app.state == 'approved'
+                and app.offer_status == 'sent'
             )
             app.show_sign_button = False
             app.show_scholarship_button = bool(reg.require_scholarship_review)
@@ -896,6 +916,21 @@ class EduAdmissionApplication(models.Model):
             'edu_admission.action_report_offer_letter'
         ).report_action(self)
 
+    def action_accept_offer(self):
+        """Mark the offer as accepted by the applicant."""
+        self.ensure_one()
+        if self.offer_status != 'sent':
+            raise UserError(_("Only sent offers can be accepted."))
+        self.offer_status = 'accepted'
+        self.offer_acceptance_date = fields.Datetime.now()
+
+    def action_reject_offer(self):
+        """Mark the offer as rejected by the applicant."""
+        self.ensure_one()
+        if self.offer_status != 'sent':
+            raise UserError(_("Only sent offers can be rejected."))
+        self.offer_status = 'rejected'
+
     def action_enroll(self):
         """Enroll the application. Checks all gates configured on register."""
         self.ensure_one()
@@ -905,8 +940,8 @@ class EduAdmissionApplication(models.Model):
         register = self.admission_register_id
         blocks = []
 
-        if register.require_offer_letter and not self.offer_letter_generated:
-            blocks.append(_("Offer letter has not been generated."))
+        if register.require_offer_letter and self.offer_status != 'accepted':
+            blocks.append(_("Offer letter must be accepted before enrollment."))
 
         if register.require_payment_confirmation and not self.payment_received:
             blocks.append(_("Payment has not been confirmed."))

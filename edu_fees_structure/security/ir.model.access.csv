@@ -4,11 +4,6 @@ access_fee_head_officer,edu.fee.head officer,model_edu_fee_head,group_fees_offic
 access_fee_head_viewer,edu.fee.head viewer,model_edu_fee_head,group_fees_viewer,1,0,0,0
 access_fee_head_academic_officer,edu.fee.head academic officer,model_edu_fee_head,edu_academic_structure.group_academic_officer,1,0,0,0
 access_fee_head_academic_viewer,edu.fee.head academic viewer,model_edu_fee_head,edu_academic_structure.group_academic_viewer,1,0,0,0
-access_fee_term_admin,edu.fee.term admin,model_edu_fee_term,edu_academic_structure.group_education_admin,1,1,1,1
-access_fee_term_officer,edu.fee.term officer,model_edu_fee_term,group_fees_officer,1,1,1,1
-access_fee_term_viewer,edu.fee.term viewer,model_edu_fee_term,group_fees_viewer,1,0,0,0
-access_fee_term_academic_officer,edu.fee.term academic officer,model_edu_fee_term,edu_academic_structure.group_academic_officer,1,0,0,0
-access_fee_term_academic_viewer,edu.fee.term academic viewer,model_edu_fee_term,edu_academic_structure.group_academic_viewer,1,0,0,0
 access_fee_structure_admin,edu.fee.structure admin,model_edu_fee_structure,edu_academic_structure.group_education_admin,1,1,1,1
 access_fee_structure_officer,edu.fee.structure officer,model_edu_fee_structure,group_fees_officer,1,1,1,0
 access_fee_structure_viewer,edu.fee.structure viewer,model_edu_fee_structure,group_fees_viewer,1,0,0,0

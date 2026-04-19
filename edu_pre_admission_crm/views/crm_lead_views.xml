@@ -22,43 +22,112 @@
                 <field name="activity_ids"/>
                 <field name="partner_id"/>
                 <field name="phone"/>
-                <field name="email_from"/>
                 <field name="interested_program_id"/>
                 <field name="tag_ids"/>
-                <field name="next_followup_date"/>
                 <field name="counselor_name"/>
                 <field name="is_duplicate"/>
+                <field name="call_count"/>
+                <field name="visit_count"/>
+                <field name="session_count"/>
+                <field name="last_interaction_summary"/>
+                <field name="next_activity_summary"/>
+                <field name="profile_completeness"/>
                 <progressbar field="activity_state"
                              colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
                 <templates>
                     <t t-name="card">
-                        <div class="mb-1">
-                            <field name="name" class="mb-0 fw-bold fs-5"/>
-                            <span class="badge bg-warning ms-2" invisible="not is_duplicate">Duplicate</span>
+                        <!-- Name + priority -->
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <field name="name" class="fw-bold text-truncate"/>
+                            <field name="priority" widget="priority" class="ms-1 flex-shrink-0"/>
                         </div>
-                        <div class="text-muted small">
-                            <field name="partner_id"/>
+
+                        <!-- Program -->
+                        <div t-if="record.interested_program_id.value" class="text-muted small text-truncate">
+                            <i class="fa fa-graduation-cap me-1"/><field name="interested_program_id"/>
                         </div>
-                        <div class="d-flex gap-2 mt-1 flex-wrap small">
+
+                        <!-- Phone -->
+                        <div t-if="record.phone.value" class="small mt-1">
                             <field name="phone" widget="phone"/>
-                            <field name="email_from" widget="email"/>
                         </div>
-                        <div t-if="record.interested_program_id.value" class="mt-1 small">
-                            <field name="interested_program_id"/>
-                        </div>
-                        <field name="tag_ids" widget="many2many_tags"
-                               options="{'color_field': 'color'}" class="mt-1"/>
-                        <footer class="d-flex align-items-center justify-content-between mt-2 pt-1">
-                            <field name="priority" widget="priority"/>
-                            <field name="activity_ids" widget="kanban_activity"/>
-                            <span t-if="record.next_followup_date.value" class="text-muted small ms-2">
-                                <i class="fa fa-calendar me-1"/><field name="next_followup_date"/>
+
+                        <!-- Interaction badges -->
+                        <div class="d-flex gap-2 mt-2 small">
+                            <span t-if="record.call_count.raw_value" class="badge bg-primary-subtle text-primary-emphasis"
+                                  title="Calls">
+                                <i class="fa fa-phone me-1"/><field name="call_count"/>
                             </span>
+                            <span t-if="record.visit_count.raw_value" class="badge bg-success-subtle text-success-emphasis"
+                                  title="Campus Visits">
+                                <i class="fa fa-university me-1"/><field name="visit_count"/>
+                            </span>
+                            <span t-if="record.session_count.raw_value" class="badge bg-info-subtle text-info-emphasis"
+                                  title="Counseling Sessions">
+                                <i class="fa fa-comments me-1"/><field name="session_count"/>
+                            </span>
+                            <span class="badge bg-warning ms-auto" t-if="record.is_duplicate.raw_value">Dup</span>
+                        </div>
+
+                        <!-- Last interaction -->
+                        <div t-if="record.last_interaction_summary.value"
+                             class="small text-muted mt-1 text-truncate">
+                            <i class="fa fa-history me-1"/><field name="last_interaction_summary"/>
+                        </div>
+
+                        <!-- Next activity -->
+                        <div t-if="record.next_activity_summary.value"
+                             class="small mt-1 text-truncate">
+                            <i class="fa fa-clock-o me-1 text-primary"/><field name="next_activity_summary"/>
+                        </div>
+
+                        <!-- Tags + counselor -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <field name="tag_ids" widget="many2many_tags"
+                                   options="{'color_field': 'color'}"/>
                             <field name="counselor_name" widget="many2one_avatar" class="ms-auto"/>
-                        </footer>
+                        </div>
+
+                        <!-- Profile completeness bar -->
+                        <div t-if="record.profile_completeness.raw_value" class="mt-2">
+                            <div class="progress" style="height: 4px;" t-att-title="record.profile_completeness.value + '%'">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     t-att-style="'width: ' + record.profile_completeness.value + '%'"
+                                     t-att-class="record.profile_completeness.raw_value &gt;= 60 ? 'bg-success' : 'bg-warning'"/>
+                            </div>
+                        </div>
                     </t>
                 </templates>
             </kanban>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Pre-Admission Pipeline — Graph
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_pre_admission_lead_graph" model="ir.ui.view">
+        <field name="name">crm.lead.graph.pre_admission</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <graph string="Pipeline" type="bar">
+                <field name="lead_education_status"/>
+                <field name="interested_program_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Pre-Admission Pipeline — Pivot
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_pre_admission_lead_pivot" model="ir.ui.view">
+        <field name="name">crm.lead.pivot.pre_admission</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <pivot string="Pipeline">
+                <field name="interested_program_id" type="row"/>
+                <field name="lead_education_status" type="col"/>
+            </pivot>
         </field>
     </record>
 
@@ -68,7 +137,7 @@
     <record id="action_pre_admission_pipeline" model="ir.actions.act_window">
         <field name="name">Inquiries &amp; Leads</field>
         <field name="res_model">crm.lead</field>
-        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="view_mode">kanban,list,form,activity,graph,pivot</field>
         <field name="domain">['|', ('type', '=', 'lead'), ('type', '=', False)]</field>
         <field name="context">{'default_type': 'lead'}</field>
         <field name="search_view_id" ref="crm.view_crm_case_leads_filter"/>
@@ -85,6 +154,20 @@
         <field name="sequence" eval="1"/>
         <field name="view_mode">list</field>
         <field name="view_id" ref="crm.crm_case_tree_view_leads"/>
+        <field name="act_window_id" ref="action_pre_admission_pipeline"/>
+    </record>
+
+    <record id="action_pre_admission_pipeline_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_pre_admission_lead_graph"/>
+        <field name="act_window_id" ref="action_pre_admission_pipeline"/>
+    </record>
+
+    <record id="action_pre_admission_pipeline_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="11"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_pre_admission_lead_pivot"/>
         <field name="act_window_id" ref="action_pre_admission_pipeline"/>
     </record>
 
@@ -216,6 +299,13 @@
                 <widget name="web_ribbon" title="Duplicate" bg_color="bg-warning" invisible="not is_duplicate"/>
             </xpath>
 
+            <!-- Next step guidance banner -->
+            <xpath expr="//div[@name='button_box']" position="before">
+                <field name="next_step_banner" readonly="1" nolabel="1"
+                       invisible="lead_education_status in ('converted', 'lost')"
+                       class="w-100" widget="html"/>
+            </xpath>
+
             <!-- Duplicate alert before the title -->
             <xpath expr="//div[hasclass('oe_title')]" position="before">
                 <div class="alert alert-warning py-1 px-2 mb-2 small" role="alert" invisible="not is_duplicate">
@@ -262,8 +352,7 @@
                                options="{'color_field': 'color', 'no_create_edit': False}"
                                placeholder="Tags..."/>
                         <field name="interested_program_id" string="Selected Program"
-                               readonly="is_converted_to_application"
-                               invisible="lead_education_status not in ['qualified', 'converted']"/>
+                               readonly="is_converted_to_application"/>
                         <field name="show_advanced_options" widget="boolean_toggle" invisible="lead_education_status not in ['qualified', 'converted']"/>
                         <field name="intended_academic_year_id" string="Intended Intake Year" readonly="is_converted_to_application" invisible="not show_advanced_options"/>
                         <field name="preferred_batch_id"
@@ -326,30 +415,39 @@
                            <field name="transport_interest"/>
                           </group>
                       </group> -->
-                <group string = "Status &amp; Activities">
+                <!-- ── Interaction Timeline ── -->
+                <div class="o_horizontal_separator mt-4 mb-3">Interactions</div>
 
-                <group string="Pending Call Activities" colspan="1">
-                    <field name="pending_call_activity_ids" nolabel="1" mode="list" readonly="1" width="600px">
-                        <list string="Pending Call Activities" create="0" edit="0" delete="0">
-                            <field name="summary" string="Activity Type"/>
-                            <field name="date_deadline" string="Due Date"
-                                decoration-danger="date_deadline &lt; today"
-                                decoration-warning="date_deadline == today"/>
-                            <field name="note" string="Notes"/>
-                            <field name="user_id" string="Assigned To"/>
-                        </list>
-                    </field>
-                </group>
-                <group string="Done Call Activities" colspan="1">
-                    <field name="done_call_message_ids" nolabel="1" mode="list" readonly="1" width="300px">
-                        <list string="Done Call Activities" create="0" edit="0" delete="0">
-                            <field name="date" string="Date"/>
-                            <field name="feedback_text" string="Feedback"/>
-                            <field name="author_id" string="Done By"/>
-                        </list>
-                    </field>
-                </group>
-                </group>
+                <div class="mb-3">
+                    <button name="action_quick_schedule"
+                            type="object"
+                            string="Schedule Activity"
+                            class="btn-secondary btn-sm"
+                            icon="fa-plus"
+                            invisible="lead_education_status in ('converted', 'lost')"/>
+                    <button name="action_log_interaction"
+                            type="object"
+                            string="Log Interaction"
+                            class="btn-secondary btn-sm ms-1"
+                            icon="fa-pencil"
+                            invisible="lead_education_status in ('converted', 'lost')"/>
+                </div>
+
+                <field name="interaction_log_ids" nolabel="1" mode="list" readonly="1">
+                    <list string="Interactions" create="0" edit="0" delete="0"
+                          decoration-success="outcome == 'positive'"
+                          decoration-danger="outcome == 'negative'"
+                          limit="5">
+                        <field name="date" widget="datetime"/>
+                        <field name="interaction_type" widget="badge"/>
+                        <field name="summary"/>
+                        <field name="counselor_id" widget="many2one_avatar_user"/>
+                        <field name="outcome" widget="badge"
+                               decoration-success="outcome == 'positive'"
+                               decoration-warning="outcome == 'neutral'"
+                               decoration-danger="outcome == 'negative'"/>
+                    </list>
+                </field>
                 
                 <group string="Notes" colspan="2">
                     <field name="counseling_note" nolabel="1" colspan="2"
@@ -382,26 +480,36 @@
                  NOTEBOOK: Inline applicant profile data tab
             ══════════════════════════════════════════════════════════════ -->
             <xpath expr="//sheet/notebook" position="inside">
-                <page string="Applicant Profile" invisible="not applicant_profile_id">
+                <page string="Applicant Profile"
+                      invisible="not applicant_profile_id">
                     <group>
-                        <group string="Personal Details">
-                            <field name="applicant_profile_id" readonly="1" string="Profile"/>
-                            <field name="phone" readonly="1"/>
-                            <field name="email_from" readonly="1" string="Email"/>
+                        <group string="Profile Completeness">
+                            <field name="profile_completeness" widget="progressbar"
+                                   options="{'editable': false}"/>
                         </group>
-                        <group string="Academic Interest">
-                            <field name="interested_program_id" readonly="1" string="Program"/>
-                            <field name="intended_academic_year_id" readonly="1" string="Intake Year"/>
-                            <field name="preferred_batch_id" readonly="1" string="Batch"/>
-                            <field name="qualification_id" readonly="1" string="Qualification"/>
-                            <field name="cgpa_percentage" readonly="1" string="CGPA / Percentage"/>
+                        <group string="Quick Access">
+                            <div>
+                                <button name="action_open_applicant_profile"
+                                        type="object"
+                                        string="Open Full Profile"
+                                        class="btn-link btn-sm ps-0"
+                                        icon="fa-external-link"/>
+                            </div>
                         </group>
                     </group>
+                </page>
+                <page string="Source &amp; Marketing">
                     <group>
-                        <group string="Interests">
-                            <field name="scholarship_interest" readonly="1"/>
-                            <field name="hostel_interest" readonly="1"/>
-                            <field name="transport_interest" readonly="1"/>
+                        <group string="Marketing">
+                            <field name="medium_id"/>
+                            <field name="campaign_id"/>
+                            <field name="source_id"/>
+                            <field name="referred_by_id" invisible="not is_referral_source"/>
+                        </group>
+                        <group string="Conversion">
+                            <field name="is_converted_to_application" readonly="1"/>
+                            <field name="conversion_date" readonly="1"
+                                   invisible="not is_converted_to_application"/>
                         </group>
                     </group>
                 </page>
@@ -466,6 +574,17 @@
                 <field name="applicant_profile_id"/>
                 <field name="interested_program_id"/>
                 <field name="counselor_name"/>
+                <separator/>
+                <filter string="By Program" name="group_program"
+                        context="{'group_by': 'interested_program_id'}"/>
+                <filter string="By Counselor" name="group_counselor"
+                        context="{'group_by': 'counselor_name'}"/>
+                <filter string="By Source" name="group_source"
+                        context="{'group_by': 'source_id'}"/>
+                <filter string="By Medium" name="group_medium"
+                        context="{'group_by': 'medium_id'}"/>
+                <filter string="By Month" name="group_month"
+                        context="{'group_by': 'inquiry_date:month'}"/>
             </xpath>
         </field>
     </record>

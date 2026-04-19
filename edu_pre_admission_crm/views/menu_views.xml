@@ -35,6 +35,13 @@
               sequence="30"
               groups="group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
 
+    <menuitem id="menu_edu_interaction_log"
+              name="Interactions"
+              parent="menu_pre_admission_main"
+              sequence="40"
+              action="action_edu_interaction_log"
+              groups="group_pre_admission_viewer,group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
+
     <!-- ── Configuration ──────────────────────────────────────────────── -->
     <menuitem id="menu_pre_admission_configuration"
               name="Configuration"

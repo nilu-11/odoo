@@ -6,7 +6,7 @@
     <record id="action_report_offer_letter" model="ir.actions.report">
         <field name="name">Offer Letter</field>
         <field name="model">edu.admission.application</field>
-        <field name="report_type">qweb-pdf</field>
+        <field name="report_type">qweb-html</field>
         <field name="report_name">edu_admission.report_offer_letter</field>
         <field name="report_file">edu_admission.report_offer_letter</field>
         <field name="print_report_name">'Offer Letter - %s' % object.application_no</field>

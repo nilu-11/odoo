@@ -30,7 +30,7 @@
                  "View Enrollment" button for the enrolled state. -->
             <xpath expr="//button[@name='action_enroll']" position="attributes">
                 <!-- Restrict: show only when ready AND no enrollment yet -->
-                <attribute name="invisible">state != 'ready_for_enrollment' or enrollment_count > 0</attribute>
+                <attribute name="invisible">state != 'approved' or enrollment_count > 0 or (offer_letter_generated and offer_status != 'accepted')</attribute>
                 <attribute name="confirm">Create an enrollment record? This advances the application to Enrolled state and cannot be undone.</attribute>
             </xpath>
 

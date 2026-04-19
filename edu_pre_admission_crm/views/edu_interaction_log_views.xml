@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search -->
+    <record id="view_edu_interaction_log_search" model="ir.ui.view">
+        <field name="name">edu.interaction.log.search</field>
+        <field name="model">edu.interaction.log</field>
+        <field name="arch" type="xml">
+            <search string="Interactions">
+                <field name="lead_id"/>
+                <field name="applicant_profile_id"/>
+                <field name="summary"/>
+                <field name="counselor_id"/>
+                <separator/>
+                <filter string="Calls" name="calls"
+                        domain="[('interaction_type', '=', 'call')]"/>
+                <filter string="Campus Visits" name="visits"
+                        domain="[('interaction_type', '=', 'campus_visit')]"/>
+                <filter string="Counseling" name="sessions"
+                        domain="[('interaction_type', '=', 'counseling_session')]"/>
+                <filter string="Parent Meetings" name="parent_meetings"
+                        domain="[('interaction_type', '=', 'parent_meeting')]"/>
+                <separator/>
+                <filter string="Positive" name="positive"
+                        domain="[('outcome', '=', 'positive')]"/>
+                <filter string="Negative" name="negative"
+                        domain="[('outcome', '=', 'negative')]"/>
+                <separator/>
+                <group name="group_by">
+                    <filter string="Type" name="group_type"
+                            context="{'group_by': 'interaction_type'}"/>
+                    <filter string="Counselor" name="group_counselor"
+                            context="{'group_by': 'counselor_id'}"/>
+                    <filter string="Outcome" name="group_outcome"
+                            context="{'group_by': 'outcome'}"/>
+                    <filter string="Month" name="group_month"
+                            context="{'group_by': 'date:month'}"/>
+                    <filter string="Lead" name="group_lead"
+                            context="{'group_by': 'lead_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- List -->
+    <record id="view_edu_interaction_log_list" model="ir.ui.view">
+        <field name="name">edu.interaction.log.list</field>
+        <field name="model">edu.interaction.log</field>
+        <field name="arch" type="xml">
+            <list string="Interactions"
+                  decoration-success="outcome == 'positive'"
+                  decoration-danger="outcome == 'negative'">
+                <field name="date" widget="datetime"/>
+                <field name="lead_id"/>
+                <field name="applicant_profile_id" optional="show"/>
+                <field name="interaction_type" widget="badge"/>
+                <field name="summary"/>
+                <field name="counselor_id" widget="many2one_avatar_user"/>
+                <field name="outcome" widget="badge"
+                       decoration-success="outcome == 'positive'"
+                       decoration-warning="outcome == 'neutral'"
+                       decoration-danger="outcome == 'negative'"
+                       optional="show"/>
+                <field name="duration_minutes" string="Min" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form -->
+    <record id="view_edu_interaction_log_form" model="ir.ui.view">
+        <field name="name">edu.interaction.log.form</field>
+        <field name="model">edu.interaction.log</field>
+        <field name="arch" type="xml">
+            <form string="Interaction">
+                <sheet>
+                    <group>
+                        <group string="Interaction">
+                            <field name="lead_id"/>
+                            <field name="interaction_type"/>
+                            <field name="date"/>
+                            <field name="duration_minutes"/>
+                            <field name="counselor_id"/>
+                            <field name="outcome"/>
+                        </group>
+                        <group string="Details">
+                            <field name="summary"/>
+                            <field name="applicant_profile_id" readonly="1"/>
+                            <field name="activity_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1"
+                               placeholder="Detailed notes from the interaction..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Graph -->
+    <record id="view_edu_interaction_log_graph" model="ir.ui.view">
+        <field name="name">edu.interaction.log.graph</field>
+        <field name="model">edu.interaction.log</field>
+        <field name="arch" type="xml">
+            <graph string="Interactions" type="bar">
+                <field name="interaction_type"/>
+                <field name="counselor_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot -->
+    <record id="view_edu_interaction_log_pivot" model="ir.ui.view">
+        <field name="name">edu.interaction.log.pivot</field>
+        <field name="model">edu.interaction.log</field>
+        <field name="arch" type="xml">
+            <pivot string="Interactions">
+                <field name="counselor_id" type="row"/>
+                <field name="interaction_type" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_edu_interaction_log" model="ir.actions.act_window">
+        <field name="name">Interactions</field>
+        <field name="res_model">edu.interaction.log</field>
+        <field name="view_mode">list,graph,pivot,form</field>
+        <field name="search_view_id" ref="view_edu_interaction_log_search"/>
+        <field name="context">{'search_default_group_type': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No interactions recorded yet</p>
+            <p>Interactions are automatically logged when education activities (calls, visits, counseling sessions) are completed.</p>
+        </field>
+    </record>
+</odoo>

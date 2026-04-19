@@ -459,13 +459,13 @@ class EduEnrollment(models.Model):
         """
         self.ensure_one()
 
-        # Application must be in enrolled state or ready_for_enrollment
+        # Application must be in approved or enrolled state
         app = self.application_id
-        if app.state not in ('ready_for_enrollment', 'enrolled'):
+        if app.state not in ('approved', 'enrolled'):
             raise ValidationError(
                 f'Application "{app.application_no}" is in state '
                 f'"{app.state}" — only applications in '
-                '"ready_for_enrollment" or "enrolled" state can be enrolled.'
+                '"approved" or "enrolled" state can be enrolled.'
             )
 
         # Applicant must match
@@ -620,18 +620,11 @@ class EduEnrollment(models.Model):
         app = application
         blocks = []
 
-        if app.state != 'ready_for_enrollment':
+        if app.state not in ('approved', 'enrolled'):
             blocks.append(
                 f'Application state is "{app.state}" — '
-                'must be "ready_for_enrollment".'
+                'must be "approved".'
             )
-        if app.offer_status != 'accepted':
-            blocks.append(
-                f'Offer status is "{app.offer_status}" — '
-                'must be "accepted".'
-            )
-        if not app.fee_confirmed:
-            blocks.append('Fee is not confirmed.')
         if not app.selected_payment_plan_id:
             blocks.append('No payment plan selected.')
         if not app.applicant_profile_id:

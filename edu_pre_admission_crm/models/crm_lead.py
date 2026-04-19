@@ -191,6 +191,92 @@ class CrmLead(models.Model):
                 and rec.source_id.name.strip().lower() == 'referral'
             )
 
+    @api.depends('interaction_log_ids', 'interaction_log_ids.interaction_type',
+                 'interaction_log_ids.date', 'interaction_log_ids.summary')
+    def _compute_interaction_stats(self):
+        for rec in self:
+            logs = rec.interaction_log_ids
+            rec.interaction_count = len(logs)
+            rec.call_count = len(logs.filtered(lambda l: l.interaction_type == 'call'))
+            rec.visit_count = len(logs.filtered(lambda l: l.interaction_type == 'campus_visit'))
+            rec.session_count = len(logs.filtered(lambda l: l.interaction_type == 'counseling_session'))
+            if logs:
+                latest = logs.sorted('date', reverse=True)[0]
+                rec.last_interaction_date = latest.date
+                type_labels = dict(self.env['edu.interaction.log']._fields['interaction_type'].selection)
+                type_label = type_labels.get(latest.interaction_type, latest.interaction_type)
+                if latest.date:
+                    delta = fields.Datetime.now() - latest.date
+                    days = delta.days
+                    if days == 0:
+                        ago = 'today'
+                    elif days == 1:
+                        ago = 'yesterday'
+                    else:
+                        ago = f'{days}d ago'
+                    rec.last_interaction_summary = f'{type_label} - {ago}'
+                else:
+                    rec.last_interaction_summary = type_label
+                rec.days_since_last_interaction = (fields.Datetime.now() - latest.date).days if latest.date else 0
+            else:
+                rec.last_interaction_date = False
+                rec.last_interaction_summary = False
+                rec.days_since_last_interaction = 0
+
+    @api.depends('activity_ids', 'activity_ids.date_deadline',
+                 'activity_ids.activity_type_id', 'activity_ids.summary')
+    def _compute_next_activity_summary(self):
+        for rec in self:
+            upcoming = rec.activity_ids.sorted('date_deadline')
+            if upcoming:
+                act = upcoming[0]
+                name = act.summary or act.activity_type_id.name or 'Activity'
+                delta = (act.date_deadline - fields.Date.today()).days
+                if delta == 0:
+                    when = 'Today'
+                elif delta == 1:
+                    when = 'Tomorrow'
+                elif delta < 0:
+                    when = f'{abs(delta)}d overdue'
+                else:
+                    when = f'in {delta}d'
+                rec.next_activity_summary = f'{name} - {when}'
+            else:
+                rec.next_activity_summary = False
+
+    @api.depends('lead_education_status', 'applicant_profile_id',
+                 'interested_program_id', 'interaction_count',
+                 'is_converted_to_application', 'profile_completeness')
+    def _compute_next_step_banner(self):
+        for rec in self:
+            if rec.lead_education_status == 'converted' or rec.is_converted_to_application:
+                rec.next_step_banner = False
+                continue
+            if rec.lead_education_status == 'inquiry':
+                if not rec.applicant_profile_id:
+                    msg = 'Create an applicant profile to proceed'
+                    icon = 'fa-user-plus'
+                elif not rec.interested_program_id:
+                    msg = 'Select a program of interest'
+                    icon = 'fa-graduation-cap'
+                elif rec.interaction_count == 0:
+                    msg = 'Schedule a follow-up call or campus visit'
+                    icon = 'fa-phone'
+                else:
+                    msg = 'Ready to qualify — review and click Qualify'
+                    icon = 'fa-check-circle'
+            elif rec.lead_education_status == 'qualified':
+                pct = rec.profile_completeness or 0
+                msg = f'Review profile completeness ({pct}%), then Convert to Application'
+                icon = 'fa-arrow-right'
+            else:
+                rec.next_step_banner = False
+                continue
+            rec.next_step_banner = (
+                f'<div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center">'
+                f'<i class="fa {icon} me-2"/><span>{msg}</span></div>'
+            )
+
     # ── Applicant Profile Link ────────────────────────────────────────────────
     applicant_profile_id = fields.Many2one(
         comodel_name='edu.applicant.profile',
@@ -218,6 +304,56 @@ class CrmLead(models.Model):
         readonly=True,
         copy=False,
         tracking=True,
+    )
+
+    # ── Interaction Log ──────────────────────────────────────────────────────
+    interaction_log_ids = fields.One2many(
+        comodel_name='edu.interaction.log',
+        inverse_name='lead_id',
+        string='Interactions',
+    )
+    interaction_count = fields.Integer(
+        string='Interactions',
+        compute='_compute_interaction_stats',
+        store=True,
+    )
+    last_interaction_date = fields.Datetime(
+        string='Last Interaction',
+        compute='_compute_interaction_stats',
+        store=True,
+    )
+    last_interaction_summary = fields.Char(
+        string='Last Interaction Summary',
+        compute='_compute_interaction_stats',
+    )
+    days_since_last_interaction = fields.Integer(
+        string='Days Since Last Interaction',
+        compute='_compute_interaction_stats',
+    )
+    call_count = fields.Integer(
+        compute='_compute_interaction_stats',
+        store=True,
+    )
+    visit_count = fields.Integer(
+        compute='_compute_interaction_stats',
+        store=True,
+    )
+    session_count = fields.Integer(
+        compute='_compute_interaction_stats',
+        store=True,
+    )
+    next_activity_summary = fields.Char(
+        string='Next Activity',
+        compute='_compute_next_activity_summary',
+    )
+    profile_completeness = fields.Integer(
+        related='applicant_profile_id.profile_completeness',
+        string='Profile Completeness',
+    )
+    next_step_banner = fields.Html(
+        string='Next Step',
+        compute='_compute_next_step_banner',
+        sanitize=False,
     )
 
     def _create_profile_from_quick_name(self):
@@ -350,6 +486,13 @@ class CrmLead(models.Model):
                 applicant = self.env['edu.applicant.profile'].browse(applicant_id)
                 if applicant.exists() and applicant.partner_id:
                     vals['partner_id'] = applicant.partner_id.id
+            # Auto-assign counselor from sales team
+            if not vals.get('counselor_id'):
+                team_id = vals.get('team_id')
+                if team_id:
+                    team = self.env['crm.team'].browse(team_id)
+                    if team.user_id:
+                        vals['counselor_id'] = team.user_id.id
         return super().create(vals_list)
 
     def write(self, vals):
@@ -399,6 +542,23 @@ class CrmLead(models.Model):
             raise UserError(_("A program of interest is required."))
         if self.is_converted_to_application:
             raise UserError(_("This lead has already been converted to an application."))
+        completeness = self.applicant_profile_id.profile_completeness or 0
+        if completeness < 60:
+            raise UserError(
+                _(
+                    "Applicant profile is only %(pct)s%% complete. "
+                    "At least 60%% is required before conversion.",
+                    pct=completeness,
+                )
+            )
+
+    @api.constrains('phone', 'email_from')
+    def _check_phone_or_email(self):
+        for rec in self:
+            if not rec.phone and not rec.email_from:
+                raise UserError(
+                    _("At least a phone number or email address is required.")
+                )
 
     def _suggest_admission_register(self):
         """
@@ -611,4 +771,49 @@ class CrmLead(models.Model):
             'view_mode': 'list,form',
             'domain': [('id', 'in', duplicates.ids)],
             'target': 'new',
+        }
+
+    def action_quick_schedule(self):
+        """Open activity scheduling dialog."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Schedule Activity'),
+            'res_model': 'mail.activity',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_res_model': 'crm.lead',
+                'default_res_id': self.id,
+                'default_user_id': self.counselor_id.id or self.env.uid,
+            },
+        }
+
+    def action_log_interaction(self):
+        """Open form to manually log an interaction."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Log Interaction'),
+            'res_model': 'edu.interaction.log',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_lead_id': self.id,
+                'default_counselor_id': self.env.uid,
+            },
+        }
+
+    def action_open_applicant_profile(self):
+        """Open the linked applicant profile form."""
+        self.ensure_one()
+        if not self.applicant_profile_id:
+            raise UserError(_("No applicant profile linked to this lead."))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.applicant_profile_id.full_name,
+            'res_model': 'edu.applicant.profile',
+            'res_id': self.applicant_profile_id.id,
+            'view_mode': 'form',
+            'target': 'current',
         }

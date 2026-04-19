@@ -83,6 +83,11 @@ class EduApplicantProfile(models.Model):
         string='CRM Leads',
         compute='_compute_lead_count',
     )
+    profile_completeness = fields.Integer(
+        string='Profile Completeness',
+        compute='_compute_profile_completeness',
+        store=True,
+    )
 
     # ── System ────────────────────────────────────────────────────────────────
     active = fields.Boolean(default=True)
@@ -134,6 +139,30 @@ class EduApplicantProfile(models.Model):
         mapped = {p.id: count for p, count in data}
         for rec in self:
             rec.lead_count = mapped.get(rec.id, 0)
+
+    @api.depends('first_name', 'last_name', 'date_of_birth', 'gender',
+                 'nationality_id', 'partner_id.phone', 'partner_id.email',
+                 'guardian_rel_ids', 'academic_history_ids')
+    def _compute_profile_completeness(self):
+        for rec in self:
+            score = 0
+            if rec.first_name and rec.last_name:
+                score += 15
+            if rec.date_of_birth:
+                score += 10
+            if rec.gender:
+                score += 10
+            if rec.nationality_id:
+                score += 10
+            if rec.partner_id and rec.partner_id.phone:
+                score += 15
+            if rec.partner_id and rec.partner_id.email:
+                score += 15
+            if rec.guardian_rel_ids:
+                score += 15
+            if rec.academic_history_ids:
+                score += 10
+            rec.profile_completeness = score
 
     # ── Partner sync ──────────────────────────────────────────────────────────
     @api.model_create_multi

@@ -313,6 +313,60 @@ class EduFeeStructure(models.Model):
         }
 
     # ═════════════════════════════════════════════════════════════════════════════
+    # Fee Matrix Widget — RPC helpers
+    # ═════════════════════════════════════════════════════════════════════════════
+
+    def get_fee_matrix_data(self):
+        """Return matrix data for the OWL fee matrix widget."""
+        self.ensure_one()
+        terms = self.env['edu.program.term'].search(
+            [('program_id', '=', self.program_id.id)],
+            order='progression_no',
+        )
+        # Fee heads that have at least one line in this structure
+        fee_heads = self.line_ids.mapped('fee_head_id').sorted('id')
+
+        amounts = {}
+        for line in self.line_ids:
+            key = f'{line.program_term_id.id}_{line.fee_head_id.id}'
+            amounts[key] = {
+                'line_id': line.id,
+                'amount': line.amount,
+            }
+
+        return {
+            'terms': [
+                {'id': t.id, 'name': t.progression_label, 'progression_no': t.progression_no}
+                for t in terms
+            ],
+            'fee_heads': [
+                {'id': h.id, 'name': h.name, 'code': h.code}
+                for h in fee_heads
+            ],
+            'amounts': amounts,
+            'currency_symbol': self.currency_id.symbol or '',
+            'readonly': self.state == 'closed',
+        }
+
+    def save_fee_matrix_cell(self, program_term_id, fee_head_id, amount):
+        """Create or update a fee structure line for the given cell."""
+        self.ensure_one()
+        line = self.line_ids.filtered(
+            lambda l: l.program_term_id.id == program_term_id
+            and l.fee_head_id.id == fee_head_id
+        )
+        if line:
+            line.amount = amount
+        else:
+            self.env['edu.fee.structure.line'].create({
+                'fee_structure_id': self.id,
+                'program_term_id': program_term_id,
+                'fee_head_id': fee_head_id,
+                'amount': amount,
+            })
+        return True
+
+    # ═════════════════════════════════════════════════════════════════════════════
     # Integration helpers — designed for admission, enrollment, and billing modules
     # ═════════════════════════════════════════════════════════════════════════════
 

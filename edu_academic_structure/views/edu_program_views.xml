@@ -108,8 +108,9 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="progression_no"/>
                                     <field name="progression_label"/>
-                                    <field name="is_final_progression" widget="boolean_toggle"/>
-                                    <field name="curriculum_count" string="Subjects"/>
+                                    <field name="is_final_progression" column_invisible="True"/>
+                                    <field name="curriculum_count" string="Count"/>
+                                    <field name="subject_names" string="Subjects"/>
                                     <field name="active" column_invisible="True"/>
                                 </list>
                             </field>

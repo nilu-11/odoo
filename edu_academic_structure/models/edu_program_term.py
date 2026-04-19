@@ -95,6 +95,10 @@ class EduProgramTerm(models.Model):
         compute='_compute_curriculum_count',
         store=True,
     )
+    subject_names = fields.Char(
+        string='Subjects',
+        compute='_compute_subject_names',
+    )
 
     # ── SQL constraints ─────────────────────────────────────────────────────────
     _sql_constraints = [
@@ -170,6 +174,12 @@ class EduProgramTerm(models.Model):
                 and rec.program_id.total_terms > 0
                 and rec.progression_no == rec.program_id.total_terms
             )
+
+    @api.depends('curriculum_line_ids.subject_id')
+    def _compute_subject_names(self):
+        for rec in self:
+            names = rec.curriculum_line_ids.mapped('subject_id.name')
+            rec.subject_names = ', '.join(names) if names else ''
 
     @api.depends('curriculum_line_ids')
     def _compute_curriculum_count(self):
