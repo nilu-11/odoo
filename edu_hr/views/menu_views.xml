@@ -19,6 +19,13 @@
               action="action_edu_teaching_staff"
               sequence="20"/>
 
+    <menuitem id="menu_edu_counselors_staff"
+              name="Counselors"
+              parent="menu_edu_hr_root"
+              action="edu_pre_admission_crm.action_edu_counselors"
+              sequence="25"
+              groups="hr.group_hr_user,hr.group_hr_manager,edu_academic_structure.group_education_admin"/>
+
     <menuitem id="menu_edu_hr_departments"
               name="Departments"
               parent="menu_edu_hr_root"

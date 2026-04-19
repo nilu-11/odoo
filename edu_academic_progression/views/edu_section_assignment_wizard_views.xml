@@ -89,6 +89,8 @@
                           decoration-danger="is_reassignment and has_dependent_records"
                           default_group_by="new_section_id">
                         <field name="batch_id" column_invisible="1"/>
+                        <field name="progression_history_id" column_invisible="1"/>
+                        <field name="enrollment_id" column_invisible="1"/>
                         <field name="sequence_no" string="Seq." readonly="1" width="60px"/>
                         <field name="student_id" readonly="1"
                                options="{'no_open': True}"/>

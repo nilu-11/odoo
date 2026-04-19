@@ -22,6 +22,8 @@ class CrmLead(models.Model):
 
     _inherit = 'crm.lead'
 
+    name = fields.Char(default='/')
+
     # ── Education Workflow Status ──────────────────────────────────────────────
     lead_education_status = fields.Selection(
         [
@@ -372,11 +374,25 @@ class CrmLead(models.Model):
             'email': self.email_from or False,
             'phone': self.phone or False,
         })
-        profile = self.env['edu.applicant.profile'].create({
+        profile_vals = {
             'first_name': first_name,
             'last_name': last_name,
             'partner_id': partner.id,
-        })
+        }
+        # Copy address from lead to permanent address
+        if self.street:
+            profile_vals['permanent_street'] = self.street
+        if self.street2:
+            profile_vals['permanent_street2'] = self.street2
+        if self.city:
+            profile_vals['permanent_city'] = self.city
+        if self.state_id:
+            profile_vals['permanent_state_id'] = self.state_id.id
+        if self.zip:
+            profile_vals['permanent_zip'] = self.zip
+        if self.country_id:
+            profile_vals['permanent_country_id'] = self.country_id.id
+        profile = self.env['edu.applicant.profile'].create(profile_vals)
         self.write({
             'applicant_profile_id': profile.id,
             'partner_id': partner.id,
@@ -476,6 +492,10 @@ class CrmLead(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if not vals.get('name') or vals.get('name') == '/':
+                vals['name'] = self.env['ir.sequence'].next_by_code(
+                    'edu.inquiry'
+                ) or '/'
             applicant_id = vals.get('applicant_profile_id')
             if applicant_id:
                 applicant = self.env['edu.applicant.profile'].browse(applicant_id)
@@ -628,16 +648,9 @@ class CrmLead(models.Model):
         """
         Converts this CRM lead into a formal edu.admission.application.
 
-        Requires:
-          - applicant_profile_id set
-          - partner_id set
-          - interested_program_id set
-          - edu_admission module installed
-
-        On success:
-          - Creates edu.admission.application
-          - Marks lead as converted
-          - Returns an action to open the new application
+        Base implementation performs readiness checks and guards.
+        The edu_admission module overrides this to add smart register
+        selection (auto-pick if unique, wizard if multiple).
         """
         self.ensure_one()
         self._check_conversion_readiness()
@@ -645,8 +658,8 @@ class CrmLead(models.Model):
         application_model = self.env.get('edu.admission.application')
         if application_model is None:
             raise UserError(
-                'The edu_admission module is not installed.\n'
-                'Install it to enable conversion to admission applications.'
+                _('The edu_admission module is not installed.\n'
+                  'Install it to enable conversion to admission applications.')
             )
 
         # Guard: prevent re-conversion on same lead
@@ -655,8 +668,9 @@ class CrmLead(models.Model):
         )
         if existing:
             raise UserError(
-                f'An admission application already exists for this lead '
-                f'("{existing.display_name}"). Cannot create a duplicate.'
+                _('An admission application already exists for this lead '
+                  '("%(app)s"). Cannot create a duplicate.',
+                  app=existing.display_name)
             )
 
         # Guard: no active application for same applicant profile on same program
@@ -667,9 +681,11 @@ class CrmLead(models.Model):
         ], limit=1)
         if duplicate_app:
             raise UserError(
-                f'Applicant "{self.applicant_profile_id.full_name}" already has '
-                f'an active application for "{self.interested_program_id.name}" '
-                f'({duplicate_app.display_name}). Duplicate applications are not allowed.'
+                _('Applicant "%(name)s" already has an active application for '
+                  '"%(prog)s" (%(app)s). Duplicate applications are not allowed.',
+                  name=self.applicant_profile_id.full_name,
+                  prog=self.interested_program_id.name,
+                  app=duplicate_app.display_name)
             )
 
         register = self._suggest_admission_register()
@@ -684,7 +700,7 @@ class CrmLead(models.Model):
 
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Admission Application',
+            'name': _('Admission Application'),
             'res_model': 'edu.admission.application',
             'res_id': application.id,
             'view_mode': 'form',

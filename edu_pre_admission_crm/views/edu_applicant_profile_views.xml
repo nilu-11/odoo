@@ -9,6 +9,8 @@
         <field name="arch" type="xml">
             <search string="Applicant Profiles">
                 <field name="full_name" string="Name"/>
+                <field name="phone"/>
+                <field name="email"/>
                 <field name="partner_id"/>
                 <field name="nationality_id"/>
                 <separator/>
@@ -35,13 +37,82 @@
         <field name="arch" type="xml">
             <list string="Applicant Profiles">
                 <field name="full_name" string="Name"/>
+                <field name="phone" widget="phone" optional="show"/>
+                <field name="email" widget="email" optional="show"/>
                 <field name="gender" optional="show"/>
-                <field name="date_of_birth" string="Date of Birth" optional="show"/>
+                <field name="date_of_birth" string="Date of Birth" optional="hide"/>
                 <field name="age" string="Age" optional="show"/>
                 <field name="nationality_id" optional="show"/>
-                <field name="partner_id" string="Contact" optional="show"/>
+                <field name="partner_id" string="Contact" optional="hide"/>
                 <field name="active" column_invisible="True"/>
             </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Applicant Profile — Kanban
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_applicant_profile_kanban" model="ir.ui.view">
+        <field name="name">edu.applicant.profile.kanban</field>
+        <field name="model">edu.applicant.profile</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="full_name"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="gender"/>
+                <field name="nationality_id"/>
+                <field name="profile_completeness"/>
+                <field name="lead_count"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-start gap-2 mb-1">
+                            <field name="image_128" widget="image" class="rounded"
+                                   options="{'size': [40, 40]}"/>
+                            <div class="flex-grow-1 min-w-0">
+                                <field name="full_name" class="fw-bold text-truncate d-block"/>
+                                <div t-if="record.gender.value" class="text-muted small">
+                                    <field name="gender"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div t-if="record.phone.value" class="small mt-1">
+                            <i class="fa fa-phone me-1 text-muted"/><field name="phone" widget="phone"/>
+                        </div>
+                        <div t-if="record.email.value" class="small text-truncate">
+                            <i class="fa fa-envelope me-1 text-muted"/><field name="email" widget="email"/>
+                        </div>
+
+                        <!-- Nationality -->
+                        <div t-if="record.nationality_id.value" class="small text-muted mt-1 text-truncate">
+                            <i class="fa fa-globe me-1"/><field name="nationality_id"/>
+                        </div>
+
+                        <!-- Leads badge -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span t-if="record.lead_count.raw_value"
+                                  class="badge bg-primary-subtle text-primary-emphasis">
+                                <i class="fa fa-bullhorn me-1"/><field name="lead_count"/> Leads
+                            </span>
+                            <span t-else=""/>
+                        </div>
+
+                        <!-- Profile completeness bar -->
+                        <div t-if="record.profile_completeness.raw_value" class="mt-2">
+                            <div class="progress" style="height: 4px;"
+                                 t-att-title="record.profile_completeness.value + '% complete'">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     t-att-style="'width: ' + record.profile_completeness.value + '%'"
+                                     t-att-class="record.profile_completeness.raw_value &gt;= 60 ? 'bg-success' : 'bg-warning'"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -95,6 +166,10 @@
                             <field name="active" invisible="1"/>
                             <field name="company_id" groups="base.group_multi_company" readonly="1"/>
                         </group>
+                        <group string="Contact">
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
                     </group>
 
                     <notebook>
@@ -134,6 +209,72 @@
                             </field>
                         </page>
 
+                        <!-- ── Address ────────────────────────────────────────── -->
+                        <page string="Address" name="address">
+                            <group>
+                                <group string="Permanent Address">
+                                    <field name="permanent_street"/>
+                                    <field name="permanent_street2"/>
+                                    <field name="permanent_city"/>
+                                    <field name="permanent_state_id"/>
+                                    <field name="permanent_zip"/>
+                                    <field name="permanent_country_id"/>
+                                </group>
+                                <group string="Current Address">
+                                    <field name="same_as_permanent"/>
+                                    <field name="current_street" invisible="same_as_permanent"/>
+                                    <field name="current_street2" invisible="same_as_permanent"/>
+                                    <field name="current_city" invisible="same_as_permanent"/>
+                                    <field name="current_state_id" invisible="same_as_permanent"/>
+                                    <field name="current_zip" invisible="same_as_permanent"/>
+                                    <field name="current_country_id" invisible="same_as_permanent"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ── Identification ─────────────────────────────────── -->
+                        <page string="Identification" name="identification">
+                            <group>
+                                <group string="Citizenship">
+                                    <field name="citizenship_number"/>
+                                    <field name="citizenship_issue_date"/>
+                                    <field name="citizenship_issue_district"/>
+                                </group>
+                                <group string="Other Documents">
+                                    <field name="passport_number"/>
+                                    <field name="passport_expiry_date"/>
+                                    <field name="birth_certificate_number"/>
+                                    <field name="national_id_number"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ── Medical / Accessibility ────────────────────────── -->
+                        <page string="Medical" name="medical">
+                            <group>
+                                <group>
+                                    <field name="blood_group"/>
+                                    <field name="has_disability"/>
+                                    <field name="disability_details" invisible="not has_disability"/>
+                                </group>
+                                <group>
+                                    <field name="allergies"/>
+                                    <field name="medical_conditions"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- ── Additional Demographics ────────────────────────── -->
+                        <page string="Demographics" name="demographics">
+                            <group>
+                                <group>
+                                    <field name="religion"/>
+                                    <field name="ethnicity"/>
+                                    <field name="caste"/>
+                                </group>
+                            </group>
+                        </page>
+
                         <!-- ── Notes ─────────────────────────────────────────── -->
                         <page string="Notes" name="notes">
                             <field name="note"
@@ -153,7 +294,7 @@
     <record id="action_edu_applicant_profile" model="ir.actions.act_window">
         <field name="name">Applicant Profiles</field>
         <field name="res_model">edu.applicant.profile</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_edu_applicant_profile_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create an applicant profile</p>

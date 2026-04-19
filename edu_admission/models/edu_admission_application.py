@@ -1404,13 +1404,9 @@ class EduAdmissionApplication(models.Model):
         """
         Auto-suggest eligible scholarship schemes for this application.
 
-        Searches all active schemes with auto_suggest_if_eligible=True,
-        filters them against the application's context (program, department,
-        academic year, applicant demographics, academic score), creates
-        draft review lines for matching schemes not already linked, and
-        runs the eligibility hint check on each new line.
-
-        Returns a notification summarising what was suggested.
+        Finds active schemes matching the application's program and academic
+        year, creates draft review lines for new matches, and pre-fills
+        recommendation defaults from the scheme.
         """
         self.ensure_one()
         if self.scholarship_frozen:
@@ -1419,10 +1415,9 @@ class EduAdmissionApplication(models.Model):
                 'the scholarship outcome is frozen.'
             )
 
-        # Collect candidate schemes
         candidates = self._get_auto_suggest_candidate_schemes()
 
-        # Filter out schemes already linked to this application
+        # Filter out schemes already linked
         existing_scheme_ids = set(
             self.scholarship_review_ids.mapped('scholarship_scheme_id').ids
         )
@@ -1438,28 +1433,59 @@ class EduAdmissionApplication(models.Model):
                     'title': 'No New Scholarships',
                     'message': (
                         'No additional scholarship schemes match this '
-                        'application\'s criteria, or all eligible schemes '
-                        'are already linked.'
+                        'application, or all eligible schemes are already linked.'
                     ),
                     'type': 'warning',
                     'sticky': False,
                 },
             }
 
-        # Create draft review lines and run eligibility hints
         ReviewModel = self.env['edu.admission.scholarship.review']
         created_lines = self.env['edu.admission.scholarship.review']
 
+        highest_academic = self._get_highest_academic_history()
+
         for scheme in new_candidates:
-            line = ReviewModel.create({
+            vals = {
                 'application_id': self.id,
                 'scholarship_scheme_id': scheme.id,
                 'sequence': scheme.priority,
-            })
-            # Trigger onchange to pre-fill recommendation from scheme defaults
+            }
+            # Auto-fill merit evidence from applicant's academic history
+            if scheme.eligibility_basis == 'merit' and highest_academic:
+                vals.update({
+                    'merit_score_type': highest_academic.score_type,
+                    'merit_min_score': scheme.merit_min_score or 0.0,
+                    'merit_actual_score': highest_academic.score,
+                    'merit_certificate_ref': (
+                        f'{highest_academic.qualification_level or ""} — '
+                        f'{highest_academic.institution_name or ""} '
+                        f'({highest_academic.passed_year or ""})'
+                    ).strip(),
+                    'eligibility_checked': True,
+                    'eligibility_result': 'eligible',
+                })
+
+            # Auto-fill sibling evidence from enrolled siblings
+            if scheme.eligibility_basis == 'sibling':
+                siblings = self._get_enrolled_siblings()
+                if siblings:
+                    details = '\n'.join(
+                        f"- {s['name']}"
+                        + (f" (Roll: {s['roll_number']})" if s['roll_number'] else '')
+                        + (f" — {s['program']}" if s['program'] else '')
+                        for s in siblings
+                    )
+                    vals.update({
+                        'sibling_min_count': 1,
+                        'sibling_details': details,
+                        'sibling_verified': True,
+                        'eligibility_checked': True,
+                        'eligibility_result': 'eligible',
+                    })
+
+            line = ReviewModel.create(vals)
             line._onchange_scheme()
-            # Run eligibility hint check
-            line._auto_fill_eligibility_hint()
             created_lines |= line
 
         suggested_names = ', '.join(created_lines.mapped(
@@ -1472,7 +1498,7 @@ class EduAdmissionApplication(models.Model):
                 'title': f'{len(created_lines)} Scholarship(s) Suggested',
                 'message': (
                     f'Draft review lines created for: {suggested_names}. '
-                    'Review eligibility notes and proceed with assessment.'
+                    'Review and proceed with assessment.'
                 ),
                 'type': 'success',
                 'sticky': True,
@@ -1481,130 +1507,125 @@ class EduAdmissionApplication(models.Model):
 
     def _get_auto_suggest_candidate_schemes(self):
         """
-        Return scholarship schemes eligible for auto-suggestion based on
-        the application's context and the applicant's profile.
+        Return scholarship schemes matching the application's program
+        and academic year, within the validity date window.
 
-        Filtering pipeline:
-        1. Active schemes with auto_suggest_if_eligible=True
-        2. Validity date window (valid_from / valid_to)
-        3. Program applicability
-        4. Department applicability
-        5. Academic year applicability
-        6. Gender applicability
-        7. Nationality applicability
-        8. Age range applicability
-        9. Minimum academic score applicability
+        For merit schemes, also checks the applicant's highest completed
+        academic history against the scheme's minimum score requirement.
         """
         SchemeModel = self.env['edu.scholarship.scheme']
         today = fields.Date.today()
 
-        # Step 1: base domain — active and auto-suggest enabled
         domain = [
             ('active', '=', True),
-            ('auto_suggest_if_eligible', '=', True),
-        ]
-
-        # Step 2: validity date window
-        domain += [
+            ('auto_suggest', '=', True),
             '|', ('valid_from', '=', False), ('valid_from', '<=', today),
-        ]
-        domain += [
             '|', ('valid_to', '=', False), ('valid_to', '>=', today),
         ]
-
         candidates = SchemeModel.search(domain)
 
         if not candidates:
             return candidates
 
-        # Gather application and profile context
-        profile = self.applicant_profile_id
         program = self.program_id
-        department = self.department_id
         academic_year = self.academic_year_id
-        gender = profile.gender if profile else False
-        nationality = profile.nationality_id if profile else False
-        age = profile.age if profile else 0
+        highest_academic = self._get_highest_academic_history()
 
-        # Get highest-completed academic history for score check
-        highest_history = False
-        if profile:
-            highest_history = profile.academic_history_ids.filtered(
-                lambda h: h.is_highest_completed
-            )[:1]
-
-        # Filter candidates through applicability rules
         result = self.env['edu.scholarship.scheme']
         for scheme in candidates:
-            if not self._scheme_matches_application(
-                scheme, program, department, academic_year,
-                gender, nationality, age, highest_history,
-            ):
+            # Program filter
+            if scheme.applicable_program_ids and program:
+                if program not in scheme.applicable_program_ids:
+                    continue
+            elif scheme.applicable_program_ids and not program:
                 continue
+
+            # Academic year filter
+            if scheme.applicable_academic_year_ids and academic_year:
+                if academic_year not in scheme.applicable_academic_year_ids:
+                    continue
+            elif scheme.applicable_academic_year_ids and not academic_year:
+                continue
+
+            # Merit score filter
+            if scheme.eligibility_basis == 'merit' and scheme.merit_min_score:
+                if not highest_academic:
+                    continue
+                if (scheme.merit_score_type
+                        and highest_academic.score_type != scheme.merit_score_type):
+                    continue
+                if highest_academic.score < scheme.merit_min_score:
+                    continue
+
+            # Sibling filter — only suggest if enrolled siblings exist
+            if scheme.eligibility_basis == 'sibling':
+                siblings = self._get_enrolled_siblings()
+                if not siblings:
+                    continue
+
             result |= scheme
 
         return result
 
-    def _scheme_matches_application(
-        self, scheme, program, department, academic_year,
-        gender, nationality, age, highest_history,
-    ):
+    def _get_highest_academic_history(self):
         """
-        Check if a single scheme's applicability filters match the
-        application's context. Returns True if the scheme is applicable.
-
-        Empty filter fields (M2M with no records, selection='any', int=0)
-        mean 'no restriction' — the scheme applies to all in that dimension.
+        Return the applicant's highest completed academic history record,
+        or an empty recordset if none found.
         """
-        # Program filter
-        if scheme.applicable_program_ids and program:
-            if program not in scheme.applicable_program_ids:
-                return False
-        elif scheme.applicable_program_ids and not program:
-            return False  # scheme requires specific programs but app has none
+        self.ensure_one()
+        profile = self.applicant_profile_id
+        if not profile:
+            return self.env['edu.applicant.academic.history']
+        return profile.academic_history_ids.filtered('is_highest_completed')[:1]
 
-        # Department filter
-        if scheme.applicable_department_ids and department:
-            if department not in scheme.applicable_department_ids:
-                return False
-        elif scheme.applicable_department_ids and not department:
-            return False
+    def _get_enrolled_siblings(self):
+        """
+        Find actively enrolled siblings by tracing shared guardians.
 
-        # Academic year filter
-        if scheme.applicable_academic_year_ids and academic_year:
-            if academic_year not in scheme.applicable_academic_year_ids:
-                return False
-        elif scheme.applicable_academic_year_ids and not academic_year:
-            return False
+        Path: applicant_profile → guardian_rel_ids → guardian_id
+              → other applicant_rel_ids → applicant_profile_id → edu.student
 
-        # Gender filter
-        if scheme.applicable_gender and scheme.applicable_gender != 'any':
-            if not gender or gender != scheme.applicable_gender:
-                return False
+        Returns a list of dicts with sibling info, or empty list.
+        Uses soft check for edu.student (not a hard dependency).
+        """
+        self.ensure_one()
+        profile = self.applicant_profile_id
+        if not profile or not profile.guardian_rel_ids:
+            return []
 
-        # Nationality filter
-        if scheme.applicable_nationality_ids:
-            if not nationality or nationality not in scheme.applicable_nationality_ids:
-                return False
+        # Collect all guardians for this applicant
+        guardian_ids = profile.guardian_rel_ids.mapped('guardian_id')
 
-        # Age range filter
-        if scheme.min_applicant_age and age < scheme.min_applicant_age:
-            return False
-        if scheme.max_applicant_age and age > scheme.max_applicant_age:
-            return False
+        # Find all other applicant profiles sharing these guardians
+        RelModel = self.env['edu.applicant.guardian.rel']
+        sibling_rels = RelModel.search([
+            ('guardian_id', 'in', guardian_ids.ids),
+            ('applicant_profile_id', '!=', profile.id),
+            ('active', '=', True),
+        ])
+        sibling_profile_ids = sibling_rels.mapped('applicant_profile_id').ids
 
-        # Academic score filter
-        if scheme.min_academic_score > 0:
-            if not highest_history:
-                return False  # no academic history → can't verify score
-            # Check score type compatibility
-            if (
-                scheme.academic_score_type
-                and scheme.academic_score_type != 'any'
-                and highest_history.score_type != scheme.academic_score_type
-            ):
-                return False  # score type mismatch
-            if highest_history.score < scheme.min_academic_score:
-                return False  # score too low
+        if not sibling_profile_ids:
+            return []
 
-        return True
+        # Soft check: if edu.student is installed, find enrolled siblings
+        if 'edu.student' in self.env:
+            students = self.env['edu.student'].search([
+                ('applicant_profile_id', 'in', sibling_profile_ids),
+                ('state', 'in', ['active', 'on_leave']),
+            ])
+            return [{
+                'name': s.applicant_profile_id.name,
+                'student_id': s.id,
+                'roll_number': getattr(s, 'roll_number', ''),
+                'program': s.current_enrollment_id.program_id.name if s.current_enrollment_id else '',
+            } for s in students]
+
+        # Fallback: return sibling profiles (no enrollment check)
+        profiles = self.env['edu.applicant.profile'].browse(sibling_profile_ids)
+        return [{
+            'name': p.name,
+            'student_id': False,
+            'roll_number': '',
+            'program': '',
+        } for p in profiles]

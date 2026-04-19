@@ -47,6 +47,14 @@ class EduApplicantProfile(models.Model):
         index=True,
     )
 
+    # ── Contact (surfaced from res.partner) ────────────────────────────────────
+    phone = fields.Char(
+        related='partner_id.phone', string='Phone', readonly=False,
+    )
+    email = fields.Char(
+        related='partner_id.email', string='Email', readonly=False,
+    )
+
     # ── Demographics ──────────────────────────────────────────────────────────
     gender = fields.Selection(
         selection=[
@@ -65,6 +73,59 @@ class EduApplicantProfile(models.Model):
         string='Nationality',
         tracking=True,
     )
+    religion = fields.Char(string='Religion', tracking=True)
+    ethnicity = fields.Char(string='Ethnicity', tracking=True)
+    caste = fields.Char(string='Caste', tracking=True)
+
+    # ── Address ──────────────────────────────────────────────────────────────
+    # Permanent address
+    permanent_street = fields.Char(string='Street')
+    permanent_street2 = fields.Char(string='Street 2')
+    permanent_city = fields.Char(string='City')
+    permanent_state_id = fields.Many2one(
+        'res.country.state', string='State',
+        domain="[('country_id', '=', permanent_country_id)]",
+    )
+    permanent_zip = fields.Char(string='ZIP')
+    permanent_country_id = fields.Many2one('res.country', string='Country')
+
+    # Current address
+    same_as_permanent = fields.Boolean(
+        string='Current Address Same as Permanent', default=True,
+    )
+    current_street = fields.Char(string='Street')
+    current_street2 = fields.Char(string='Street 2')
+    current_city = fields.Char(string='City')
+    current_state_id = fields.Many2one(
+        'res.country.state', string='State',
+        domain="[('country_id', '=', current_country_id)]",
+    )
+    current_zip = fields.Char(string='ZIP')
+    current_country_id = fields.Many2one('res.country', string='Country')
+
+    # ── Identification Documents ──────────────────────────────────────────────
+    citizenship_number = fields.Char(string='Citizenship Number', tracking=True)
+    citizenship_issue_date = fields.Date(string='Citizenship Issue Date')
+    citizenship_issue_district = fields.Char(string='Citizenship Issue District')
+    passport_number = fields.Char(string='Passport Number', tracking=True)
+    passport_expiry_date = fields.Date(string='Passport Expiry Date')
+    birth_certificate_number = fields.Char(string='Birth Certificate Number')
+    national_id_number = fields.Char(string='National ID Number', tracking=True)
+
+    # ── Medical / Accessibility ───────────────────────────────────────────────
+    blood_group = fields.Selection(
+        selection=[
+            ('a_pos', 'A+'), ('a_neg', 'A-'),
+            ('b_pos', 'B+'), ('b_neg', 'B-'),
+            ('ab_pos', 'AB+'), ('ab_neg', 'AB-'),
+            ('o_pos', 'O+'), ('o_neg', 'O-'),
+        ],
+        string='Blood Group',
+    )
+    has_disability = fields.Boolean(string='Person with Disability', default=False)
+    disability_details = fields.Text(string='Disability Details')
+    allergies = fields.Text(string='Allergies')
+    medical_conditions = fields.Text(string='Medical Conditions')
 
     # ── Relationships ─────────────────────────────────────────────────────────
     guardian_rel_ids = fields.One2many(
@@ -142,26 +203,53 @@ class EduApplicantProfile(models.Model):
 
     @api.depends('first_name', 'last_name', 'date_of_birth', 'gender',
                  'nationality_id', 'partner_id.phone', 'partner_id.email',
-                 'guardian_rel_ids', 'academic_history_ids')
+                 'guardian_rel_ids', 'academic_history_ids',
+                 'permanent_city', 'permanent_country_id',
+                 'citizenship_number', 'passport_number',
+                 'birth_certificate_number', 'national_id_number')
     def _compute_profile_completeness(self):
+        """
+        Scoring (total 100):
+          Name (first+last)     10
+          Date of birth         8
+          Gender                5
+          Nationality           5
+          Phone                 10
+          Email                 10
+          Address (city+country) 10
+          Guardians             12
+          Academic history      10
+          ID document (any)     10
+          Demographics (any)    5
+          Medical (blood group) 5
+        """
         for rec in self:
             score = 0
             if rec.first_name and rec.last_name:
-                score += 15
+                score += 10
             if rec.date_of_birth:
-                score += 10
+                score += 8
             if rec.gender:
-                score += 10
+                score += 5
             if rec.nationality_id:
+                score += 5
+            if rec.phone:
                 score += 10
-            if rec.partner_id and rec.partner_id.phone:
-                score += 15
-            if rec.partner_id and rec.partner_id.email:
-                score += 15
+            if rec.email:
+                score += 10
+            if rec.permanent_city and rec.permanent_country_id:
+                score += 10
             if rec.guardian_rel_ids:
-                score += 15
+                score += 12
             if rec.academic_history_ids:
                 score += 10
+            if (rec.citizenship_number or rec.passport_number
+                    or rec.birth_certificate_number or rec.national_id_number):
+                score += 10
+            if rec.religion or rec.ethnicity or rec.caste:
+                score += 5
+            if rec.blood_group:
+                score += 5
             rec.profile_completeness = score
 
     # ── Partner sync ──────────────────────────────────────────────────────────
@@ -169,18 +257,19 @@ class EduApplicantProfile(models.Model):
     def create(self, vals_list):
         partner_model = self.env['res.partner'].sudo()
         for vals in vals_list:
-            # Always create a dedicated new contact for each applicant.
-            name_parts = [
-                vals.get('first_name'),
-                vals.get('middle_name'),
-                vals.get('last_name'),
-            ]
-            partner_name = ' '.join(p for p in name_parts if p) or 'Applicant'
-            partner = partner_model.create({
-                'name': partner_name,
-                'company_type': 'person',
-            })
-            vals['partner_id'] = partner.id
+            if not vals.get('partner_id'):
+                # Create a dedicated contact when none is provided.
+                name_parts = [
+                    vals.get('first_name'),
+                    vals.get('middle_name'),
+                    vals.get('last_name'),
+                ]
+                partner_name = ' '.join(p for p in name_parts if p) or 'Applicant'
+                partner = partner_model.create({
+                    'name': partner_name,
+                    'company_type': 'person',
+                })
+                vals['partner_id'] = partner.id
         records = super().create(vals_list)
         return records
 

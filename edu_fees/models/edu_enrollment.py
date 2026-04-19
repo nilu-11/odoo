@@ -187,24 +187,26 @@ class EduEnrollment(models.Model):
                 and rec.current_program_term_id
                 and rec.fee_confirmed
                 and rec.checklist_complete
-                and rec.enrollment_fee_eligible
+                # TODO: re-enable once full fee payment flow is in place
+                # and rec.enrollment_fee_eligible
             )
 
     def _compute_enrollment_block_reason(self):
         """Extend block reasons with fee payment details."""
         super()._compute_enrollment_block_reason()
-        for rec in self:
-            if not rec.enrollment_fee_eligible:
-                detail = rec.enrollment_fee_block_detail or (
-                    'Required enrollment fees are not fully paid.'
-                )
-                existing = rec.enrollment_block_reason or ''
-                if existing:
-                    rec.enrollment_block_reason = (
-                        existing + '\n' + detail
-                    )
-                else:
-                    rec.enrollment_block_reason = detail
+        # TODO: re-enable once full fee payment flow is in place
+        # for rec in self:
+        #     if not rec.enrollment_fee_eligible:
+        #         detail = rec.enrollment_fee_block_detail or (
+        #             'Required enrollment fees are not fully paid.'
+        #         )
+        #         existing = rec.enrollment_block_reason or ''
+        #         if existing:
+        #             rec.enrollment_block_reason = (
+        #                 existing + '\n' + detail
+        #             )
+        #         else:
+        #             rec.enrollment_block_reason = detail
 
     # ═════════════════════════════════════════════════════════════════════════
     # Enrollment Fee Eligibility Check
@@ -278,9 +280,10 @@ class EduEnrollment(models.Model):
         """
         Extended: validate enrollment fee eligibility before activating.
         """
-        for rec in self:
-            if not rec.enrollment_fee_eligible:
-                rec.check_enrollment_fee_eligibility()
+        # TODO: re-enable once full fee payment flow is in place
+        # for rec in self:
+        #     if not rec.enrollment_fee_eligible:
+        #         rec.check_enrollment_fee_eligibility()
         return super().action_activate()
 
     # ═════════════════════════════════════════════════════════════════════════

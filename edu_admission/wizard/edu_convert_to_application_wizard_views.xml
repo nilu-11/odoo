@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_convert_to_application_wizard_form" model="ir.ui.view">
+        <field name="name">edu.convert.to.application.wizard.form</field>
+        <field name="model">edu.convert.to.application.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Convert to Application">
+                <field name="lead_id" invisible="1"/>
+                <field name="available_register_ids" invisible="1"/>
+                <field name="available_batch_ids" invisible="1"/>
+                <field name="register_count" invisible="1"/>
+                <field name="batch_count" invisible="1"/>
+
+                <div class="alert alert-info mb-3" role="alert">
+                    <i class="fa fa-info-circle me-1"/>
+                    Select the batch and admission register for this application.
+                </div>
+
+                <field name="info_message" invisible="not info_message"
+                       widget="html" readonly="1" nolabel="1"/>
+
+                <group>
+                    <field name="program_id"/>
+                    <field name="academic_year_id"/>
+                </group>
+                <group>
+                    <field name="batch_id"
+                           invisible="batch_count == 0"
+                           required="batch_count > 0"/>
+                    <field name="admission_register_id"
+                           invisible="register_count == 0"
+                           required="register_count > 0"/>
+                </group>
+                <footer>
+                    <button name="action_convert" type="object"
+                            string="Convert to Application"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

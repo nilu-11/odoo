@@ -178,6 +178,8 @@ class EduSectionAssignmentWizard(models.TransientModel):
 
         lines = []
         for i, (history, section) in enumerate(assignments):
+            if not history.student_id:
+                continue
             lines.append((0, 0, {
                 'student_id': history.student_id.id,
                 'enrollment_id': history.enrollment_id.id if history.enrollment_id else False,
@@ -460,21 +462,20 @@ class EduSectionAssignmentWizard(models.TransientModel):
         # ── Apply: batch write grouped by target section ──────────────────────
         section_to_history_ids: dict[int, list[int]] = defaultdict(list)
         for line in self.line_ids:
+            if not line.progression_history_id or not line.new_section_id:
+                continue
             section_to_history_ids[line.new_section_id.id].append(
                 line.progression_history_id.id
             )
 
         ProgressionHistory = self.env['edu.student.progression.history']
         for sec_id, hist_ids in section_to_history_ids.items():
-            ProgressionHistory.browse(hist_ids).write({'section_id': sec_id})
-
-        # Also update the student record's section_id so it stays in sync
-        Student = self.env['edu.student']
-        student_section_map: dict[int, list[int]] = defaultdict(list)
-        for line in self.line_ids:
-            student_section_map[line.new_section_id.id].append(line.student_id.id)
-        for sec_id, student_ids in student_section_map.items():
-            Student.browse(student_ids).write({'section_id': sec_id})
+            histories = ProgressionHistory.browse(hist_ids)
+            histories.write({'section_id': sec_id})
+            # Also update the student record's section_id so it stays in sync
+            students = histories.mapped('student_id')
+            if students:
+                students.write({'section_id': sec_id})
 
         # ── Audit trail on the batch ──────────────────────────────────────────
         method_label = dict(self._fields['assignment_method'].selection).get(
@@ -536,7 +537,7 @@ class EduSectionAssignmentWizardLine(models.TransientModel):
 
     student_id = fields.Many2one(
         'edu.student', string='Student',
-        required=True, ondelete='cascade', index=True,
+        ondelete='cascade', index=True,
     )
     enrollment_id = fields.Many2one(
         'edu.enrollment', string='Enrollment',
@@ -544,7 +545,7 @@ class EduSectionAssignmentWizardLine(models.TransientModel):
     )
     progression_history_id = fields.Many2one(
         'edu.student.progression.history', string='Progression Record',
-        required=True, ondelete='cascade', index=True,
+        ondelete='cascade', index=True,
     )
 
     # ── Section assignment ────────────────────────────────────────────────────

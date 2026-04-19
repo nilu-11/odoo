@@ -37,6 +37,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/sequences.xml',
         'data/edu_relationship_type_data.xml',
         'data/edu_activity_type_data.xml',
         'data/edu_qualification_data.xml',

@@ -49,17 +49,19 @@
 
             <!-- ── Override button in header ── -->
             <xpath expr="//button[@name='action_activate']" position="after">
+                <!-- TODO: re-enable once full fee payment flow is in place -->
                 <button name="action_override_enrollment_fee_block" type="object"
                         string="Override Fee Block" class="btn-warning"
-                        invisible="state != 'draft' or enrollment_fee_eligible"
+                        invisible="True"
                         groups="edu_fees.group_enrollment_fee_override"
                         confirm="Override the enrollment fee payment requirement?"/>
             </xpath>
 
             <!-- ── Fee eligibility banner after existing block reason banner ── -->
             <xpath expr="//div[contains(@class,'alert-warning')]" position="after">
+                <!-- TODO: re-enable once full fee payment flow is in place -->
                 <div class="alert alert-danger mb-3"
-                     invisible="enrollment_fee_eligible or state != 'draft'">
+                     invisible="True">
                     <i class="fa fa-ban me-2"/>
                     <strong>Fee Payment Required:</strong>
                     <field name="enrollment_fee_block_detail" readonly="1"

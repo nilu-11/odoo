@@ -34,6 +34,17 @@ class EduClassroomAttendance(models.Model):
         compute='_compute_attendance_sheet_stats',
         store=False,
     )
+    today_attendance_taken = fields.Boolean(
+        string="Today's Attendance Taken",
+        compute='_compute_today_attendance_taken',
+        store=False,
+    )
+    today_sheet_id = fields.Many2one(
+        comodel_name='edu.attendance.sheet',
+        string="Today's Sheet",
+        compute='_compute_today_attendance_taken',
+        store=False,
+    )
 
     # ═══ Computed Methods ═══
 
@@ -55,6 +66,19 @@ class EduClassroomAttendance(models.Model):
             count, max_date = mapped.get(rec.id, (0, False))
             rec.attendance_sheet_count = count
             rec.latest_attendance_date = max_date
+
+    def _compute_today_attendance_taken(self):
+        today = fields.Date.today()
+        for rec in self:
+            sheet = False
+            if rec.attendance_register_id:
+                sheet = self.env['edu.attendance.sheet'].search([
+                    ('register_id', '=', rec.attendance_register_id.id),
+                    ('session_date', '=', today),
+                    ('state', '=', 'submitted'),
+                ], limit=1)
+            rec.today_attendance_taken = bool(sheet)
+            rec.today_sheet_id = sheet or False
 
     # ═══ Attendance Actions (from Classroom) ═══
 
@@ -112,6 +136,22 @@ class EduClassroomAttendance(models.Model):
             'res_model': 'edu.attendance.sheet',
             'view_mode': 'form',
             'res_id': sheet.id,
+            'target': 'current',
+        }
+
+    def action_view_today_attendance(self):
+        """Open today's submitted attendance sheet in read-only form."""
+        self.ensure_one()
+        if not self.today_sheet_id:
+            raise UserError(
+                _('No submitted attendance sheet found for today.')
+            )
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _("Today's Attendance — %s") % self.name,
+            'res_model': 'edu.attendance.sheet',
+            'view_mode': 'form',
+            'res_id': self.today_sheet_id.id,
             'target': 'current',
         }
 

@@ -1,6 +1,6 @@
 {
     'name': 'Education: Admission',
-    'version': '19.0.2.0.0',
+    'version': '19.0.2.2.0',
     'summary': (
         'Formal admission lifecycle — registers, applications, '
         'scholarship review, offer letters, and enrollment handoff.'
@@ -43,6 +43,7 @@
         'views/edu_admission_scholarship_review_views.xml',
         'views/edu_admission_application_views.xml',
         'views/menu_views.xml',
+        'wizard/edu_convert_to_application_wizard_views.xml',
         'report/edu_admission_offer_letter_report.xml',
         'report/edu_admission_offer_letter_template.xml',
     ],

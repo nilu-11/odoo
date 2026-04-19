@@ -17,7 +17,7 @@ class EduGuardian(models.Model):
 
     _name = 'edu.guardian'
     _description = 'Guardian'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
     _order = 'last_name, first_name, id'
     _rec_name = 'full_name'
 
@@ -25,13 +25,11 @@ class EduGuardian(models.Model):
     partner_id = fields.Many2one(
         comodel_name='res.partner',
         string='Contact',
-        required=True,
         ondelete='restrict',
         tracking=True,
         index=True,
         help=(
-            'The res.partner record for this guardian. '
-            'Holds name, email, phone, and address. '
+            'Auto-created from guardian name on save. '
             'Used for portal access and fee payment notifications.'
         ),
     )
@@ -44,6 +42,10 @@ class EduGuardian(models.Model):
         store=True,
         index=True,
     )
+
+    # ── Contact (surfaced from res.partner) ────────────────────────────────────
+    phone = fields.Char(related='partner_id.phone', string='Phone', readonly=False)
+    email = fields.Char(related='partner_id.email', string='Email', readonly=False)
 
     # ── Professional ──────────────────────────────────────────────────────────
     occupation = fields.Char(string='Occupation', tracking=True)
@@ -117,10 +119,21 @@ class EduGuardian(models.Model):
     # ── Partner sync ──────────────────────────────────────────────────────────
     @api.model_create_multi
     def create(self, vals_list):
+        partner_model = self.env['res.partner'].sudo()
+        for vals in vals_list:
+            if not vals.get('partner_id'):
+                name_parts = [
+                    vals.get('first_name'),
+                    vals.get('middle_name'),
+                    vals.get('last_name'),
+                ]
+                partner_name = ' '.join(p for p in name_parts if p) or 'Guardian'
+                partner = partner_model.create({
+                    'name': partner_name,
+                    'company_type': 'person',
+                })
+                vals['partner_id'] = partner.id
         records = super().create(vals_list)
-        for rec in records:
-            if rec.partner_id and rec.full_name:
-                rec.partner_id.sudo().write({'name': rec.full_name})
         return records
 
     def write(self, vals):

@@ -28,3 +28,7 @@ access_review_reviewer,edu.admission.scholarship.review reviewer,model_edu_admis
 access_review_viewer,edu.admission.scholarship.review viewer,model_edu_admission_scholarship_review,group_admission_viewer,1,0,0,0
 access_review_edu_admin,edu.admission.scholarship.review edu admin,model_edu_admission_scholarship_review,edu_academic_structure.group_education_admin,1,1,1,1
 access_review_academic_viewer,edu.admission.scholarship.review academic viewer,model_edu_admission_scholarship_review,edu_academic_structure.group_academic_viewer,1,0,0,0
+access_convert_wizard_admin,edu.convert.to.application.wizard admin,model_edu_convert_to_application_wizard,group_admission_admin,1,1,1,1
+access_convert_wizard_officer,edu.convert.to.application.wizard officer,model_edu_convert_to_application_wizard,group_admission_officer,1,1,1,1
+access_convert_wizard_edu_admin,edu.convert.to.application.wizard edu admin,model_edu_convert_to_application_wizard,edu_academic_structure.group_education_admin,1,1,1,1
+access_convert_wizard_pre_admission_officer,edu.convert.to.application.wizard pre-admission officer,model_edu_convert_to_application_wizard,edu_pre_admission_crm.group_pre_admission_officer,1,1,1,1

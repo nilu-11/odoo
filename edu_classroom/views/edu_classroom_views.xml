@@ -178,6 +178,27 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════
+         Server Actions (list view bulk operations)
+    ══════════════════════════════════════════════════════ -->
+    <record id="action_server_classroom_bulk_activate" model="ir.actions.server">
+        <field name="name">Activate</field>
+        <field name="model_id" ref="model_edu_classroom"/>
+        <field name="binding_model_id" ref="model_edu_classroom"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_activate()</field>
+    </record>
+
+    <record id="action_server_classroom_bulk_close" model="ir.actions.server">
+        <field name="name">Close</field>
+        <field name="model_id" ref="model_edu_classroom"/>
+        <field name="binding_model_id" ref="model_edu_classroom"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_close()</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
          Window Actions
     ══════════════════════════════════════════════════════ -->
 

@@ -32,6 +32,7 @@
                 <field name="last_interaction_summary"/>
                 <field name="next_activity_summary"/>
                 <field name="profile_completeness"/>
+                <field name="applicant_profile_id"/>
                 <progressbar field="activity_state"
                              colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
                 <templates>
@@ -40,6 +41,11 @@
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <field name="name" class="fw-bold text-truncate"/>
                             <field name="priority" widget="priority" class="ms-1 flex-shrink-0"/>
+                        </div>
+
+                        <!-- Applicant name -->
+                        <div t-if="record.applicant_profile_id.value" class="text-muted small text-truncate">
+                            <i class="fa fa-user me-1"/><field name="applicant_profile_id"/>
                         </div>
 
                         <!-- Program -->
@@ -215,8 +221,7 @@
                         type="object"
                         string="Convert to Application"
                         class="btn-primary"
-                        invisible="lead_education_status != 'qualified' or is_converted_to_application"
-                        confirm="Convert this lead to a formal admission application? This action cannot be undone."/>
+                        invisible="lead_education_status != 'qualified' or is_converted_to_application"/>
                 <field name="lead_education_status"
                        widget="statusbar"
                        statusbar_visible="inquiry,qualified,converted"/>

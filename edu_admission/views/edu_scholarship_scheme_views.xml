@@ -16,21 +16,6 @@
                         domain="[('exclusive', '=', True)]"/>
                 <filter string="Stackable" name="stackable"
                         domain="[('allow_stacking', '=', True)]"/>
-                <filter string="Requires Manual Review" name="requires_manual_review"
-                        domain="[('requires_manual_review', '=', True)]"/>
-                <filter string="Requires Committee Approval" name="requires_committee"
-                        domain="[('requires_committee_approval', '=', True)]"/>
-                <filter string="Auto-Suggest" name="auto_suggest"
-                        domain="[('auto_suggest_if_eligible', '=', True)]"/>
-                <filter string="Intake-Limited" name="intake_limited"
-                        domain="[('intake_limited', '=', True)]"/>
-                <separator/>
-                <filter string="Has Program Restriction" name="program_restricted"
-                        domain="[('applicable_program_ids', '!=', False)]"/>
-                <filter string="Has Gender Restriction" name="gender_restricted"
-                        domain="[('applicable_gender', '!=', 'any')]"/>
-                <filter string="Has Score Threshold" name="score_threshold"
-                        domain="[('min_academic_score', '>', 0)]"/>
                 <separator/>
                 <filter string="Archived" name="archived"
                         domain="[('active', '=', False)]"/>
@@ -63,16 +48,12 @@
                 <field name="award_type"/>
                 <field name="default_percent" optional="show"/>
                 <field name="default_amount" optional="show"/>
+                <field name="auto_suggest"/>
                 <field name="exclusive"/>
                 <field name="allow_stacking"/>
                 <field name="stacking_group_id" optional="show"/>
                 <field name="max_discount_percent" optional="hide"/>
                 <field name="max_discount_amount" optional="hide"/>
-                <field name="requires_manual_review" optional="hide"/>
-                <field name="requires_committee_approval" optional="hide"/>
-                <field name="auto_suggest_if_eligible" optional="show"/>
-                <field name="applicable_gender" optional="hide"/>
-                <field name="min_academic_score" optional="hide" string="Min Score"/>
                 <field name="valid_from" optional="hide"/>
                 <field name="valid_to" optional="hide"/>
                 <field name="active" column_invisible="True"/>
@@ -95,14 +76,18 @@
                     <div class="oe_title">
                         <label for="name" string="Scheme Name"/>
                         <h1>
-                            <field name="name" placeholder="e.g. Merit Scholarship 100%"/>
+                            <field name="name" placeholder="e.g. Merit Scholarship 50%"/>
                         </h1>
-                        <field name="code" placeholder="e.g. MERIT-100"/>
+                        <field name="code" placeholder="e.g. MERIT-50"/>
                     </div>
 
                     <group>
                         <group string="Category &amp; Award">
                             <field name="eligibility_basis" string="Category"/>
+                            <field name="merit_score_type"
+                                   invisible="eligibility_basis != 'merit'"/>
+                            <field name="merit_min_score"
+                                   invisible="eligibility_basis != 'merit'"/>
                             <field name="award_type"/>
                             <field name="default_percent"
                                    invisible="award_type not in ['percentage', 'full']"/>
@@ -119,23 +104,23 @@
                             <field name="priority"/>
                             <field name="max_discount_percent"/>
                             <field name="max_discount_amount"/>
-                            <field name="institutional_cap_exempt"/>
+
                         </group>
                     </group>
 
                     <group>
-                        <group string="Review Behaviour">
-                            <field name="requires_manual_review"/>
-                            <field name="requires_document_verification"/>
-                            <field name="requires_committee_approval"/>
-                            <field name="auto_suggest_if_eligible"/>
-                            <field name="requires_approval"/>
+                        <group string="Scope &amp; Suggestion">
+                            <field name="auto_suggest"/>
+                            <field name="applicable_program_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                            <field name="applicable_academic_year_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"/>
                         </group>
-                        <group string="Validity &amp; Options">
+                        <group string="Validity">
                             <field name="valid_from"/>
                             <field name="valid_to"/>
-                            <field name="intake_limited"/>
-                            <field name="renewable"/>
                             <field name="active" invisible="1"/>
                             <field name="company_id"
                                    groups="base.group_multi_company"/>
@@ -143,105 +128,6 @@
                     </group>
 
                     <notebook>
-                        <!-- ── Applicability Filters ── -->
-                        <page string="Applicability" name="applicability">
-                            <div class="alert alert-info mb-3">
-                                Define which applications this scheme can be auto-suggested for.
-                                Leave fields empty to apply no restriction in that dimension.
-                            </div>
-
-                            <group>
-                                <group string="Academic Scope">
-                                    <field name="applicable_program_ids"
-                                           widget="many2many_tags"
-                                           options="{'no_create': True}"/>
-                                    <field name="applicable_department_ids"
-                                           widget="many2many_tags"
-                                           options="{'no_create': True}"/>
-                                    <field name="applicable_academic_year_ids"
-                                           widget="many2many_tags"
-                                           options="{'no_create': True}"/>
-                                </group>
-                                <group string="Applicant Demographics">
-                                    <field name="applicable_gender"/>
-                                    <field name="applicable_nationality_ids"
-                                           widget="many2many_tags"
-                                           options="{'no_create': True}"/>
-                                    <field name="min_applicant_age"/>
-                                    <field name="max_applicant_age"/>
-                                </group>
-                            </group>
-
-                            <group>
-                                <group string="Academic Score Threshold">
-                                    <field name="min_academic_score"/>
-                                    <field name="academic_score_type"/>
-                                </group>
-                            </group>
-                        </page>
-
-                        <!-- ── Eligibility Hints ── -->
-                        <page string="Eligibility Hints" name="eligibility_hints">
-                            <div class="alert alert-info mb-3">
-                                These fields are advisory hints used by reviewers to
-                                assess eligibility. They do not trigger automatic approvals.
-                            </div>
-
-                            <!-- Merit -->
-                            <group string="Merit Criteria"
-                                   invisible="eligibility_basis != 'merit'">
-                                <field name="merit_score_type"/>
-                                <field name="merit_min_score"/>
-                            </group>
-
-                            <!-- Financial Aid -->
-                            <group string="Financial Aid Criteria"
-                                   invisible="eligibility_basis not in ['financial_aid', 'need']">
-                                <field name="max_family_income"
-                                       string="Max Annual Family Income"/>
-                            </group>
-
-                            <!-- Sibling -->
-                            <group string="Sibling Criteria"
-                                   invisible="eligibility_basis != 'sibling'">
-                                <field name="sibling_required_count"/>
-                            </group>
-
-                            <!-- Sports -->
-                            <group string="Sports Criteria"
-                                   invisible="eligibility_basis != 'sports'">
-                                <field name="sports_level"/>
-                            </group>
-
-                            <!-- Staff Child -->
-                            <group string="Staff-Child Criteria"
-                                   invisible="eligibility_basis != 'staff_child'">
-                                <field name="staff_relation_required"/>
-                            </group>
-
-                            <!-- Quota -->
-                            <group string="Quota Criteria"
-                                   invisible="eligibility_basis != 'quota'">
-                                <field name="quota_category_code"/>
-                            </group>
-
-                            <!-- Partner -->
-                            <group string="Partner / Affiliate Criteria"
-                                   invisible="eligibility_basis != 'partner'">
-                                <field name="partner_code"/>
-                            </group>
-
-                            <!-- Discretionary / Other -->
-                            <group string="Discretionary Criteria"
-                                   invisible="eligibility_basis not in ['discretionary', 'manual', 'full', 'other']">
-                                <p class="text-muted">
-                                    This category is assessed manually. No automated
-                                    hint criteria apply. Use the committee notes and
-                                    remarks fields on the review line.
-                                </p>
-                            </group>
-                        </page>
-
                         <page string="Description" name="description">
                             <field name="description" nolabel="1"
                                    placeholder="Detailed description of this scholarship scheme..."/>
@@ -269,8 +155,8 @@
             <p class="o_view_nocontent_smiling_face">Define a Scholarship Scheme</p>
             <p>
                 Scholarship schemes define award types, eligibility categories,
-                review behaviour, stacking rules, and cap limits. They are
-                referenced by scholarship review lines on individual applications.
+                stacking rules, and cap limits. They are referenced by scholarship
+                review lines on individual applications.
             </p>
         </field>
     </record>

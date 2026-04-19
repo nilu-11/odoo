@@ -94,10 +94,6 @@
                             string="Reject" class="btn-secondary"
                             invisible="state not in ['draft', 'under_review', 'recommended']"
                             groups="edu_admission.group_scholarship_approver"/>
-                    <button name="action_check_eligibility_hint" type="object"
-                            string="Check Eligibility Hints"
-                            class="btn-secondary"
-                            invisible="state in ['approved', 'rejected', 'cancelled']"/>
                     <button name="action_cancel" type="object"
                             string="Cancel"
                             invisible="state in ['cancelled', 'approved']"/>
@@ -171,6 +167,7 @@
                         </group>
                     </group>
 
+                    <field name="eligibility_basis" invisible="1"/>
                     <notebook>
                         <!-- ── Eligibility Tab ── -->
                         <page string="Eligibility Assessment" name="eligibility">
@@ -191,6 +188,97 @@
                             </group>
                         </page>
 
+                        <!-- ── Evidence Tab ── -->
+                        <page string="Evidence" name="evidence"
+                              invisible="eligibility_basis not in ['merit','financial_aid','sibling','sports','staff_child','quota']">
+
+                            <!-- Merit -->
+                            <group string="Merit Criteria"
+                                   invisible="eligibility_basis != 'merit'">
+                                <group>
+                                    <field name="merit_score_type"/>
+                                    <field name="merit_min_score"
+                                           string="Minimum Score Required"/>
+                                    <field name="merit_actual_score"
+                                           string="Actual Score Achieved"/>
+                                </group>
+                                <group>
+                                    <field name="merit_certificate_ref"/>
+                                    <field name="merit_score_verified"/>
+                                </group>
+                            </group>
+
+                            <!-- Financial Aid -->
+                            <group string="Income Assessment"
+                                   invisible="eligibility_basis != 'financial_aid'">
+                                <group>
+                                    <field name="financial_max_income"
+                                           string="Income Limit (Annual)"/>
+                                    <field name="financial_actual_income"
+                                           string="Verified Annual Income"/>
+                                </group>
+                                <group>
+                                    <field name="financial_certificate_ref"
+                                           string="Income Certificate Ref"/>
+                                    <field name="financial_income_verified"/>
+                                </group>
+                            </group>
+
+                            <!-- Sibling -->
+                            <group string="Sibling Verification"
+                                   invisible="eligibility_basis != 'sibling'">
+                                <group>
+                                    <field name="sibling_min_count"/>
+                                </group>
+                                <group>
+                                    <field name="sibling_verified"/>
+                                </group>
+                                <field name="sibling_details" nolabel="1" colspan="2"
+                                       placeholder="Names and enrollment / roll numbers of currently enrolled siblings..."/>
+                            </group>
+
+                            <!-- Sports -->
+                            <group string="Sports Achievement"
+                                   invisible="eligibility_basis != 'sports'">
+                                <group>
+                                    <field name="sports_sport_name"/>
+                                    <field name="sports_required_level"/>
+                                    <field name="sports_actual_level"/>
+                                </group>
+                                <group>
+                                    <field name="sports_certificate_ref"/>
+                                    <field name="sports_verified"/>
+                                </group>
+                            </group>
+
+                            <!-- Staff Child -->
+                            <group string="Staff Relationship"
+                                   invisible="eligibility_basis != 'staff_child'">
+                                <group>
+                                    <field name="staff_member_name"/>
+                                    <field name="staff_employee_id"/>
+                                    <field name="staff_relation"/>
+                                </group>
+                                <group>
+                                    <field name="staff_employment_verified"/>
+                                </group>
+                            </group>
+
+                            <!-- Quota / Reservation -->
+                            <group string="Reservation Certificate"
+                                   invisible="eligibility_basis != 'quota'">
+                                <group>
+                                    <field name="quota_category"/>
+                                    <field name="quota_certificate_number"/>
+                                    <field name="quota_issuing_authority"/>
+                                </group>
+                                <group>
+                                    <field name="quota_certificate_verified"/>
+                                </group>
+                            </group>
+
+                        </page>
+
                         <!-- ── Review Notes Tab ── -->
                         <page string="Review Notes" name="review_notes">
                             <group string="Recommendation (Reviewer Proposal)">
@@ -204,7 +292,7 @@
                                        readonly="state in ['approved', 'rejected']"/>
                             </group>
                             <group string="Financial Review Notes"
-                                   invisible="scholarship_scheme_id and scholarship_scheme_id.eligibility_basis not in ['financial_aid', 'need']">
+                                   invisible="eligibility_basis != 'financial_aid'">
                                 <field name="financial_review_note" nolabel="1"
                                        placeholder="Income assessment, hardship details, family background notes..."/>
                             </group>
@@ -237,7 +325,6 @@
                                     <field name="exclusive_snapshot" readonly="1"/>
                                     <field name="stacking_allowed_snapshot" readonly="1"/>
                                     <field name="stacking_group_snapshot" readonly="1"/>
-                                    <field name="institutional_cap_exempt_snapshot" readonly="1" invisible="1"/>
                                 </group>
                             </group>
                             <group>

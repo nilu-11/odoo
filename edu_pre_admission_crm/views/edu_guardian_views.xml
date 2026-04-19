@@ -42,6 +42,8 @@
         <field name="arch" type="xml">
             <list string="Guardians">
                 <field name="full_name" string="Name"/>
+                <field name="phone" widget="phone" optional="show"/>
+                <field name="email" widget="email" optional="show"/>
                 <field name="occupation" optional="show"/>
                 <field name="organization" optional="show"/>
                 <field name="is_financial_contact" optional="show"/>
@@ -50,6 +52,65 @@
                 <field name="applicant_count" string="Applicants"/>
                 <field name="active" column_invisible="True"/>
             </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         Guardian — Kanban
+    ══════════════════════════════════════════════════════ -->
+    <record id="view_edu_guardian_kanban" model="ir.ui.view">
+        <field name="name">edu.guardian.kanban</field>
+        <field name="model">edu.guardian</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="full_name"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="occupation"/>
+                <field name="organization"/>
+                <field name="is_legal_guardian"/>
+                <field name="is_financial_contact"/>
+                <field name="is_emergency_contact"/>
+                <field name="applicant_count"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-start gap-2 mb-1">
+                            <field name="image_128" widget="image" class="rounded"
+                                   options="{'size': [40, 40]}"/>
+                            <div class="flex-grow-1 min-w-0">
+                                <field name="full_name" class="fw-bold text-truncate d-block"/>
+                                <div t-if="record.occupation.value" class="text-muted small text-truncate">
+                                    <field name="occupation"/>
+                                    <t t-if="record.organization.value"> — <field name="organization"/></t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div t-if="record.phone.value" class="small mt-1">
+                            <i class="fa fa-phone me-1 text-muted"/><field name="phone" widget="phone"/>
+                        </div>
+                        <div t-if="record.email.value" class="small text-truncate">
+                            <i class="fa fa-envelope me-1 text-muted"/><field name="email" widget="email"/>
+                        </div>
+
+                        <!-- Role badges + applicant count -->
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <span t-if="record.is_legal_guardian.raw_value"
+                                  class="badge bg-primary-subtle text-primary-emphasis">Legal Guardian</span>
+                            <span t-if="record.is_financial_contact.raw_value"
+                                  class="badge bg-success-subtle text-success-emphasis">Financial</span>
+                            <span t-if="record.is_emergency_contact.raw_value"
+                                  class="badge bg-warning-subtle text-warning-emphasis">Emergency</span>
+                            <span t-if="record.applicant_count.raw_value"
+                                  class="badge bg-info-subtle text-info-emphasis ms-auto">
+                                <i class="fa fa-users me-1"/><field name="applicant_count"/>
+                            </span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -63,6 +124,9 @@
             <form string="Guardian">
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_128'}"/>
 
                     <!-- Smart buttons -->
                     <div class="oe_button_box" name="button_box">
@@ -90,8 +154,11 @@
                     <group>
                         <group string="Identity">
                             <field name="partner_id"
-                                   options="{'no_create': False}"
-                                   help="Link to an existing contact or create a new one."/>
+                                   readonly="1"
+                                   invisible="not id"
+                                   help="Auto-created and linked when the guardian is saved."/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
                             <field name="occupation"/>
                             <field name="organization"/>
                             <field name="active" invisible="1"/>
@@ -143,7 +210,7 @@
     <record id="action_edu_guardian" model="ir.actions.act_window">
         <field name="name">Guardians</field>
         <field name="res_model">edu.guardian</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_edu_guardian_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Add a guardian</p>

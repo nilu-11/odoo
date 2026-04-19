@@ -104,22 +104,24 @@
                     </div>
                 </div>
 
-                <!-- ══ New session bar ══ -->
-                <div class="att-action-bar">
-                    <form t-attf-action="/portal/teacher/classroom/#{classroom.id}/attendance/create"
-                          method="post"
-                          class="att-new-form">
-                        <input type="hidden" name="csrf_token"
-                               t-att-value="request.csrf_token()"/>
-                        <input type="date" name="session_date"
-                               class="att-date-input"
-                               t-att-value="today_str"/>
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            New Session
-                        </button>
-                    </form>
-                </div>
+                <!-- ══ New session bar (hidden when today's attendance is done) ══ -->
+                <t t-if="not today_sheet or today_sheet.state not in ('submitted',)">
+                    <div class="att-action-bar">
+                        <form t-attf-action="/portal/teacher/classroom/#{classroom.id}/attendance/create"
+                              method="post"
+                              class="att-new-form">
+                            <input type="hidden" name="csrf_token"
+                                   t-att-value="request.csrf_token()"/>
+                            <input type="date" name="session_date"
+                                   class="att-date-input"
+                                   t-att-value="today_str"/>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                New Session
+                            </button>
+                        </form>
+                    </div>
+                </t>
 
                 <!-- ══ Active session banner ══ -->
                 <t t-if="sheet and sheet.state == 'in_progress'">
@@ -138,6 +140,28 @@
                         <button class="btn btn-primary" data-att-open="1">
                             Take Attendance
                         </button>
+                    </div>
+                </t>
+
+                <!-- ══ Today done banner — attendance already submitted ══ -->
+                <t t-if="today_sheet and today_sheet.state == 'submitted' and (not sheet or sheet.state != 'in_progress')">
+                    <div class="att-active-banner" style="border-color: var(--portal-success, #28a745);">
+                        <div class="att-active-banner-info">
+                            <span class="att-active-banner-badge" style="background: var(--portal-success, #28a745);">Completed</span>
+                            <h3 class="att-active-banner-title">
+                                Today's Attendance Done
+                            </h3>
+                            <p class="att-active-banner-sub">
+                                <t t-esc="today_sheet.present_count"/> present
+                                · <t t-esc="today_sheet.absent_count"/> absent
+                                · <t t-esc="today_sheet.line_count"/> total
+                            </p>
+                        </div>
+                        <a t-attf-href="/portal/teacher/classroom/#{classroom.id}/attendance?sheet_id=#{today_sheet.id}"
+                           class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            View Attendance
+                        </a>
                     </div>
                 </t>
 

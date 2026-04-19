@@ -11,12 +11,20 @@
         <field name="arch" type="xml">
             <!-- Header buttons — before the statusbar -->
             <xpath expr="//header/field[@name='state']" position="before">
+                <field name="today_attendance_taken" invisible="1"/>
                 <button name="action_take_attendance_today"
                         string="Take Attendance Today"
                         type="object"
                         class="btn-primary"
                         icon="fa-check-square-o"
-                        invisible="state != 'active'"
+                        invisible="state != 'active' or today_attendance_taken"
+                        groups="edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
+                <button name="action_view_today_attendance"
+                        string="View Today's Attendance"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-eye"
+                        invisible="state != 'active' or not today_attendance_taken"
                         groups="edu_attendance.group_attendance_teacher,edu_attendance.group_attendance_admin,edu_academic_structure.group_education_admin"/>
                 <button name="action_create_attendance_sheet"
                         string="Create Attendance Sheet"
@@ -70,12 +78,20 @@
         <field name="inherit_id" ref="edu_classroom.view_edu_classroom_kanban"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@name='kanban_buttons']" position="inside">
+                <field name="today_attendance_taken" invisible="1"/>
                 <button name="action_take_attendance_today"
                         type="object"
                         class="btn btn-sm btn-primary me-1"
-                        invisible="state != 'active'"
+                        invisible="state != 'active' or today_attendance_taken"
                         title="Take Attendance Today">
                     <i class="fa fa-check-square-o"/> Attendance
+                </button>
+                <button name="action_view_today_attendance"
+                        type="object"
+                        class="btn btn-sm btn-success me-1"
+                        invisible="state != 'active' or not today_attendance_taken"
+                        title="View Today's Attendance">
+                    <i class="fa fa-eye"/> Done
                 </button>
                 <button name="action_view_attendance_sheets"
                         type="object"

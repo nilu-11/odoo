@@ -241,8 +241,135 @@ class EduAdmissionScholarshipReview(models.Model):
     max_discount_amount_snapshot = fields.Float(
         string='Max Discount Amount (Snapshot)', digits=(12, 2), readonly=True,
     )
-    institutional_cap_exempt_snapshot = fields.Boolean(
-        string='Institutional Cap Exempt (Snapshot)', readonly=True,
+
+    # ── Category Evidence (structured per eligibility_basis) ─────────────────
+    # Related field for view conditions — no extra query needed
+    eligibility_basis = fields.Selection(
+        related='scholarship_scheme_id.eligibility_basis',
+        string='Category',
+        store=False,
+    )
+
+    # Merit
+    merit_score_type = fields.Selection(
+        selection=[
+            ('percentage', 'Percentage (%)'),
+            ('cgpa', 'CGPA'),
+            ('grade', 'Grade'),
+            ('rank', 'Rank / Position'),
+        ],
+        string='Score Type',
+    )
+    merit_min_score = fields.Float(
+        string='Minimum Score Required',
+        digits=(5, 2),
+    )
+    merit_actual_score = fields.Float(
+        string='Actual Score Achieved',
+        digits=(5, 2),
+    )
+    merit_certificate_ref = fields.Char(
+        string='Marksheet / Certificate Ref',
+    )
+    merit_score_verified = fields.Boolean(
+        string='Score Verified',
+    )
+
+    # Financial Aid
+    financial_max_income = fields.Float(
+        string='Income Limit (Annual)',
+        digits=(12, 2),
+    )
+    financial_actual_income = fields.Float(
+        string='Verified Annual Income',
+        digits=(12, 2),
+    )
+    financial_certificate_ref = fields.Char(
+        string='Income Certificate Ref',
+    )
+    financial_income_verified = fields.Boolean(
+        string='Income Verified',
+    )
+
+    # Sibling
+    sibling_min_count = fields.Integer(
+        string='Min Enrolled Siblings Required',
+        default=1,
+    )
+    sibling_details = fields.Text(
+        string='Sibling Details',
+        help='Names and enrollment / roll numbers of currently enrolled siblings.',
+    )
+    sibling_verified = fields.Boolean(
+        string='Sibling Enrollment Verified',
+    )
+
+    # Sports
+    sports_sport_name = fields.Char(
+        string='Sport / Event',
+    )
+    sports_required_level = fields.Selection(
+        selection=[
+            ('school', 'School Level'),
+            ('district', 'District Level'),
+            ('state', 'State / Province Level'),
+            ('national', 'National Level'),
+            ('international', 'International Level'),
+        ],
+        string='Required Achievement Level',
+    )
+    sports_actual_level = fields.Selection(
+        selection=[
+            ('school', 'School Level'),
+            ('district', 'District Level'),
+            ('state', 'State / Province Level'),
+            ('national', 'National Level'),
+            ('international', 'International Level'),
+        ],
+        string='Actual Achievement Level',
+    )
+    sports_certificate_ref = fields.Char(
+        string='Achievement Certificate Ref',
+    )
+    sports_verified = fields.Boolean(
+        string='Achievement Verified',
+    )
+
+    # Staff Child
+    staff_member_name = fields.Char(
+        string='Staff Member Name',
+    )
+    staff_employee_id = fields.Char(
+        string='Employee ID',
+    )
+    staff_relation = fields.Selection(
+        selection=[
+            ('father', 'Father'),
+            ('mother', 'Mother'),
+            ('guardian', 'Legal Guardian'),
+            ('sibling', 'Sibling'),
+            ('spouse', 'Spouse'),
+            ('other', 'Other'),
+        ],
+        string='Relation to Applicant',
+    )
+    staff_employment_verified = fields.Boolean(
+        string='Employment Verified',
+    )
+
+    # Quota / Reservation
+    quota_category = fields.Char(
+        string='Reservation Category',
+        help='e.g. OBC, SC, ST, EWS, PH, NRI — as per certificate.',
+    )
+    quota_certificate_number = fields.Char(
+        string='Certificate Number',
+    )
+    quota_issuing_authority = fields.Char(
+        string='Issuing Authority',
+    )
+    quota_certificate_verified = fields.Boolean(
+        string='Certificate Verified',
     )
 
     # ── System ────────────────────────────────────────────────────────────────
@@ -315,6 +442,30 @@ class EduAdmissionScholarshipReview(models.Model):
                 raise ValidationError('Fixed approved amount cannot be negative.')
 
     # ── Onchange ──────────────────────────────────────────────────────────────
+    @api.onchange('merit_actual_score', 'merit_min_score')
+    def _onchange_merit_score(self):
+        """Auto-suggest eligibility result when both scores are entered."""
+        for rec in self:
+            if rec.eligibility_basis != 'merit':
+                continue
+            if rec.merit_actual_score and rec.merit_min_score:
+                rec.eligibility_result = (
+                    'eligible' if rec.merit_actual_score >= rec.merit_min_score
+                    else 'not_eligible'
+                )
+
+    @api.onchange('financial_actual_income', 'financial_max_income')
+    def _onchange_financial_income(self):
+        """Auto-suggest eligibility result based on income threshold."""
+        for rec in self:
+            if rec.eligibility_basis != 'financial_aid':
+                continue
+            if rec.financial_actual_income and rec.financial_max_income:
+                rec.eligibility_result = (
+                    'eligible' if rec.financial_actual_income <= rec.financial_max_income
+                    else 'not_eligible'
+                )
+
     @api.onchange('scholarship_scheme_id')
     def _onchange_scheme(self):
         """Pre-fill recommendation fields from scheme defaults."""
@@ -367,203 +518,7 @@ class EduAdmissionScholarshipReview(models.Model):
                     )
         return super().write(vals)
 
-    # ── Eligibility Hint Check ────────────────────────────────────────────────
-    def _check_scheme_eligibility_hint(self):
-        """
-        Compare application / applicant data against scheme eligibility hints
-        and return a dict with keys:
-            - 'result':  'eligible' | 'not_eligible' | 'insufficient_data'
-            - 'reasons': list[str]  — human-readable evaluation points
-
-        This is advisory only. It never auto-approves.
-        The reviewer uses this output to populate eligibility_result/note.
-        """
-        self.ensure_one()
-        scheme = self.scholarship_scheme_id
-        app = self.application_id
-        reasons = []
-        result = 'eligible'
-
-        basis = scheme.eligibility_basis
-
-        if basis == 'merit':
-            if scheme.merit_min_score and scheme.merit_score_type != 'manual':
-                reasons.append(
-                    f'Merit basis: {scheme.merit_score_type} — '
-                    f'min required {scheme.merit_min_score}. '
-                    'Verify applicant score manually.'
-                )
-            else:
-                reasons.append('Merit basis: manual assessment required.')
-            result = 'pending'
-
-        elif basis in ('financial_aid', 'need'):
-            if scheme.max_family_income:
-                reasons.append(
-                    f'Financial aid: max annual family income '
-                    f'{scheme.max_family_income:,.2f}. '
-                    'Verify income documents.'
-                )
-            else:
-                reasons.append('Financial aid: income threshold not configured.')
-            result = 'pending'
-
-        elif basis == 'sibling':
-            reasons.append(
-                f'Sibling scheme: minimum {scheme.sibling_required_count} '
-                'enrolled sibling(s) required. Verify enrollment records.'
-            )
-            result = 'pending'
-
-        elif basis == 'sports':
-            if scheme.sports_level:
-                reasons.append(
-                    f'Sports scheme: minimum {scheme.sports_level} level '
-                    'achievement required. Verify certificates.'
-                )
-            else:
-                reasons.append('Sports scheme: level not configured — manual check.')
-            result = 'pending'
-
-        elif basis == 'staff_child':
-            if scheme.staff_relation_required:
-                reasons.append(
-                    f'Staff-child scheme: relation "{scheme.staff_relation_required}" '
-                    'must be verified against HR records.'
-                )
-            else:
-                reasons.append('Staff-child scheme: manual HR verification required.')
-            result = 'pending'
-
-        elif basis == 'quota':
-            if scheme.quota_category_code:
-                reasons.append(
-                    f'Quota scheme: category "{scheme.quota_category_code}". '
-                    'Verify quota category certificate.'
-                )
-            else:
-                reasons.append('Quota scheme: category code not configured.')
-            result = 'pending'
-
-        elif basis == 'promotional':
-            if scheme.valid_from or scheme.valid_to:
-                reasons.append(
-                    f'Promotional scheme valid '
-                    f'{scheme.valid_from or "—"} to {scheme.valid_to or "—"}.'
-                )
-            result = 'eligible'
-
-        elif basis == 'partner':
-            if scheme.partner_code:
-                reasons.append(
-                    f'Partner scheme: partner code "{scheme.partner_code}". '
-                    'Verify applicant feeder institution.'
-                )
-            else:
-                reasons.append('Partner scheme: partner code not configured.')
-            result = 'pending'
-
-        elif basis in ('full',):
-            reasons.append('Full scholarship: manual review and committee approval required.')
-            result = 'pending'
-
-        elif basis in ('discretionary', 'manual'):
-            reasons.append('Discretionary scheme: case-by-case authorised approval required.')
-            result = 'pending'
-
-        else:
-            reasons.append('Eligibility basis not configured — manual assessment required.')
-            result = 'insufficient_data'
-
-        # Additional scheme-level review requirements
-        if scheme.requires_document_verification:
-            reasons.append('Document verification required before approval.')
-        if scheme.requires_committee_approval:
-            reasons.append('Committee approval required.')
-
-        return {'result': result, 'reasons': reasons}
-
-    def action_check_eligibility_hint(self):
-        """
-        Run eligibility hint check and populate eligibility fields on this line.
-        Does NOT change state or approve anything.
-        """
-        self.ensure_one()
-        hint = self._check_scheme_eligibility_hint()
-        self.eligibility_checked = True
-        self.eligibility_result = (
-            hint['result'] if hint['result'] in ('eligible', 'not_eligible')
-            else 'pending'
-        )
-        note = '\n'.join(hint['reasons'])
-        self.eligibility_note = note
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Eligibility Hints',
-                'message': note or 'No hints configured for this scheme.',
-                'type': 'info',
-                'sticky': True,
-            },
-        }
-
-    def _auto_fill_eligibility_hint(self):
-        """
-        Silently run the eligibility hint check and populate eligibility
-        fields. Used by the auto-suggestion engine — no UI notification.
-        Also appends applicability match notes based on scheme filters.
-        """
-        self.ensure_one()
-        hint = self._check_scheme_eligibility_hint()
-
-        # Append applicability context from auto-suggestion filters
-        scheme = self.scholarship_scheme_id
-        app = self.application_id
-        profile = app.applicant_profile_id
-        extra = []
-
-        if scheme.applicable_program_ids:
-            extra.append(
-                f'Program filter matched: {app.program_id.name}'
-            )
-        if scheme.applicable_department_ids:
-            extra.append(
-                f'Department filter matched: {app.department_id.name}'
-            )
-        if scheme.applicable_academic_year_ids:
-            extra.append(
-                f'Academic year filter matched: {app.academic_year_id.name}'
-            )
-        if scheme.applicable_gender and scheme.applicable_gender != 'any':
-            extra.append(
-                f'Gender filter matched: {profile.gender}'
-            )
-        if scheme.applicable_nationality_ids and profile.nationality_id:
-            extra.append(
-                f'Nationality filter matched: {profile.nationality_id.name}'
-            )
-        if scheme.min_applicant_age and profile:
-            extra.append(f'Applicant age ({profile.age}) >= minimum ({scheme.min_applicant_age})')
-        if scheme.max_applicant_age and profile:
-            extra.append(f'Applicant age ({profile.age}) <= maximum ({scheme.max_applicant_age})')
-        if scheme.min_academic_score > 0 and profile:
-            highest = profile.academic_history_ids.filtered(
-                lambda h: h.is_highest_completed
-            )[:1]
-            if highest:
-                extra.append(
-                    f'Academic score ({highest.score} {highest.score_type}) '
-                    f'>= minimum ({scheme.min_academic_score})'
-                )
-
-        all_reasons = hint['reasons'] + extra
-        self.eligibility_checked = True
-        self.eligibility_result = (
-            hint['result'] if hint['result'] in ('eligible', 'not_eligible')
-            else 'pending'
-        )
-        self.eligibility_note = '\n'.join(all_reasons)
+    # ── Eligibility Hint Check (Removed — eligibility is assessed manually) ──
 
     # ── Discount Calculation ──────────────────────────────────────────────────
     def _calculate_raw_discount(self, eligible_total):
@@ -591,10 +546,7 @@ class EduAdmissionScholarshipReview(models.Model):
     def _prepare_recommendation_context(self):
         """
         Build a context dict used by reviewers / UI to understand what
-        to recommend.  Combines scheme defaults with any eligibility hint
-        results already recorded on this line.
-
-        Returns: dict
+        to recommend. Combines scheme defaults with eligibility results.
         """
         self.ensure_one()
         scheme = self.scholarship_scheme_id
@@ -606,9 +558,6 @@ class EduAdmissionScholarshipReview(models.Model):
             'default_amount': scheme.default_amount,
             'max_discount_percent': scheme.max_discount_percent,
             'max_discount_amount': scheme.max_discount_amount,
-            'requires_manual_review': scheme.requires_manual_review,
-            'requires_document_verification': scheme.requires_document_verification,
-            'requires_committee_approval': scheme.requires_committee_approval,
             'eligibility_result': self.eligibility_result,
             'eligibility_note': self.eligibility_note,
         }
@@ -696,14 +645,69 @@ class EduAdmissionScholarshipReview(models.Model):
                 'applies_on_snapshot': scheme.applies_on,
                 'max_discount_percent_snapshot': scheme.max_discount_percent,
                 'max_discount_amount_snapshot': scheme.max_discount_amount,
-                'institutional_cap_exempt_snapshot': scheme.institutional_cap_exempt,
             })
+
+        # Auto-reject conflicting reviews on the same application
+        self._auto_reject_conflicts()
 
         # Trigger recalc on parent applications (outside per-rec loop for batching)
         apps = self.mapped('application_id')
         for app in apps:
             if not app.scholarship_frozen:
                 app._recompute_scholarship_summary()
+
+    def _auto_reject_conflicts(self):
+        """
+        After approval, auto-reject other review lines that conflict:
+        1. If approved scheme is exclusive → reject all other non-approved lines
+        2. If approved scheme is non-stackable → reject all other non-approved lines
+        3. Same stacking group → reject other lines in the same group
+        """
+        for rec in self.filtered(lambda r: r.state == 'approved'):
+            app_lines = rec.application_id.scholarship_review_ids.filtered(
+                lambda r: r.id != rec.id and r.state not in ('approved', 'rejected', 'cancelled')
+            )
+            if not app_lines:
+                continue
+
+            scheme = rec.scholarship_scheme_id
+            to_reject = self.env['edu.admission.scholarship.review']
+
+            # Exclusive: reject everything else
+            if scheme.exclusive:
+                to_reject = app_lines
+
+            # Non-stackable: reject everything else
+            elif not scheme.allow_stacking:
+                to_reject = app_lines
+
+            # Same stacking group: reject other lines in same group
+            elif scheme.stacking_group_id:
+                group_code = scheme.stacking_group_id.code
+                to_reject = app_lines.filtered(
+                    lambda r: r.scholarship_scheme_id.stacking_group_id.code == group_code
+                )
+
+            if to_reject:
+                rejected_names = ', '.join(
+                    to_reject.mapped('scholarship_scheme_id.name')
+                )
+                to_reject.write({
+                    'state': 'rejected',
+                    'rejection_reason': (
+                        f'Auto-rejected: conflicts with approved scheme '
+                        f'"{scheme.name}" '
+                        f'({"exclusive" if scheme.exclusive else "same stacking group" if scheme.stacking_group_id else "non-stackable"}).'
+                    ),
+                })
+                rec.application_id.message_post(
+                    body=(
+                        f'<p>Auto-rejected conflicting scholarships: '
+                        f'<b>{rejected_names}</b> — conflicts with '
+                        f'approved scheme "{scheme.name}".</p>'
+                    ),
+                    subtype_xmlid='mail.mt_note',
+                )
 
     def action_reject(self):
         """Reject this scholarship review line."""
@@ -779,5 +783,4 @@ class EduAdmissionScholarshipReview(models.Model):
             'award_type_snapshot': False,
             'max_discount_percent_snapshot': 0.0,
             'max_discount_amount_snapshot': 0.0,
-            'institutional_cap_exempt_snapshot': False,
         })
