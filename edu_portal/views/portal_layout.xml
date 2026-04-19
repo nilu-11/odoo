@@ -10,11 +10,17 @@
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <title><t t-esc="page_title or 'EMIS Portal'"/></title>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap"/>
         <link rel="stylesheet" type="text/css" href="/edu_portal/static/src/css/portal.css"/>
         <script src="/edu_portal/static/src/vendor/htmx.min.js"/>
     </head>
     <body t-attf-class="portal-body #{'sidebar-collapsed' if sidebar_collapsed else ''}"
-          t-att-data-role="portal_role">
+          t-att-data-role="portal_role"
+          data-theme="saffron"
+          data-mode="light">
         <t t-call="edu_portal.sidebar_component"/>
         <div class="portal-main">
             <t t-call="edu_portal.topbar_component"/>

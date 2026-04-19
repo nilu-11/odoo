@@ -8,8 +8,11 @@
     <template id="sidebar_component" name="Portal Sidebar">
         <aside class="portal-sidebar" data-sidebar="">
             <div class="sidebar-brand">
-                <div class="sidebar-brand-icon">E</div>
-                <span class="sidebar-brand-text">EMIS Portal</span>
+                <div class="sidebar-brand-icon">K</div>
+                <div class="sidebar-brand-text">
+                    <span class="sidebar-brand-name display">Kopilā</span>
+                    <span class="sidebar-brand-sub">EMIS Portal</span>
+                </div>
             </div>
             <ul class="sidebar-nav">
                 <t t-foreach="sidebar_items" t-as="item">
@@ -35,7 +38,7 @@
     <template id="topbar_component" name="Portal Topbar">
         <header class="portal-topbar">
             <button class="topbar-toggle" data-sidebar-toggle="1" type="button">&#8801;</button>
-            <div class="topbar-title"><t t-esc="page_title or ''"/></div>
+            <div class="topbar-title display"><t t-esc="page_title or ''"/></div>
             <div class="topbar-spacer"/>
 
             <!-- Child selector (parent role only) -->
