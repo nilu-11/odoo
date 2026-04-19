@@ -290,6 +290,10 @@
                                         All Absent
                                     </button>
                                 </div>
+                                <div class="att-view-switch" id="att-view-switch">
+                                    <button type="button" class="active" data-att-view="list">List</button>
+                                    <button type="button" data-att-view="grid">Grid</button>
+                                </div>
                                 <div class="att-counters" id="att-counters">
                                     <span class="att-counter att-counter--present">
                                         <span class="att-counter-dot"/>
@@ -312,6 +316,25 @@
                             <div class="att-modal-body" id="att-student-list">
                                 <t t-foreach="sorted_lines" t-as="line">
                                     <t t-call="edu_portal.teacher_attendance_row_partial"/>
+                                </t>
+                            </div>
+                            <!-- Photo grid variant -->
+                            <div class="att-photo-grid" id="att-photo-grid">
+                                <t t-foreach="sorted_lines" t-as="line">
+                                    <div t-attf-class="att-photo-card #{line.status and ('status-' + line.status) or ''}"
+                                         t-att-data-line-id="line.id"
+                                         t-att-data-student-name="line.student_id.display_name"
+                                         onclick="cyclePhotoStatus(this)">
+                                        <div class="att-photo-avatar">
+                                            <t t-esc="(line.student_id.partner_id.name or '?')[0:2].upper()"/>
+                                        </div>
+                                        <span class="att-photo-name">
+                                            <t t-esc="line.student_id.display_name"/>
+                                        </span>
+                                        <span class="att-photo-status">
+                                            <t t-esc="line.status.title() if line.status else '—'"/>
+                                        </span>
+                                    </div>
                                 </t>
                             </div>
                             <div class="att-modal-footer">

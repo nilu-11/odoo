@@ -144,12 +144,79 @@
     //  Init
     // ═══════════════════════════════════════════════════════════
 
+    // ─── Attendance view switch (List / Grid) ──────────────
+    function initAttendanceViewSwitch() {
+        var sw = document.getElementById('att-view-switch');
+        if (!sw) return;
+        sw.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-att-view]');
+            if (!btn) return;
+            var view = btn.getAttribute('data-att-view');
+            sw.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var list = document.getElementById('att-student-list');
+            var grid = document.getElementById('att-photo-grid');
+            if (view === 'grid') {
+                if (list) list.style.display = 'none';
+                if (grid) grid.classList.add('active');
+            } else {
+                if (list) list.style.display = '';
+                if (grid) grid.classList.remove('active');
+            }
+        });
+    }
+
+    // ─── Photo grid: cycle status on click ───────────────────
+    var STATUS_CYCLE = ['present', 'absent', 'late', 'excused'];
+    window.cyclePhotoStatus = function(card) {
+        var lineId = card.getAttribute('data-line-id');
+        var currentClass = STATUS_CYCLE.find(function(s) { return card.classList.contains('status-' + s); });
+        var nextIdx = currentClass ? (STATUS_CYCLE.indexOf(currentClass) + 1) % STATUS_CYCLE.length : 0;
+        var nextStatus = STATUS_CYCLE[nextIdx];
+
+        // Remove old status classes
+        STATUS_CYCLE.forEach(function(s) { card.classList.remove('status-' + s); });
+        card.classList.add('status-' + nextStatus);
+        var statusEl = card.querySelector('.att-photo-status');
+        if (statusEl) statusEl.textContent = nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1);
+
+        // Fire HTMX POST to persist
+        var csrf = document.querySelector('[name="csrf_token"]');
+        var body = new FormData();
+        body.append('line_id', lineId);
+        body.append('status', nextStatus);
+        if (csrf) body.append('csrf_token', csrf.value);
+        fetch('/portal/teacher/classroom/attendance/mark', { method: 'POST', body: body })
+            .then(function() { updateAttendanceCounters(); syncGridFromList(); });
+    };
+
+    // Sync list row active buttons from grid (after grid click)
+    function syncGridFromList() {
+        var grid = document.getElementById('att-photo-grid');
+        var list = document.getElementById('att-student-list');
+        if (!grid || !list) return;
+        grid.querySelectorAll('.att-photo-card').forEach(function(card) {
+            var lineId = card.getAttribute('data-line-id');
+            var status = STATUS_CYCLE.find(function(s) { return card.classList.contains('status-' + s); });
+            if (!status) return;
+            // Find matching row in list and update its active button
+            var row = list.querySelector('[data-line-id="' + lineId + '"]');
+            if (!row) return;
+            row.querySelectorAll('.att-status-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            var targetBtn = row.querySelector('.att-status-btn--' + status);
+            if (targetBtn) targetBtn.classList.add('active');
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+
     document.addEventListener('DOMContentLoaded', function() {
         initAttendanceModalTriggers();
         initAutoOpenModal();
         initAttendanceKeyboard();
         initMarksTabNavigation();
         initMatrixDateFilter();
+        initAttendanceViewSwitch();
     });
 
     // After every HTMX swap, update counters + re-init keyboard

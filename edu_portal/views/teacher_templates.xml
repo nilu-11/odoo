@@ -1,34 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Teacher Home — Google Classroom-style card grid.
-
-         Pure grid. No stats strip, no sidebar widgets. Clicking a
-         card routes into /portal/teacher/classroom/<id>/stream.
+         Teacher Home — Today Dashboard
+         Schedule, attention queue, courses, quick stats.
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_home_page" name="Teacher Home">
         <t t-call="edu_portal.portal_layout">
             <div class="classroom-grid-wrap">
-                <h2 class="page-title">My Classrooms</h2>
-                <t t-if="classroom_cards">
-                    <div class="classroom-grid">
-                        <t t-foreach="classroom_cards" t-as="card">
-                            <t t-call="edu_portal.classroom_card_component">
-                                <t t-set="classroom" t-value="card['classroom']"/>
-                                <t t-set="status_label" t-value="card['status_label']"/>
-                                <t t-set="status_class" t-value="card['status_class']"/>
-                                <t t-set="detail_url" t-value="card['detail_url']"/>
+
+                <!-- ── Page header ── -->
+                <div class="today-header">
+                    <div>
+                        <h1 class="page-title">Today</h1>
+                        <p class="today-sub"><t t-esc="today_date"/></p>
+                    </div>
+                </div>
+
+                <!-- ── Stat cards ── -->
+                <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+                    <div class="card today-stat">
+                        <p class="card-title">My Courses</p>
+                        <p class="card-value display"><t t-esc="total_courses"/></p>
+                        <p class="card-sub">Active classrooms</p>
+                    </div>
+                    <div class="card today-stat">
+                        <p class="card-title">Total Students</p>
+                        <p class="card-value display"><t t-esc="total_students"/></p>
+                        <p class="card-sub">Across all courses</p>
+                    </div>
+                    <div class="card today-stat">
+                        <p class="card-title">Sessions Today</p>
+                        <p class="card-value display"><t t-esc="sessions_today"/></p>
+                        <p class="card-sub">Scheduled classes</p>
+                    </div>
+                    <div class="card today-stat">
+                        <p class="card-title">Pending Marks</p>
+                        <p class="card-value display" t-attf-style="#{marks_due_count and 'color: var(--accent-danger)' or ''}">
+                            <t t-esc="marks_due_count"/>
+                        </p>
+                        <p class="card-sub">Papers to grade</p>
+                    </div>
+                </div>
+
+                <!-- ── Two-column layout ── -->
+                <div class="dashboard-grid">
+
+                    <!-- LEFT COLUMN -->
+                    <div>
+                        <!-- Today's Schedule -->
+                        <t t-if="today_slots">
+                            <h3 class="today-section-title">Today's Schedule</h3>
+                            <div class="today-schedule">
+                                <t t-foreach="today_slots" t-as="slot">
+                                    <a t-att-href="slot['classroom_id'] and ('/portal/teacher/classroom/%d' % slot['classroom_id']) or '#'"
+                                       class="today-slot-row">
+                                        <span class="today-slot-time mono"><t t-esc="slot['time']"/></span>
+                                        <div class="today-slot-info">
+                                            <span class="today-slot-title"><t t-esc="slot['title']"/></span>
+                                            <span class="today-slot-meta">
+                                                <t t-if="slot['room']"><t t-esc="slot['room']"/></t>
+                                                <t t-if="slot['room'] and slot['section']"> · </t>
+                                                <t t-if="slot['section']"><t t-esc="slot['section']"/></t>
+                                            </span>
+                                        </div>
+                                        <span t-if="slot['slot_type'] == 'exam'" class="classroom-card-badge badge-warning">Exam</span>
+                                    </a>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Attention Queue -->
+                        <t t-if="attention_items">
+                            <h3 class="today-section-title" style="margin-top: 24px;">Needs Attention</h3>
+                            <div class="today-attention">
+                                <t t-foreach="attention_items" t-as="item">
+                                    <a t-att-href="item.get('url', '#')"
+                                       t-attf-class="today-attention-item today-attention-#{item['kind']}">
+                                        <span class="today-attention-icon"><t t-esc="item['icon']"/></span>
+                                        <span><t t-esc="item['text']"/></span>
+                                    </a>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- No schedule + no attention = calm state -->
+                        <t t-if="not today_slots and not attention_items">
+                            <div class="card" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                                <p class="display" style="font-size:28px; margin:0 0 8px;">All clear</p>
+                                <p style="margin:0; font-size:13px;">No classes scheduled and nothing needs attention today.</p>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div>
+                        <h3 class="today-section-title">My Courses</h3>
+                        <t t-if="classroom_cards">
+                            <div class="today-courses">
+                                <t t-foreach="classroom_cards" t-as="card">
+                                    <a t-att-href="card['detail_url']" class="today-course-card">
+                                        <div class="today-course-info">
+                                            <strong><t t-esc="card['classroom'].name"/></strong>
+                                            <span>
+                                                <t t-esc="card['classroom'].section_id.name"/> ·
+                                                <t t-esc="card['classroom'].subject_id.name"/>
+                                            </span>
+                                        </div>
+                                        <span t-attf-class="classroom-card-badge #{card['status_class']}">
+                                            <t t-esc="card['status_label']"/>
+                                        </span>
+                                    </a>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <t t-call="edu_portal.empty_state_component">
+                                <t t-set="title" t-value="'No classrooms assigned'"/>
+                                <t t-set="message" t-value="'Classrooms appear here once assigned.'"/>
                             </t>
                         </t>
                     </div>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📚'"/>
-                        <t t-set="title" t-value="'No classrooms assigned'"/>
-                        <t t-set="message" t-value="'Classrooms will appear here once an administrator assigns you as the teacher.'"/>
-                    </t>
-                </t>
+                </div>
+
             </div>
         </t>
     </template>

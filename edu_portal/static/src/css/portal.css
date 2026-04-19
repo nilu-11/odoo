@@ -1873,3 +1873,276 @@ body.sidebar-collapsed .sidebar-badge {
     border-color: #fecaca;
 }
 .post-action-form .btn.btn-danger:hover { background: #fee2e2; }
+
+/* ═══════════════════════════════════════════════════════════
+   Today Dashboard
+   ═══════════════════════════════════════════════════════════ */
+.today-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+.today-sub {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin: 6px 0 0;
+}
+.today-stat .card-value {
+    font-size: 36px;
+    line-height: 1;
+}
+
+/* ─── Section titles ── */
+.today-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+}
+
+/* ─── Schedule rows ── */
+.today-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.today-slot-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all 0.15s var(--ease);
+    text-decoration: none;
+    color: inherit;
+}
+.today-slot-row:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+}
+.today-slot-time {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 110px;
+    white-space: nowrap;
+}
+.today-slot-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.today-slot-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+.today-slot-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ─── Attention queue ── */
+.today-attention {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.today-attention-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.12s var(--ease);
+}
+.today-attention-danger {
+    background: var(--accent-danger-soft);
+    color: var(--accent-danger);
+}
+.today-attention-danger:hover { opacity: 0.85; }
+.today-attention-warn {
+    background: var(--accent-warning-soft);
+    color: var(--accent-warning);
+}
+.today-attention-warn:hover { opacity: 0.85; }
+.today-attention-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    background: currentColor;
+    color: var(--bg-white);
+    flex-shrink: 0;
+}
+.today-attention-danger .today-attention-icon { background: var(--accent-danger); }
+.today-attention-warn .today-attention-icon { background: var(--accent-warning); }
+
+/* ─── Course list (compact cards) ── */
+.today-courses {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.today-course-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.15s var(--ease);
+}
+.today-course-card:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+}
+.today-course-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.today-course-info strong {
+    font-size: 14px;
+    font-weight: 500;
+}
+.today-course-info span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .stat-grid[style*="repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
+    .today-slot-time { min-width: 80px; font-size: 11px; }
+    .today-stat .card-value { font-size: 28px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Attendance Photo Grid Variant
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Variant switcher in modal toolbar ── */
+.att-view-switch {
+    display: inline-flex;
+    padding: 2px;
+    background: var(--bg-lighter);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    gap: 2px;
+}
+.att-view-switch button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    background: transparent;
+}
+.att-view-switch button.active {
+    background: var(--bg-white);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-xs);
+}
+
+/* ─── Photo grid layout ── */
+.att-photo-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    padding: 16px 24px;
+}
+.att-photo-grid.active {
+    display: grid;
+}
+.att-photo-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-color);
+    background: var(--bg-white);
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+    text-align: center;
+}
+.att-photo-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-hover);
+}
+.att-photo-card.status-present {
+    border-color: var(--accent-success);
+    background: var(--accent-success-soft);
+}
+.att-photo-card.status-absent {
+    border-color: var(--accent-danger);
+    background: var(--accent-danger-soft);
+}
+.att-photo-card.status-late {
+    border-color: var(--accent-warning);
+    background: var(--accent-warning-soft);
+}
+.att-photo-card.status-excused {
+    border-color: var(--text-muted);
+    background: var(--bg-lighter);
+}
+.att-photo-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+.att-photo-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.2;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.att-photo-status {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+.att-photo-card.status-present .att-photo-status { color: var(--accent-success); }
+.att-photo-card.status-absent .att-photo-status { color: var(--accent-danger); }
+.att-photo-card.status-late .att-photo-status { color: var(--accent-warning); }
+
+@media (max-width: 768px) {
+    .att-photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        padding: 12px 16px;
+        gap: 6px;
+    }
+    .att-photo-avatar { width: 40px; height: 40px; font-size: 14px; }
+    .att-photo-name { font-size: 10px; }
+}
