@@ -254,6 +254,24 @@ def build_portal_context(
     user = request.env.user
     role = get_portal_role(user)
     resolved = _resolve_portal_registry(role, classroom=classroom)
+
+    # Teacher's classrooms for sidebar "My courses" section
+    classrooms = request.env['edu.classroom'].browse()
+    if role == 'teacher':
+        employee = get_teacher_employee(user)
+        if employee:
+            classrooms = request.env['edu.classroom'].sudo().search([
+                ('teacher_id', '=', employee.id),
+                ('state', '=', 'active'),
+            ], limit=10)
+
+    # Parent's children for child selector
+    children = False
+    active_child = False
+    if role == 'parent':
+        children = get_parent_children(user)
+        active_child = get_active_child(user)
+
     return {
         'user': user,
         'portal_role': role,
@@ -262,9 +280,11 @@ def build_portal_context(
         'active_sidebar_key': active_sidebar_key,
         'active_tab_key': active_tab_key,
         'classroom': classroom,
+        'classrooms': classrooms,
+        'children': children,
+        'active_child': active_child,
         'sidebar_items': resolved['sidebar_items'],
         'classroom_tabs': resolved['classroom_tabs'],
-        # Legacy alias — old templates still read `active_item`.
         'active_item': active_sidebar_key,
     }
 

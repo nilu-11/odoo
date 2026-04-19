@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Sidebar Component
-         Renders role-specific navigation items.
-         Expects: portal_role, sidebar_items, active_item
+         Sidebar — Kopila design
+         Grouped nav with section headers, course list, footer.
+         Expects: portal_role, sidebar_items, active_sidebar_key,
+                  user, classrooms (optional, for course list)
     ══════════════════════════════════════════════════════ -->
     <template id="sidebar_component" name="Portal Sidebar">
         <aside class="portal-sidebar" data-sidebar="">
@@ -11,12 +12,12 @@
             <div class="sidebar-brand">
                 <div class="sidebar-brand-icon">क</div>
                 <div class="sidebar-brand-text">
-                    <span class="sidebar-brand-name display">Kopilā</span>
-                    <span class="sidebar-brand-sub">EMIS Portal</span>
+                    <div class="sidebar-brand-name display">Kopilā</div>
+                    <div class="sidebar-brand-sub">EMIS Portal</div>
                 </div>
             </div>
 
-            <!-- Navigation (grouped) -->
+            <!-- Scrollable nav area -->
             <div class="sidebar-scroll">
                 <t t-set="last_group" t-value="''"/>
                 <t t-foreach="sidebar_items" t-as="item">
@@ -31,35 +32,65 @@
                             <span class="nav-icon"><t t-esc="item['icon']"/></span>
                             <span class="nav-label"><t t-esc="item['label']"/></span>
                             <t t-if="item.get('badge')">
-                                <span class="nav-badge mono"><t t-esc="item['badge']"/></span>
+                                <span t-attf-class="nav-badge mono #{'accent' if item.get('badge_accent') else ''}">
+                                    <t t-esc="item['badge']"/>
+                                </span>
                             </t>
                         </a>
+                    </div>
+                </t>
+
+                <!-- My Courses section (teacher only) -->
+                <t t-if="portal_role == 'teacher' and classrooms">
+                    <div class="nav-section">My courses</div>
+                    <div class="nav-courses">
+                        <t t-foreach="classrooms" t-as="cl">
+                            <a t-attf-href="/portal/teacher/classroom/#{cl.id}"
+                               class="nav-course">
+                                <span class="course-dot saffron"/>
+                                <span class="nav-label"><t t-esc="cl.name"/></span>
+                                <span class="course-code-short mono">
+                                    <t t-esc="cl.subject_id.code or ''"/>
+                                </span>
+                            </a>
+                        </t>
                     </div>
                 </t>
             </div>
 
             <!-- Footer: user info -->
             <div class="sidebar-footer">
-                <div class="sidebar-avatar">
+                <div class="avatar">
                     <t t-esc="user.name[0].upper() if user.name else '?'"/>
                 </div>
-                <div class="sidebar-user-text">
-                    <div class="sidebar-user-name"><t t-esc="user.name"/></div>
-                    <div class="sidebar-user-role"><t t-esc="portal_role.title() if portal_role else ''"/></div>
+                <div class="user-text">
+                    <div class="user-name"><t t-esc="user.name"/></div>
+                    <div class="user-role">
+                        <t t-esc="portal_role.title() if portal_role else ''"/>
+                    </div>
                 </div>
             </div>
         </aside>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Topbar Component
-         Expects: page_title, user, portal_role, active_child (parent only)
+         Topbar — Kopila design
+         Breadcrumbs, selectors, user menu.
+         Expects: page_title, user, portal_role, active_child
     ══════════════════════════════════════════════════════ -->
     <template id="topbar_component" name="Portal Topbar">
         <header class="portal-topbar">
-            <button class="topbar-toggle" data-sidebar-toggle="1" type="button">&#8801;</button>
-            <div class="topbar-title display"><t t-esc="page_title or ''"/></div>
-            <div class="topbar-spacer"/>
+            <!-- Sidebar toggle (hamburger) -->
+            <button class="iconbtn" data-sidebar-toggle="1" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+            </button>
+
+            <!-- Breadcrumbs -->
+            <div class="crumbs">
+                <span class="crumb-hide-sm">Kopilā</span>
+                <span class="sep">/</span>
+                <span class="current"><t t-esc="page_title or ''"/></span>
+            </div>
 
             <!-- Child selector (parent role only) -->
             <t t-if="portal_role == 'parent' and children">
@@ -83,10 +114,16 @@
                 </select>
             </t>
 
+            <!-- Notifications bell -->
+            <button class="iconbtn" title="Notifications">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </button>
+
             <!-- User menu -->
             <div class="topbar-user" data-user-menu-trigger="1">
-                <div class="topbar-user-avatar"><t t-esc="user.name[0].upper() if user.name else '?'"/></div>
-                <span><t t-esc="user.name"/></span>
+                <div class="avatar" style="width:28px; height:28px; font-size:11px;">
+                    <t t-esc="user.name[0].upper() if user.name else '?'"/>
+                </div>
                 <div class="user-menu" data-user-menu="1">
                     <a t-attf-href="/portal/#{portal_role}/profile">My Profile</a>
                     <a href="/web/session/logout">Logout</a>
@@ -96,19 +133,19 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Stat Card Component
+         Stat Card
          Expects: label, value, sub
     ══════════════════════════════════════════════════════ -->
     <template id="stat_card_component" name="Portal Stat Card">
         <div class="card">
             <p class="card-title"><t t-esc="label"/></p>
-            <p class="card-value"><t t-esc="value"/></p>
+            <p class="card-value display"><t t-esc="value"/></p>
             <t t-if="sub"><p class="card-sub"><t t-esc="sub"/></p></t>
         </div>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Classroom Card Component
+         Classroom Card
          Expects: classroom, status_label, status_class, detail_url
     ══════════════════════════════════════════════════════ -->
     <template id="classroom_card_component" name="Portal Classroom Card">
@@ -120,24 +157,20 @@
                     <t t-esc="classroom.subject_id.name"/>
                 </p>
             </div>
-            <span t-attf-class="classroom-card-badge #{status_class}">
+            <span t-attf-class="pill #{status_class}">
                 <t t-esc="status_label"/>
             </span>
         </a>
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Classroom Tabs Component
-         Renders the Google-Classroom-style tab bar inside a
-         classroom hub page. Populated from the portal extension
-         registry (edu.portal.classroom.tab) by build_portal_context.
-
+         Classroom Tabs
          Expects: classroom, classroom_tabs, active_tab_key
     ══════════════════════════════════════════════════════ -->
     <template id="classroom_tabs_component" name="Portal Classroom Tabs">
         <nav class="classroom-tabs">
             <div class="classroom-tabs-header">
-                <h1 class="classroom-tabs-title"><t t-esc="classroom.name"/></h1>
+                <h1 class="classroom-tabs-title display"><t t-esc="classroom.name"/></h1>
                 <p class="classroom-tabs-sub">
                     <t t-esc="classroom.section_id.name"/> ·
                     <t t-esc="classroom.subject_id.name"/> ·
@@ -159,12 +192,8 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Post Card Component
-         Renders a single Stream announcement. The `can_manage`
-         flag controls visibility of pin/archive actions (teacher
-         view only).
-
-         Expects: post (edu.classroom.post), can_manage (bool)
+         Post Card (Stream announcements)
+         Expects: post, can_manage
     ══════════════════════════════════════════════════════ -->
     <template id="post_card_component" name="Portal Post Card">
         <article t-attf-class="post-card #{'post-pinned' if post.pinned else ''}">
@@ -180,7 +209,7 @@
                 </div>
                 <div class="post-card-meta">
                     <t t-if="post.pinned">
-                        <span class="post-pin-badge">Pinned</span>
+                        <span class="pill accent">Pinned</span>
                     </t>
                 </div>
             </header>
@@ -191,14 +220,14 @@
                 <footer class="post-card-actions">
                     <form t-attf-action="/portal/teacher/classroom/stream/pin/#{post.id}"
                           method="post" class="post-action-form">
-                        <button type="submit" class="btn btn-sm">
+                        <button type="submit" class="btn sm">
                             <t t-esc="'Unpin' if post.pinned else 'Pin'"/>
                         </button>
                     </form>
                     <form t-attf-action="/portal/teacher/classroom/stream/archive/#{post.id}"
                           method="post" class="post-action-form"
-                          onsubmit="return confirm('Archive this post? Students will no longer see it.');">
-                        <button type="submit" class="btn btn-sm btn-danger">Archive</button>
+                          onsubmit="return confirm('Archive this post?');">
+                        <button type="submit" class="btn sm" style="color:var(--danger)">Archive</button>
                     </form>
                 </footer>
             </t>
@@ -206,15 +235,14 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
-         Empty State Component
-         Expects: title, message. (`icon` argument is ignored —
-         emoji-free professional theme uses a single subtle glyph.)
+         Empty State
+         Expects: title, message
     ══════════════════════════════════════════════════════ -->
     <template id="empty_state_component" name="Portal Empty State">
-        <div class="empty-state">
-            <div class="empty-state-mark">○</div>
-            <div class="empty-state-title"><t t-esc="title"/></div>
-            <p><t t-esc="message or ''"/></p>
+        <div class="empty">
+            <div style="margin-bottom:8px; color:var(--ink-softer);">○</div>
+            <div style="font-weight:500; color:var(--ink); margin-bottom:4px;"><t t-esc="title"/></div>
+            <div><t t-esc="message or ''"/></div>
         </div>
     </template>
 </odoo>
