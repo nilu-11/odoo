@@ -83,8 +83,10 @@
                         </group>
                         <group string="Details">
                             <field name="summary"/>
+                            <field name="activity_id"
+                                   domain="[('res_model', '=', 'crm.lead'), ('res_id', '=', lead_id)]"
+                                   options="{'no_create': True}"/>
                             <field name="applicant_profile_id" readonly="1"/>
-                            <field name="activity_id" readonly="1"/>
                         </group>
                     </group>
                     <group string="Notes">

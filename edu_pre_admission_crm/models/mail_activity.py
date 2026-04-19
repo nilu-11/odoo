@@ -14,6 +14,10 @@ class MailActivity(models.Model):
 
     def _action_done(self, feedback=False, attachment_ids=None):
         """Auto-create interaction log when any activity on a CRM lead is completed."""
+        # Skip if called from interaction log create (already logged)
+        if self.env.context.get('skip_interaction_log'):
+            return super()._action_done(feedback=feedback, attachment_ids=attachment_ids)
+
         # Build mapping: activity_type id → interaction_type key
         edu_type_ids = {}
         for xml_id_suffix, interaction_type in _ACTIVITY_TYPE_MAP.items():

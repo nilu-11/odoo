@@ -790,18 +790,23 @@ class CrmLead(models.Model):
         }
 
     def action_log_interaction(self):
-        """Open form to manually log an interaction."""
+        """Open form to manually log an interaction, auto-linking the earliest open activity."""
         self.ensure_one()
+        ctx = {
+            'default_lead_id': self.id,
+            'default_counselor_id': self.env.uid,
+        }
+        # Auto-select the earliest open activity on this lead
+        earliest = self.activity_ids.sorted('date_deadline')[:1]
+        if earliest:
+            ctx['default_activity_id'] = earliest.id
         return {
             'type': 'ir.actions.act_window',
             'name': _('Log Interaction'),
             'res_model': 'edu.interaction.log',
             'view_mode': 'form',
             'target': 'new',
-            'context': {
-                'default_lead_id': self.id,
-                'default_counselor_id': self.env.uid,
-            },
+            'context': ctx,
         }
 
     def action_open_applicant_profile(self):
