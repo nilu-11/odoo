@@ -7,27 +7,47 @@
     ══════════════════════════════════════════════════════ -->
     <template id="sidebar_component" name="Portal Sidebar">
         <aside class="portal-sidebar" data-sidebar="">
+            <!-- Brand -->
             <div class="sidebar-brand">
-                <div class="sidebar-brand-icon">K</div>
+                <div class="sidebar-brand-icon">क</div>
                 <div class="sidebar-brand-text">
                     <span class="sidebar-brand-name display">Kopilā</span>
                     <span class="sidebar-brand-sub">EMIS Portal</span>
                 </div>
             </div>
-            <ul class="sidebar-nav">
+
+            <!-- Navigation (grouped) -->
+            <div class="sidebar-scroll">
+                <t t-set="last_group" t-value="''"/>
                 <t t-foreach="sidebar_items" t-as="item">
-                    <li>
+                    <!-- Section header when group changes -->
+                    <t t-if="item.get('group') and item['group'] != last_group">
+                        <div class="nav-section"><t t-esc="item['group']"/></div>
+                        <t t-set="last_group" t-value="item['group']"/>
+                    </t>
+                    <div class="nav-list">
                         <a t-att-href="item['url']"
-                           t-attf-class="#{'active' if item.get('key') == (active_sidebar_key or active_item) else ''}">
+                           t-attf-class="nav-item #{'active' if item.get('key') == (active_sidebar_key or active_item) else ''}">
                             <span class="nav-icon"><t t-esc="item['icon']"/></span>
-                            <span class="sidebar-label"><t t-esc="item['label']"/></span>
+                            <span class="nav-label"><t t-esc="item['label']"/></span>
                             <t t-if="item.get('badge')">
-                                <span class="sidebar-badge"><t t-esc="item['badge']"/></span>
+                                <span class="nav-badge mono"><t t-esc="item['badge']"/></span>
                             </t>
                         </a>
-                    </li>
+                    </div>
                 </t>
-            </ul>
+            </div>
+
+            <!-- Footer: user info -->
+            <div class="sidebar-footer">
+                <div class="sidebar-avatar">
+                    <t t-esc="user.name[0].upper() if user.name else '?'"/>
+                </div>
+                <div class="sidebar-user-text">
+                    <div class="sidebar-user-name"><t t-esc="user.name"/></div>
+                    <div class="sidebar-user-role"><t t-esc="portal_role.title() if portal_role else ''"/></div>
+                </div>
+            </div>
         </aside>
     </template>
 

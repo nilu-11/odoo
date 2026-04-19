@@ -49,6 +49,10 @@ class EduPortalSidebarItem(models.Model):
         required=True,
         default='all',
     )
+    group = fields.Char(
+        string='Group',
+        help="Section header label for visual grouping in the sidebar.",
+    )
     active = fields.Boolean(default=True)
 
     # ═══ Dynamic resolution ═══

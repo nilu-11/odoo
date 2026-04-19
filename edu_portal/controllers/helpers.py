@@ -213,6 +213,7 @@ def _resolve_portal_registry(role, classroom=None):
             'icon': item.icon or '',
             'url': item.url,
             'sequence': item.sequence,
+            'group': item.group or '',
             'badge': badge if badge_ok else None,
         })
 

@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo noupdate="0">
     <!-- ══════════════════════════════════════════════════════
-         Built-in sidebar items.
+         Built-in sidebar items — Kopilā design.
 
-         Icons are plain monochrome Unicode glyphs so they render
-         consistently and match the professional theme. Avoid
-         emoji/color glyphs here.
-
-         Bridge modules can add more by shipping their own data
-         records into the same model. noupdate="1" preserves
-         admin edits across -u edu_portal.
+         Icons are plain monochrome Unicode glyphs. Group field
+         controls section headers in the sidebar.
     ══════════════════════════════════════════════════════ -->
 
     <!-- ─── Teacher ─── -->
     <record id="sidebar_teacher_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
-        <field name="label">Home</field>
+        <field name="label">Today</field>
         <field name="icon">⌂</field>
+        <field name="group">Teach</field>
         <field name="sequence">10</field>
         <field name="url">/portal/teacher/home</field>
         <field name="role">teacher</field>
@@ -26,6 +22,7 @@
         <field name="key">profile</field>
         <field name="label">My Profile</field>
         <field name="icon">◉</field>
+        <field name="group">Account</field>
         <field name="sequence">90</field>
         <field name="url">/portal/teacher/profile</field>
         <field name="role">teacher</field>
@@ -36,6 +33,7 @@
         <field name="key">home</field>
         <field name="label">Home</field>
         <field name="icon">⌂</field>
+        <field name="group">Learn</field>
         <field name="sequence">10</field>
         <field name="url">/portal/student/home</field>
         <field name="role">student</field>
@@ -45,6 +43,7 @@
         <field name="key">fees</field>
         <field name="label">Fees</field>
         <field name="icon">¤</field>
+        <field name="group">Records</field>
         <field name="sequence">70</field>
         <field name="url">/portal/student/fees</field>
         <field name="role">student</field>
@@ -54,6 +53,7 @@
         <field name="key">profile</field>
         <field name="label">My Profile</field>
         <field name="icon">◉</field>
+        <field name="group">Account</field>
         <field name="sequence">90</field>
         <field name="url">/portal/student/profile</field>
         <field name="role">student</field>
@@ -64,6 +64,7 @@
         <field name="key">home</field>
         <field name="label">Overview</field>
         <field name="icon">⌂</field>
+        <field name="group">My Child</field>
         <field name="sequence">10</field>
         <field name="url">/portal/parent/home</field>
         <field name="role">parent</field>
@@ -73,6 +74,7 @@
         <field name="key">attendance</field>
         <field name="label">Attendance</field>
         <field name="icon">✓</field>
+        <field name="group">My Child</field>
         <field name="sequence">30</field>
         <field name="url">/portal/parent/attendance</field>
         <field name="role">parent</field>
@@ -82,6 +84,7 @@
         <field name="key">results</field>
         <field name="label">Results</field>
         <field name="icon">▦</field>
+        <field name="group">My Child</field>
         <field name="sequence">40</field>
         <field name="url">/portal/parent/results</field>
         <field name="role">parent</field>
@@ -91,6 +94,7 @@
         <field name="key">assessments</field>
         <field name="label">Assessments</field>
         <field name="icon">✎</field>
+        <field name="group">My Child</field>
         <field name="sequence">50</field>
         <field name="url">/portal/parent/assessments</field>
         <field name="role">parent</field>
@@ -100,6 +104,7 @@
         <field name="key">fees</field>
         <field name="label">Fees</field>
         <field name="icon">¤</field>
+        <field name="group">Records</field>
         <field name="sequence">70</field>
         <field name="url">/portal/parent/fees</field>
         <field name="role">parent</field>
@@ -109,6 +114,7 @@
         <field name="key">profile</field>
         <field name="label">My Profile</field>
         <field name="icon">◉</field>
+        <field name="group">Account</field>
         <field name="sequence">90</field>
         <field name="url">/portal/parent/profile</field>
         <field name="role">parent</field>
