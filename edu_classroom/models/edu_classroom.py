@@ -149,6 +149,7 @@ class EduClassroom(models.Model):
         ondelete='set null',
         tracking=True,
         index=True,
+        domain="['|', ('share', '=', False), ('share', '=', True)]",
     )
 
     # ── State / Flags ─────────────────────────────────────────────────────────
