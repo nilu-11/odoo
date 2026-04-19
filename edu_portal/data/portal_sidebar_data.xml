@@ -7,7 +7,7 @@
          controls section headers in the sidebar.
     ══════════════════════════════════════════════════════ -->
 
-    <!-- ─── Teacher ─── -->
+    <!-- ─── Teacher: Teach ─── -->
     <record id="sidebar_teacher_home" model="edu.portal.sidebar.item">
         <field name="key">home</field>
         <field name="label">Today</field>
@@ -18,6 +18,57 @@
         <field name="role">teacher</field>
     </record>
 
+    <record id="sidebar_teacher_courses" model="edu.portal.sidebar.item">
+        <field name="key">courses</field>
+        <field name="label">Courses</field>
+        <field name="icon">▤</field>
+        <field name="group">Teach</field>
+        <field name="sequence">15</field>
+        <field name="url">/portal/teacher/courses</field>
+        <field name="role">teacher</field>
+    </record>
+
+    <record id="sidebar_teacher_attendance" model="edu.portal.sidebar.item">
+        <field name="key">attendance</field>
+        <field name="label">Attendance</field>
+        <field name="icon">✓</field>
+        <field name="group">Teach</field>
+        <field name="sequence">20</field>
+        <field name="url">/portal/teacher/attendance</field>
+        <field name="role">teacher</field>
+    </record>
+
+    <record id="sidebar_teacher_marking" model="edu.portal.sidebar.item">
+        <field name="key">marking</field>
+        <field name="label">Marking</field>
+        <field name="icon">✎</field>
+        <field name="group">Teach</field>
+        <field name="sequence">25</field>
+        <field name="url">/portal/teacher/marking</field>
+        <field name="role">teacher</field>
+    </record>
+
+    <record id="sidebar_teacher_gradebook" model="edu.portal.sidebar.item">
+        <field name="key">gradebook</field>
+        <field name="label">Gradebook</field>
+        <field name="icon">▦</field>
+        <field name="group">Teach</field>
+        <field name="sequence">30</field>
+        <field name="url">/portal/teacher/gradebook</field>
+        <field name="role">teacher</field>
+    </record>
+
+    <record id="sidebar_teacher_reports" model="edu.portal.sidebar.item">
+        <field name="key">reports</field>
+        <field name="label">Report Cards</field>
+        <field name="icon">◧</field>
+        <field name="group">Teach</field>
+        <field name="sequence">35</field>
+        <field name="url">/portal/teacher/reports</field>
+        <field name="role">teacher</field>
+    </record>
+
+    <!-- ─── Teacher: Account ─── -->
     <record id="sidebar_teacher_profile" model="edu.portal.sidebar.item">
         <field name="key">profile</field>
         <field name="label">My Profile</field>

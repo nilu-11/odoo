@@ -127,6 +127,161 @@
     </template>
 
     <!-- ══════════════════════════════════════════════════════
+         Courses — full classroom card grid
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_courses_page" name="Teacher Courses">
+        <t t-call="edu_portal.portal_layout">
+            <div class="classroom-grid-wrap">
+                <h1 class="page-title">Courses</h1>
+                <t t-if="classroom_cards">
+                    <div class="classroom-grid">
+                        <t t-foreach="classroom_cards" t-as="card">
+                            <t t-call="edu_portal.classroom_card_component">
+                                <t t-set="classroom" t-value="card['classroom']"/>
+                                <t t-set="status_label" t-value="card['status_label']"/>
+                                <t t-set="status_class" t-value="card['status_class']"/>
+                                <t t-set="detail_url" t-value="card['detail_url']"/>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="title" t-value="'No classrooms assigned'"/>
+                        <t t-set="message" t-value="'Classrooms will appear here once an administrator assigns you as the teacher.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Attendance — cross-classroom overview
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_attendance_overview_page" name="Teacher Attendance Overview">
+        <t t-call="edu_portal.portal_layout">
+            <div class="classroom-grid-wrap">
+                <h1 class="page-title">Attendance</h1>
+                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
+                    <t t-esc="today_date"/> — select a classroom to take or view attendance
+                </p>
+                <div class="today-courses">
+                    <t t-foreach="classroom_att" t-as="item">
+                        <a t-att-href="item['url']" class="today-course-card">
+                            <div class="today-course-info">
+                                <strong><t t-esc="item['classroom'].name"/></strong>
+                                <span>
+                                    <t t-esc="item['classroom'].section_id.name"/> ·
+                                    <t t-esc="item['classroom'].subject_id.name"/>
+                                </span>
+                            </div>
+                            <t t-if="item['today_done']">
+                                <span class="classroom-card-badge badge-success">Done</span>
+                            </t>
+                            <t t-else="">
+                                <span class="classroom-card-badge badge-warning">Pending</span>
+                            </t>
+                        </a>
+                    </t>
+                </div>
+                <t t-if="not classroom_att">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="title" t-value="'No active classrooms'"/>
+                        <t t-set="message" t-value="'Attendance will be available once classrooms are activated.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Marking — exam papers needing marks
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_marking_overview_page" name="Teacher Marking Overview">
+        <t t-call="edu_portal.portal_layout">
+            <div class="classroom-grid-wrap">
+                <h1 class="page-title">Marking</h1>
+                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
+                    Exam papers awaiting marks entry
+                </p>
+                <t t-if="papers">
+                    <div class="today-courses">
+                        <t t-foreach="papers" t-as="paper">
+                            <div class="today-course-card">
+                                <div class="today-course-info">
+                                    <strong><t t-esc="paper.name or paper.exam_session_id.name"/></strong>
+                                    <span>
+                                        <t t-esc="paper.batch_id.name"/> ·
+                                        <t t-esc="paper.curriculum_line_id.subject_id.name or ''"/>
+                                    </span>
+                                </div>
+                                <span class="classroom-card-badge badge-danger">Marks Due</span>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="title" t-value="'All caught up'"/>
+                        <t t-set="message" t-value="'No exam papers need marks entry right now.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Gradebook — classroom results overview
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_gradebook_overview_page" name="Teacher Gradebook Overview">
+        <t t-call="edu_portal.portal_layout">
+            <div class="classroom-grid-wrap">
+                <h1 class="page-title">Gradebook</h1>
+                <p style="color:var(--text-muted); margin:-16px 0 20px; font-size:13.5px;">
+                    Select a course to view student results
+                </p>
+                <t t-if="classroom_cards">
+                    <div class="today-courses">
+                        <t t-foreach="classroom_cards" t-as="card">
+                            <a t-att-href="card['url']" class="today-course-card">
+                                <div class="today-course-info">
+                                    <strong><t t-esc="card['classroom'].name"/></strong>
+                                    <span>
+                                        <t t-esc="card['classroom'].section_id.name"/> ·
+                                        <t t-esc="card['classroom'].subject_id.name"/>
+                                    </span>
+                                </div>
+                                <span style="font-size:12px; color:var(--text-muted);">View →</span>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="edu_portal.empty_state_component">
+                        <t t-set="title" t-value="'No classrooms'"/>
+                        <t t-set="message" t-value="'Results will appear once classrooms are assigned.'"/>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
+         Report Cards — placeholder
+    ══════════════════════════════════════════════════════ -->
+    <template id="teacher_reports_overview_page" name="Teacher Reports Overview">
+        <t t-call="edu_portal.portal_layout">
+            <div class="classroom-grid-wrap">
+                <h1 class="page-title">Report Cards</h1>
+                <t t-call="edu_portal.empty_state_component">
+                    <t t-set="title" t-value="'Coming soon'"/>
+                    <t t-set="message" t-value="'Report card generation will be available once the backend feature is complete.'"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════
          Teacher Profile
     ══════════════════════════════════════════════════════ -->
     <template id="teacher_profile_page" name="Teacher Profile">
