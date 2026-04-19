@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="qualification_slc_see" model="edu.qualification">
+        <field name="name">SLC / SEE</field>
+        <field name="sequence">1</field>
+    </record>
+    <record id="qualification_plus_two" model="edu.qualification">
+        <field name="name">+2 / Higher Secondary</field>
+        <field name="sequence">2</field>
+    </record>
+    <record id="qualification_diploma" model="edu.qualification">
+        <field name="name">Diploma</field>
+        <field name="sequence">3</field>
+    </record>
+    <record id="qualification_bachelors" model="edu.qualification">
+        <field name="name">Bachelors</field>
+        <field name="sequence">4</field>
+    </record>
+    <record id="qualification_masters" model="edu.qualification">
+        <field name="name">Masters</field>
+        <field name="sequence">5</field>
+    </record>
+    <record id="qualification_mphil" model="edu.qualification">
+        <field name="name">MPhil</field>
+        <field name="sequence">6</field>
+    </record>
+    <record id="qualification_phd" model="edu.qualification">
+        <field name="name">PhD</field>
+        <field name="sequence">7</field>
+    </record>
+    <record id="qualification_other" model="edu.qualification">
+        <field name="name">Other</field>
+        <field name="sequence">99</field>
+    </record>
+</odoo>

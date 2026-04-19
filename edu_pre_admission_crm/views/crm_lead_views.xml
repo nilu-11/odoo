@@ -379,8 +379,12 @@
                         <field name="source_id"/>
                         <field name="referred_by_id" invisible="not is_referral_source"/>
                     </group>
-                    <group string =  "Counselor">
+                    <group string="Counselor">
                         <field name="counselor_name"/>
+                        <field name="is_converted_to_application" readonly="1"
+                               invisible="not is_converted_to_application"/>
+                        <field name="conversion_date" readonly="1"
+                               invisible="not is_converted_to_application"/>
                     </group>
                 </group>
 
@@ -495,21 +499,6 @@
                                         class="btn-link btn-sm ps-0"
                                         icon="fa-external-link"/>
                             </div>
-                        </group>
-                    </group>
-                </page>
-                <page string="Source &amp; Marketing">
-                    <group>
-                        <group string="Marketing">
-                            <field name="medium_id"/>
-                            <field name="campaign_id"/>
-                            <field name="source_id"/>
-                            <field name="referred_by_id" invisible="not is_referral_source"/>
-                        </group>
-                        <group string="Conversion">
-                            <field name="is_converted_to_application" readonly="1"/>
-                            <field name="conversion_date" readonly="1"
-                                   invisible="not is_converted_to_application"/>
                         </group>
                     </group>
                 </page>
