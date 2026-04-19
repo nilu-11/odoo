@@ -24,7 +24,7 @@
                 <field name="phone"/>
                 <field name="interested_program_id"/>
                 <field name="tag_ids"/>
-                <field name="counselor_name"/>
+                <field name="counselor_id"/>
                 <field name="is_duplicate"/>
                 <field name="call_count"/>
                 <field name="visit_count"/>
@@ -85,7 +85,7 @@
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <field name="tag_ids" widget="many2many_tags"
                                    options="{'color_field': 'color'}"/>
-                            <field name="counselor_name" widget="many2one_avatar" class="ms-auto"/>
+                            <field name="counselor_id" widget="many2one_avatar_user" class="ms-auto"/>
                         </div>
 
                         <!-- Profile completeness bar -->
@@ -373,14 +373,14 @@
                         <!-- <field name="inquiry_date"/>
                         <field name="last_contact_date" invisible="1"/>
                         <field name="next_followup_date"/>
-                        <field name="counselor_name"/> -->
+                        <field name="counselor_id"/> -->
                         <field name="medium_id"/>
                         <field name="campaign_id"/>
                         <field name="source_id"/>
                         <field name="referred_by_id" invisible="not is_referral_source"/>
                     </group>
                     <group string="Counselor">
-                        <field name="counselor_name"/>
+                        <field name="counselor_id"/>
                         <field name="is_converted_to_application" readonly="1"
                                invisible="not is_converted_to_application"/>
                         <field name="conversion_date" readonly="1"
@@ -569,19 +569,19 @@
                         domain="[('applicant_profile_id', '=', False)]"/>
                 <filter string="My Leads (as Counselor)"
                         name="my_counselor"
-                        domain="[('counselor_name', '=', uid)]"/>
+                        domain="[('counselor_id', '=', uid)]"/>
                 <filter string="Follow-up Due"
                         name="followup_due"
                         domain="[('next_followup_date', '&lt;=', context_today())]"/>
                 <separator/>
                 <field name="applicant_profile_id"/>
                 <field name="interested_program_id"/>
-                <field name="counselor_name"/>
+                <field name="counselor_id"/>
                 <separator/>
                 <filter string="By Program" name="group_program"
                         context="{'group_by': 'interested_program_id'}"/>
                 <filter string="By Counselor" name="group_counselor"
-                        context="{'group_by': 'counselor_name'}"/>
+                        context="{'group_by': 'counselor_id'}"/>
                 <filter string="By Source" name="group_source"
                         context="{'group_by': 'source_id'}"/>
                 <filter string="By Medium" name="group_medium"

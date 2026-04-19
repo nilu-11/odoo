@@ -64,13 +64,8 @@ class CrmLead(models.Model):
         comodel_name='res.users',
         string='Counselor',
         tracking=True,
-        help='Internal user responsible for counseling this prospect.',
-    )
-    counselor_name = fields.Many2one(
-        comodel_name='edu.team.member',
-        string='Counselor Name',
-        tracking=True,
-        help='Internal user responsible for counseling this prospect.',
+        domain="['|', ('share', '=', False), ('share', '=', True)]",
+        help='User responsible for counseling this prospect. Can be an internal or portal user.',
     )
     referred_by_id = fields.Many2one(
         comodel_name='res.partner',

@@ -1,7 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_team_member_admin,edu.team.member admin,model_edu_team_member,edu_academic_structure.group_education_admin,1,1,1,1
-access_team_member_officer,edu.team.member officer,model_edu_team_member,group_pre_admission_officer,1,1,1,0
-access_team_member_viewer,edu.team.member viewer,model_edu_team_member,group_pre_admission_viewer,1,0,0,0
 access_relationship_type_admin,edu.relationship.type admin,model_edu_relationship_type,edu_academic_structure.group_education_admin,1,1,1,1
 access_relationship_type_officer,edu.relationship.type officer,model_edu_relationship_type,group_pre_admission_officer,1,1,1,1
 access_relationship_type_viewer,edu.relationship.type viewer,model_edu_relationship_type,group_pre_admission_viewer,1,0,0,0

@@ -49,10 +49,5 @@
               sequence="90"
               groups="group_pre_admission_officer,edu_academic_structure.group_education_admin"/>
 
-    <menuitem id="menu_pre_admission_team"
-              name="Team"
-              parent="menu_pre_admission_configuration"
-              action="action_edu_team_member"
-              sequence="10"/>
 
 </odoo>
