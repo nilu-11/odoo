@@ -50,6 +50,11 @@
         'views/edu_qualification_views.xml',
         'wizard/edu_lead_merge_wizard_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'edu_pre_admission_crm/static/src/js/activity_reload.js',
+        ],
+    },
     'demo': [],
     'installable': True,
     'application': False,
