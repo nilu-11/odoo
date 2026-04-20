@@ -7,7 +7,8 @@
     'application':True,
     'sequence': 1,
     'depends' : [
-        'mail'
+        'mail',
+        'sale',
     ],
     'data' : [
         "security/ir.model.access.csv",

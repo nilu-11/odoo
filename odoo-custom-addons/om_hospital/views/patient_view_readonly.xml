@@ -18,14 +18,12 @@
          <field name="model">hospital.patient</field>
          <field name="arch" type="xml">
              <kanban string="Patients">
-                <field name="name"/>
                 <field name="gender"/>
                 <field name="date_of_birth"/>
                  <templates>
                     <t t-name="kanban-card">
                         <div class="oe_kanban_card oe_kanban_global_click">
                             <div class="oe_kanban_details">
-                                <strong><field name="name"/></strong>
                                 <div>Gender: <field name="gender"/></div>
                                 <div>DOB: <field name="date_of_birth"/></div>
                             </div>
@@ -41,7 +39,6 @@
          <field name="model">hospital.patient</field>
          <field name="arch" type="xml">
              <list string="Patients">
-                <field name="name"/>
                 <field name="date_of_birth" optional="hide"/>
                 <field name="gender" optional="show"/>
             </list>
@@ -56,7 +53,6 @@
                 <sheet>              <!--sheets creates a box for the group-->
                     <group>
                         <group>
-                            <field name="name"/>
                             <field name="date_of_birth"/>    <!--nested group to keep fields in the same horizontal row-->
                         </group>
                         <group>
