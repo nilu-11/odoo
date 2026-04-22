@@ -1,11 +1,24 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_edu_portal_sidebar_item_admin,edu.portal.sidebar.item admin,model_edu_portal_sidebar_item,edu_academic_structure.group_education_admin,1,1,1,1
-access_edu_portal_sidebar_item_user,edu.portal.sidebar.item read internal,model_edu_portal_sidebar_item,base.group_user,1,0,0,0
-access_edu_portal_sidebar_item_portal,edu.portal.sidebar.item read portal,model_edu_portal_sidebar_item,base.group_portal,1,0,0,0
-access_edu_portal_classroom_tab_admin,edu.portal.classroom.tab admin,model_edu_portal_classroom_tab,edu_academic_structure.group_education_admin,1,1,1,1
-access_edu_portal_classroom_tab_user,edu.portal.classroom.tab read internal,model_edu_portal_classroom_tab,base.group_user,1,0,0,0
-access_edu_portal_classroom_tab_portal,edu.portal.classroom.tab read portal,model_edu_portal_classroom_tab,base.group_portal,1,0,0,0
-access_edu_classroom_post_admin,edu.classroom.post admin,model_edu_classroom_post,edu_academic_structure.group_education_admin,1,1,1,1
-access_edu_classroom_post_teacher,edu.classroom.post teacher,model_edu_classroom_post,edu_portal.group_edu_portal_teacher,1,1,1,0
-access_edu_classroom_post_student,edu.classroom.post student,model_edu_classroom_post,edu_portal.group_edu_portal_student,1,0,0,0
-access_edu_classroom_post_parent,edu.classroom.post parent,model_edu_classroom_post,edu_portal.group_edu_portal_parent,1,0,0,0
+access_classroom_post_teacher,edu.classroom.post teacher,model_edu_classroom_post,edu_portal.group_edu_portal_teacher,1,1,1,1
+access_classroom_post_student,edu.classroom.post student,model_edu_classroom_post,edu_portal.group_edu_portal_student,1,0,0,0
+access_classroom_post_parent,edu.classroom.post parent,model_edu_classroom_post,edu_portal.group_edu_portal_parent,1,0,0,0
+access_classroom_post_portal,edu.classroom.post portal,model_edu_classroom_post,base.group_portal,1,0,0,0
+access_student_student_portal,edu.student student portal,edu_student.model_edu_student,edu_portal.group_edu_portal_student,1,0,0,0
+access_student_parent_portal,edu.student parent portal,edu_student.model_edu_student,edu_portal.group_edu_portal_parent,1,0,0,0
+access_attendance_line_student_portal,edu.attendance.sheet.line student portal,edu_attendance.model_edu_attendance_sheet_line,edu_portal.group_edu_portal_student,1,0,0,0
+access_attendance_line_parent_portal,edu.attendance.sheet.line parent portal,edu_attendance.model_edu_attendance_sheet_line,edu_portal.group_edu_portal_parent,1,0,0,0
+access_attendance_sheet_student_portal,edu.attendance.sheet student portal,edu_attendance.model_edu_attendance_sheet,edu_portal.group_edu_portal_student,1,0,0,0
+access_attendance_sheet_parent_portal,edu.attendance.sheet parent portal,edu_attendance.model_edu_attendance_sheet,edu_portal.group_edu_portal_parent,1,0,0,0
+access_marksheet_student_portal,edu.exam.marksheet student portal,edu_exam.model_edu_exam_marksheet,edu_portal.group_edu_portal_student,1,0,0,0
+access_marksheet_parent_portal,edu.exam.marksheet parent portal,edu_exam.model_edu_exam_marksheet,edu_portal.group_edu_portal_parent,1,0,0,0
+access_assessment_student_portal,edu.continuous.assessment.record student portal,edu_assessment.model_edu_continuous_assessment_record,edu_portal.group_edu_portal_student,1,0,0,0
+access_assessment_parent_portal,edu.continuous.assessment.record parent portal,edu_assessment.model_edu_continuous_assessment_record,edu_portal.group_edu_portal_parent,1,0,0,0
+access_fee_due_student_portal,edu.student.fee.due student portal,edu_fees.model_edu_student_fee_due,edu_portal.group_edu_portal_student,1,0,0,0
+access_fee_due_parent_portal,edu.student.fee.due parent portal,edu_fees.model_edu_student_fee_due,edu_portal.group_edu_portal_parent,1,0,0,0
+access_fee_plan_student_portal,edu.student.fee.plan student portal,edu_fees.model_edu_student_fee_plan,edu_portal.group_edu_portal_student,1,0,0,0
+access_fee_plan_parent_portal,edu.student.fee.plan parent portal,edu_fees.model_edu_student_fee_plan,edu_portal.group_edu_portal_parent,1,0,0,0
+access_payment_student_portal,edu.student.payment student portal,edu_fees.model_edu_student_payment,edu_portal.group_edu_portal_student,1,0,0,0
+access_payment_parent_portal,edu.student.payment parent portal,edu_fees.model_edu_student_payment,edu_portal.group_edu_portal_parent,1,0,0,0
+access_classroom_student_portal,edu.classroom student portal,edu_classroom.model_edu_classroom,edu_portal.group_edu_portal_student,1,0,0,0
+access_classroom_parent_portal,edu.classroom parent portal,edu_classroom.model_edu_classroom,edu_portal.group_edu_portal_parent,1,0,0,0
+access_classroom_teacher_portal,edu.classroom teacher portal,edu_classroom.model_edu_classroom,edu_portal.group_edu_portal_teacher,1,0,0,0

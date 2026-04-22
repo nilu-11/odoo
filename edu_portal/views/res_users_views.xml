@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_res_users_form_portal" model="ir.ui.view">
-        <field name="name">res.users.form.portal</field>
-        <field name="model">res.users</field>
-        <field name="inherit_id" ref="base.view_users_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//sheet" position="inside">
-                <group string="Education Portal" groups="base.group_system">
-                    <field name="portal_role" readonly="1"/>
-                </group>
-            </xpath>
-        </field>
-    </record>
+    <!-- No special backend views needed for res.users at this stage.
+         Portal role is a computed field visible on the standard user form. -->
 </odoo>

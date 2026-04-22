@@ -1,84 +1,91 @@
-"""Root portal controllers — redirection and role switching."""
+import logging
+
 from odoo import http
 from odoo.http import request
 from odoo.addons.web.controllers.home import Home
 from odoo.addons.portal.controllers.portal import CustomerPortal
-from .helpers import get_portal_role, set_portal_role, set_active_child
+
+from .helpers import get_portal_role, is_multi_role, get_parent_children
+
+_logger = logging.getLogger(__name__)
 
 
-def _is_emis_portal_user(user):
-    """Return True if the user has an EMIS portal role (student/parent/teacher)."""
-    return user.portal_role in ('student', 'parent', 'teacher', 'multi')
-
-
-class PortalHome(Home):
-    """Override login redirect so portal users land on /portal after login."""
+class EduPortalHome(Home):
+    """Override login redirect so edu-portal users land on /portal."""
 
     def _login_redirect(self, uid, redirect=None):
-        # Honor an explicit redirect parameter (e.g. user was going somewhere specific)
         if redirect:
-            return super()._login_redirect(uid, redirect=redirect)
+            return redirect
         user = request.env['res.users'].sudo().browse(uid)
-        # Only redirect portal users (non-internal) with an EMIS portal role
-        if not user._is_internal() and _is_emis_portal_user(user):
-            return '/portal'
+        if user and not user.has_group('base.group_user'):
+            role = get_portal_role(user)
+            if role != 'none':
+                return '/portal'
         return super()._login_redirect(uid, redirect=redirect)
 
 
-class PortalCustomerPortalOverride(CustomerPortal):
-    """Override Odoo's default /my portal home so EMIS portal users are
-    redirected to our custom /portal instead of seeing Odoo's default portal."""
+class EduPortalCustomerPortal(CustomerPortal):
+    """Override Odoo's /my so edu-portal users go to /portal."""
 
+    @http.route(['/my', '/my/home'], type='http', auth='user', website=True)
     def home(self, **kw):
-        user = request.env.user
-        if _is_emis_portal_user(user):
+        role = get_portal_role(request.env.user)
+        if role != 'none':
             return request.redirect('/portal')
         return super().home(**kw)
 
 
-class PortalMainController(http.Controller):
+class EduPortalMain(http.Controller):
+    """Portal dispatcher, role switch, child switch."""
 
     @http.route('/portal', type='http', auth='user', website=False)
-    def portal_home(self, **kw):
-        """Redirect to role-specific home."""
+    def portal_dispatch(self, **kw):
         user = request.env.user
         role = get_portal_role(user)
+
         if role == 'teacher':
             return request.redirect('/portal/teacher/home')
-        elif role == 'student':
+        if role == 'student':
             return request.redirect('/portal/student/home')
-        elif role == 'parent':
+        if role == 'parent':
             return request.redirect('/portal/parent/home')
-        else:
-            # No portal role — send to standard Odoo backend
-            return request.redirect('/odoo')
+        # No edu role — fall back to Odoo's default portal
+        return request.redirect('/my/home')
 
-    @http.route('/web/login_successful', type='http', auth='user', website=False)
-    def login_successful_redirect(self, **kw):
-        """Override the default login_successful landing for external users."""
-        user = request.env.user
-        if _is_emis_portal_user(user):
+    @http.route('/portal/role-switch/<string:role>', type='http', auth='user',
+                website=False)
+    def portal_role_switch(self, role, **kw):
+        allowed = ('teacher', 'student', 'parent')
+        if role not in allowed:
             return request.redirect('/portal')
-        return request.redirect('/odoo' if user._is_internal() else '/web/login')
 
-    @http.route('/portal/role-switch/<string:role>', type='http', auth='user', methods=['GET', 'POST'])
-    def role_switch(self, role, **kw):
-        """Switch active role for multi-role users."""
-        if role not in ('student', 'parent', 'teacher'):
-            return request.not_found()
         user = request.env.user
-        if user.portal_role != 'multi':
-            return request.not_found()
-        set_portal_role(role)
+        if not is_multi_role(user):
+            return request.redirect('/portal')
+
+        group_map = {
+            'teacher': 'edu_portal.group_edu_portal_teacher',
+            'student': 'edu_portal.group_edu_portal_student',
+            'parent': 'edu_portal.group_edu_portal_parent',
+        }
+        if not user.has_group(group_map[role]):
+            return request.redirect('/portal')
+
+        request.session['active_portal_role'] = role
         return request.redirect('/portal')
 
-    @http.route('/portal/parent/switch-child/<int:student_id>', type='http', auth='user')
-    def switch_child(self, student_id, **kw):
-        """Set active child for parent portal users."""
-        from .helpers import get_parent_children
+    @http.route('/portal/parent/switch-child/<int:student_id>', type='http',
+                auth='user', website=False)
+    def portal_switch_child(self, student_id, **kw):
         user = request.env.user
+        role = get_portal_role(user)
+        if role != 'parent':
+            return request.redirect('/portal')
+
         children = get_parent_children(user)
-        if student_id not in children.ids:
-            return request.not_found()
-        set_active_child(student_id)
-        return request.redirect('/portal/parent/home')
+        if not children.filtered(lambda c: c.id == student_id):
+            return request.redirect('/portal/parent/home')
+
+        request.session['active_child_id'] = student_id
+        redirect_url = kw.get('redirect', '/portal/parent/home')
+        return request.redirect(redirect_url)

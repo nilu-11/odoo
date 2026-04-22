@@ -1,85 +1,101 @@
-"""Classroom Stream announcements.
-
-Teachers post rich-text announcements to a classroom's Stream. Students
-see them read-only. Attachments come for free via mail.thread — the
-composer uses message_main_attachment_id plus standard message_attach.
-
-Scope is deliberately minimal: no comments, reactions, mentions, or
-scheduled posts. Pinning and soft-archive (active=False) are the only
-post-level controls.
-"""
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 
 
 class EduClassroomPost(models.Model):
+    """Stream post within a classroom — announcements, material links, etc.
+
+    Visible to the classroom's teacher, students in the section, and
+    parents of those students.  Teachers can create/edit/pin/archive
+    posts in their own classrooms.
+    """
+
     _name = 'edu.classroom.post'
-    _description = 'Classroom Stream Post'
+    _description = 'Classroom Post'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'pinned desc, posted_at desc, id desc'
+    _rec_name = 'display_name'
 
-    # ═══ Relational ═══
+    # ── Core fields ────────────────────────────────────────────────────────────
+
     classroom_id = fields.Many2one(
         comodel_name='edu.classroom',
         string='Classroom',
         required=True,
         ondelete='cascade',
         index=True,
+        tracking=True,
     )
     author_id = fields.Many2one(
         comodel_name='res.users',
         string='Author',
-        required=True,
         default=lambda self: self.env.user,
-        ondelete='restrict',
+        ondelete='set null',
         index=True,
+        tracking=True,
     )
-    author_employee_id = fields.Many2one(
-        comodel_name='hr.employee',
-        string='Author (Employee)',
-        related='author_id.employee_id',
-        store=True,
-        help="Resolved from author_id for avatar/name display in feed.",
-    )
-
-    # ═══ Content ═══
     body = fields.Html(
         string='Body',
-        required=True,
         sanitize=True,
-        sanitize_attributes=True,
+        help='Post content. Supports rich text formatting.',
     )
-
-    # ═══ State ═══
     pinned = fields.Boolean(
         string='Pinned',
         default=False,
         tracking=True,
-        help="Pinned posts appear at the top of the stream feed.",
+        help='Pinned posts appear at the top of the stream.',
     )
     posted_at = fields.Datetime(
         string='Posted At',
-        default=fields.Datetime.now,
-        required=True,
         readonly=True,
+        default=fields.Datetime.now,
+        index=True,
     )
-    active = fields.Boolean(default=True, tracking=True)
+    active = fields.Boolean(
+        string='Active',
+        default=True,
+    )
 
-    # ═══ Helpers ═══
+    # ── Related fields for filtering / record rules ────────────────────────────
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        """Stamp posted_at explicitly even if caller didn't pass it."""
-        for vals in vals_list:
-            vals.setdefault('posted_at', fields.Datetime.now())
-        return super().create(vals_list)
+    section_id = fields.Many2one(
+        comodel_name='edu.section',
+        related='classroom_id.section_id',
+        store=True,
+        index=True,
+        string='Section',
+    )
+    teacher_id = fields.Many2one(
+        comodel_name='res.users',
+        related='classroom_id.teacher_id',
+        store=True,
+        index=True,
+        string='Teacher',
+    )
+    batch_id = fields.Many2one(
+        comodel_name='edu.batch',
+        related='classroom_id.batch_id',
+        store=True,
+        index=True,
+        string='Batch',
+    )
+
+    # ── Computed display name ──────────────────────────────────────────────────
+
+    @api.depends('classroom_id.name', 'author_id.name', 'posted_at')
+    def _compute_display_name(self):
+        for rec in self:
+            classroom = rec.classroom_id.name or ''
+            author = rec.author_id.name or ''
+            date_str = rec.posted_at.strftime('%Y-%m-%d %H:%M') if rec.posted_at else ''
+            rec.display_name = '%s — %s (%s)' % (classroom, author, date_str) if classroom else 'New Post'
+
+    # ── Actions ───────────────────────────────────────────────────────────────
 
     def action_toggle_pin(self):
-        """Flip the pinned flag. Used by the portal HTMX button."""
+        """Toggle the pinned state of the post."""
         for rec in self:
-            rec.pinned = not rec.pinned
-        return True
+            rec.write({'pinned': not rec.pinned})
 
     def action_archive_post(self):
-        """Soft-delete by clearing active. Used by the portal archive button."""
+        """Archive (soft-delete) the post."""
         self.write({'active': False})
-        return True

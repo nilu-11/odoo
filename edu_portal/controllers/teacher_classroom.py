@@ -1,624 +1,680 @@
-"""Teacher in-classroom hub controllers.
+import logging
+from datetime import date
 
-Owns every ``/portal/teacher/classroom/<int:classroom_id>/<tab>`` route.
-Each handler:
-
-1. Calls ``guard_classroom_access(classroom_id, 'teacher')`` as its
-   first line — returns 404 if the user doesn't own the classroom.
-2. Calls ``build_portal_context(...)`` to get the shared context with
-   registry-resolved sidebar items and classroom tabs.
-3. Loads per-tab data and merges it in.
-4. Renders the role-specific template.
-
-The 6 built-in tabs are: stream, attendance, exams, assessments,
-results, people. Tabs not yet implemented render a "coming soon"
-placeholder via the shared empty_state_component.
-"""
-from odoo import http
+from odoo import http, fields as odoo_fields
 from odoo.http import request
+from odoo.exceptions import UserError
 
 from .helpers import (
-    build_portal_context,
     get_portal_role,
     get_teacher_employee,
     guard_classroom_access,
+    build_portal_context,
+    get_section_students,
 )
 
+_logger = logging.getLogger(__name__)
 
-class TeacherClassroomController(http.Controller):
 
-    # ─── Auth plumbing ─────────────────────────────────────────
+class EduPortalTeacherClassroom(http.Controller):
+    """Teacher in-classroom portal routes (6 tabs)."""
+
+    # ── Common guard ───────────────────────────────────────────────────────
 
     def _guard(self, classroom_id):
-        """Return (classroom, employee) or None if unauthorised."""
+        """Return (classroom, employee, error) tuple."""
         user = request.env.user
-        if get_portal_role(user) != 'teacher':
-            return None
+        role = get_portal_role(user)
+        if role != 'teacher':
+            return None, None, request.redirect('/portal')
+        employee = get_teacher_employee(user)
+        if not employee:
+            return None, None, request.redirect('/portal')
         classroom = guard_classroom_access(classroom_id, 'teacher')
         if not classroom:
-            return None
-        employee = get_teacher_employee(user)
-        return classroom, employee
+            return None, None, request.not_found()
+        return classroom, employee, None
 
-    # ─── Entry point: /portal/teacher/classroom/<id> → stream ──
+    # ══════════════════════════════════════════════════════════════════════
+    # Root redirect
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>',
-        type='http', auth='user', website=False,
-    )
-    def teacher_classroom_index(self, classroom_id, **kw):
-        """Bare classroom URL redirects to the default tab (stream)."""
-        return request.redirect(f'/portal/teacher/classroom/{classroom_id}/stream')
+    @http.route('/portal/teacher/classroom/<int:classroom_id>', type='http',
+                auth='user', website=False)
+    def teacher_classroom_root(self, classroom_id, **kw):
+        return request.redirect(
+            '/portal/teacher/classroom/%d/stream' % classroom_id
+        )
 
-    # ─── Tab: Stream ───────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 1: Stream
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/stream',
-        type='http', auth='user', website=False,
-    )
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/stream',
+                type='http', auth='user', website=False)
     def teacher_classroom_stream(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
         posts = request.env['edu.classroom.post'].sudo().search([
             ('classroom_id', '=', classroom.id),
             ('active', '=', True),
-        ])  # order baked into the model: pinned desc, posted_at desc
-        context = build_portal_context(
-            active_sidebar_key='home',
+        ], order='pinned desc, posted_at desc')
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
             active_tab_key='stream',
-            classroom=classroom,
+            active_sidebar_key='courses',
             page_title=classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Stream'],
+            posts=posts,
         )
-        context.update({
-            'employee': employee,
-            'posts': posts,
-        })
-        return request.render('edu_portal.teacher_classroom_stream_page', context)
+        return request.render('edu_portal.teacher_classroom_stream', ctx)
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/stream/post',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_stream_create(self, classroom_id, body, pinned=None, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, _employee = guard
-        if not (body or '').strip():
-            return request.redirect(f'/portal/teacher/classroom/{classroom.id}/stream')
-        request.env['edu.classroom.post'].sudo().create({
-            'classroom_id': classroom.id,
-            'author_id': request.env.user.id,
-            'body': body,
-            'pinned': bool(pinned),
-        })
-        return request.redirect(f'/portal/teacher/classroom/{classroom.id}/stream')
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/stream/post',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_stream_post(self, classroom_id, **kw):
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
 
-    @http.route(
-        '/portal/teacher/classroom/stream/pin/<int:post_id>',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_stream_pin(self, post_id, **kw):
-        if get_portal_role(request.env.user) != 'teacher':
-            return request.not_found()
-        employee = get_teacher_employee(request.env.user)
-        if not employee:
-            return request.not_found()
-        post = request.env['edu.classroom.post'].sudo().browse(post_id)
-        if not post.exists():
-            return request.not_found()
-        if post.classroom_id.teacher_id != employee:
-            return request.not_found()
-        post.action_toggle_pin()
-        return request.redirect(
-            f'/portal/teacher/classroom/{post.classroom_id.id}/stream'
-        )
-
-    @http.route(
-        '/portal/teacher/classroom/stream/archive/<int:post_id>',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_stream_archive(self, post_id, **kw):
-        if get_portal_role(request.env.user) != 'teacher':
-            return request.not_found()
-        employee = get_teacher_employee(request.env.user)
-        if not employee:
-            return request.not_found()
-        post = request.env['edu.classroom.post'].sudo().browse(post_id)
-        if not post.exists():
-            return request.not_found()
-        if post.classroom_id.teacher_id != employee:
-            return request.not_found()
-        classroom_id = post.classroom_id.id
-        post.action_archive_post()
-        return request.redirect(
-            f'/portal/teacher/classroom/{classroom_id}/stream'
-        )
-
-    # ─── Tab: Attendance ───────────────────────────────────────
-
-    def _get_or_create_register(self, classroom):
-        register = classroom.attendance_register_id
-        if not register:
-            classroom._ensure_attendance_register()
-            register = classroom.attendance_register_id
-        return register
-
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance',
-        type='http', auth='user', website=False,
-    )
-    def teacher_classroom_attendance(self, classroom_id, sheet_id=None, **kw):
-        """Dashboard + optional modal editor for a selected sheet."""
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
-        register = self._get_or_create_register(classroom)
-
-        history = AttendanceSheet.search(
-            [('register_id', '=', register.id)],
-            order='session_date desc, time_from desc',
-            limit=50,
-        )
-
-        sheet = AttendanceSheet
-        if sheet_id:
-            try:
-                candidate = AttendanceSheet.browse(int(sheet_id))
-                if candidate.exists() and candidate.register_id == register:
-                    sheet = candidate
-            except (TypeError, ValueError):
-                pass
-        if not sheet:
-            sheet = history.filtered(
-                lambda s: s.state in ('draft', 'in_progress')
-            )[:1]
-
-        # Ensure lines exist for an open sheet so the teacher can mark.
-        if sheet and sheet.state == 'draft' and not sheet.line_ids:
-            sheet.action_start()
-
-        # ── Dashboard stats ──────────────────────────────────────
-        from datetime import date
-        today = date.today()
-
-        total_students = len(sheet.line_ids) if sheet else 0
-        if not total_students:
-            ProgHistory = request.env['edu.student.progression.history'].sudo()
-            total_students = ProgHistory.search_count([
-                ('section_id', '=', classroom.section_id.id),
-                ('state', '=', 'active'),
-            ])
-
-        submitted = history.filtered(lambda s: s.state == 'submitted')
-        sessions_count = len(submitted)
-        if submitted:
-            total_lines = sum(s.line_count for s in submitted)
-            total_present = sum(s.present_count for s in submitted)
-            avg_rate = round(total_present / total_lines * 100) if total_lines else 0
-        else:
-            avg_rate = 0
-
-        today_sheet = history.filtered(lambda s: s.session_date == today)[:1]
-
-        # Sort lines for display
-        sorted_lines = []
-        if sheet and sheet.line_ids:
-            sorted_lines = sheet.line_ids.sorted(
-                key=lambda l: (l.roll_number or '', l.student_id.display_name)
-            )
-
-        auto_open = kw.get('modal') == '1' and sheet and sheet.state == 'in_progress'
-
-        context = build_portal_context(
-            active_sidebar_key='home',
-            active_tab_key='attendance',
-            classroom=classroom,
-            page_title=classroom.name,
-        )
-        context.update({
-            'employee': employee,
-            'sheet': sheet,
-            'sorted_lines': sorted_lines,
-            'history': history,
-            'register': register,
-            'today_str': today.isoformat(),
-            'total_students': total_students,
-            'sessions_count': sessions_count,
-            'avg_rate': avg_rate,
-            'today_sheet': today_sheet,
-            'auto_open_modal': auto_open,
-        })
-        return request.render('edu_portal.teacher_classroom_attendance_page', context)
-
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance/create',
-        type='http', auth='user', methods=['POST'], website=False, csrf=False,
-    )
-    def teacher_classroom_attendance_create(
-        self, classroom_id, session_date=None, **kw
-    ):
-        """Create a new attendance sheet, then redirect with modal auto-open."""
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, _employee = guard
-        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
-        register = self._get_or_create_register(classroom)
-
-        from datetime import date as _date
-        try:
-            target = (
-                _date.fromisoformat(session_date) if session_date else _date.today()
-            )
-        except ValueError:
-            target = _date.today()
-
-        existing = AttendanceSheet.search([
-            ('register_id', '=', register.id),
-            ('session_date', '=', target),
-        ], limit=1)
-        if existing:
-            sheet = existing
-        else:
-            sheet = AttendanceSheet.create({
-                'register_id': register.id,
-                'session_date': target,
+        body = kw.get('body', '').strip()
+        if body:
+            request.env['edu.classroom.post'].sudo().create({
+                'classroom_id': classroom.id,
+                'author_id': request.env.user.id,
+                'body': body,
             })
+
+        return request.redirect(
+            '/portal/teacher/classroom/%d/stream' % classroom_id
+        )
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/stream/pin/<int:post_id>',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_stream_pin(self, classroom_id, post_id, **kw):
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        post = request.env['edu.classroom.post'].sudo().browse(post_id)
+        if post.exists() and post.classroom_id.id == classroom.id:
+            post.action_toggle_pin()
+
+        return request.redirect(
+            '/portal/teacher/classroom/%d/stream' % classroom_id
+        )
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/stream/archive/<int:post_id>',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_stream_archive(self, classroom_id, post_id, **kw):
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        post = request.env['edu.classroom.post'].sudo().browse(post_id)
+        if post.exists() and post.classroom_id.id == classroom.id:
+            post.action_archive_post()
+
+        return request.redirect(
+            '/portal/teacher/classroom/%d/stream' % classroom_id
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 2: Attendance
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance',
+                type='http', auth='user', website=False)
+    def teacher_classroom_attendance(self, classroom_id, **kw):
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        register = getattr(classroom, 'attendance_register_id', False)
+        sheets_orm = request.env['edu.attendance.sheet'].sudo()
+        attendance_summary = {}
+
+        if register:
+            sheets_orm = request.env['edu.attendance.sheet'].sudo().search([
+                ('register_id', '=', register.id),
+            ], order='session_date desc, time_from desc')
+            try:
+                attendance_summary = register.get_student_attendance_summary()
+            except Exception:
+                _logger.warning(
+                    'Could not compute attendance summary for register %s',
+                    register.id, exc_info=True,
+                )
+
+        # Build attendance_sheets dicts for template
+        attendance_sheets = []
+        for sh in sheets_orm:
+            total = len(sh.line_ids) if hasattr(sh, 'line_ids') else 0
+            present = len(sh.line_ids.filtered(lambda l: l.status == 'present')) if total else 0
+            rate = round(present * 100 / total) if total else 0
+            attendance_sheets.append({
+                'id': sh.id,
+                'date': str(sh.session_date) if sh.session_date else '',
+                'time': '%s–%s' % (
+                    '{:.0f}:{:02.0f}'.format(*divmod(sh.time_from * 60, 60)) if hasattr(sh, 'time_from') and sh.time_from else '',
+                    '{:.0f}:{:02.0f}'.format(*divmod(sh.time_to * 60, 60)) if hasattr(sh, 'time_to') and sh.time_to else '',
+                ) if hasattr(sh, 'time_from') else '',
+                'state': sh.state or '',
+                'present': present,
+                'total': total,
+                'rate': rate,
+            })
+
+        # Find the latest in-progress sheet and build student roster
+        active_sheet = None
+        roster = []
+        active_sheet_id = None
+        for sh in sheets_orm:
+            if sh.state in ('draft', 'in_progress'):
+                active_sheet = sh
+                active_sheet_id = sh.id
+                break
+
+        if active_sheet:
+            students = get_section_students(classroom.section_id)
+            # Map existing lines by student_id
+            line_map = {}
+            if hasattr(active_sheet, 'line_ids'):
+                for line in active_sheet.line_ids:
+                    line_map[line.student_id.id] = line.status or ''
+
+            for idx, s in enumerate(students):
+                name = s.partner_id.name if s.partner_id else (s.display_name or '')
+                words = [w for w in name.split() if w]
+                initials = (''.join(w[0] for w in words[:2])).upper() or '?'
+                roster.append({
+                    'id': s.id,
+                    'name': name,
+                    'initials': initials,
+                    'hue': (idx * 47) % 360,
+                    'student_no': s.student_no or '',
+                    'status': line_map.get(s.id, ''),
+                })
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
+            active_tab_key='attendance',
+            active_sidebar_key='courses',
+            page_title='%s - Attendance' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Attendance'],
+            attendance_sheets=attendance_sheets,
+            roster=roster,
+            active_sheet_id=active_sheet_id,
+            attendance_summary=attendance_summary,
+        )
+        return request.render('edu_portal.teacher_classroom_attendance', ctx)
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance/create',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_attendance_create(self, classroom_id, **kw):
+        """Create a new attendance sheet for today and redirect to attendance tab."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        register = getattr(classroom, 'attendance_register_id', False)
+        if not register:
+            return request.redirect(
+                '/portal/teacher/classroom/%d/attendance' % classroom_id
+            )
+
+        today = date.today()
+        # Check for existing sheet today
+        existing = request.env['edu.attendance.sheet'].sudo().search([
+            ('register_id', '=', register.id),
+            ('session_date', '=', today),
+        ], limit=1)
+
+        target_sheet = existing
+        if not existing:
+            try:
+                target_sheet = request.env['edu.attendance.sheet'].sudo().create({
+                    'register_id': register.id,
+                    'session_date': today,
+                    'taken_by': request.env.user.id,
+                })
+                target_sheet.action_start()
+            except (UserError, Exception) as e:
+                _logger.warning(
+                    'Could not create attendance sheet: %s', e,
+                )
+                return request.redirect(
+                    '/portal/teacher/classroom/%d/attendance' % classroom_id
+                )
+
+        if target_sheet:
+            return request.redirect(
+                '/portal/teacher/classroom/%d/attendance/%d' % (classroom_id, target_sheet.id)
+            )
+        return request.redirect(
+            '/portal/teacher/classroom/%d/attendance' % classroom_id
+        )
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>',
+                type='http', auth='user', website=False)
+    def teacher_classroom_attendance_sheet(self, classroom_id, sheet_id, **kw):
+        """Full attendance marking page with roster/photo/kiosk views."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if not sheet.exists():
+            return request.redirect(
+                '/portal/teacher/classroom/%d/attendance' % classroom_id
+            )
+
+        variant = kw.get('view', 'roster')
+        if variant not in ('roster', 'photo', 'kiosk'):
+            variant = 'roster'
+
+        # Build student rows
+        students = get_section_students(classroom.section_id)
+        line_map = {}
+        if hasattr(sheet, 'line_ids'):
+            for line in sheet.line_ids:
+                line_map[line.student_id.id] = line.status or ''
+
+        attendance_students = []
+        counts = {'present': 0, 'absent': 0, 'late': 0, 'excused': 0, 'unmarked': 0}
+        for idx, s in enumerate(students):
+            name = s.partner_id.name if s.partner_id else (s.display_name or '')
+            words = [w for w in name.split() if w]
+            initials = (''.join(w[0] for w in words[:2])).upper() or '?'
+            status = line_map.get(s.id, '')
+            status_short = {'present': 'p', 'absent': 'a', 'late': 'l', 'excused': 'e'}.get(status, '')
+            if status in counts:
+                counts[status] += 1
+            else:
+                counts['unmarked'] += 1
+            attendance_students.append({
+                'id': s.id,
+                'name': name,
+                'initials': initials,
+                'hue': (idx * 47) % 360,
+                'student_id': s.student_no or '',
+                'id_short': (s.student_no or '')[-6:],
+                'status': status_short,
+                'attendance_rate': 100,
+                'low_attendance': False,
+                'at_risk': False,
+            })
+
+        total = len(attendance_students)
+        kiosk_current = attendance_students[0] if attendance_students else None
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
+            active_tab_key='attendance',
+            active_sidebar_key='courses',
+            page_title='%s - Attendance' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Attendance', 'Sheet #%d' % sheet.id],
+            attendance_variant=variant,
+            attendance_students=attendance_students,
+            attendance_course_code=classroom.code or '',
+            attendance_course_title=classroom.name or '',
+            attendance_room='',
+            attendance_time='',
+            today_date_label=date.today().strftime('%A, %B %-d %Y'),
+            sheet_number=sheet.id,
+            sheet_state=sheet.state or 'draft',
+            sheet_id=sheet.id,
+            total_students=total,
+            present_count=counts['present'],
+            absent_count=counts['absent'],
+            late_count=counts['late'],
+            excused_count=counts['excused'],
+            unmarked_count=counts['unmarked'],
+            kiosk_current=kiosk_current,
+        )
+        return request.render('edu_portal.teacher_attendance', ctx)
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/submit',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_attendance_submit(self, classroom_id, sheet_id, **kw):
+        """Submit an in-progress attendance sheet."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if sheet.exists() and sheet.classroom_id.id == classroom.id:
+            try:
+                sheet.action_submit()
+            except UserError as e:
+                _logger.warning('Could not submit sheet: %s', e)
+
+        return request.redirect(
+            '/portal/teacher/classroom/%d/attendance' % classroom_id
+        )
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/mark-all',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_attendance_mark_all(self, classroom_id, sheet_id, **kw):
+        """Bulk mark all students with a given status."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if not sheet.exists() or sheet.classroom_id.id != classroom.id:
+            return request.redirect(
+                '/portal/teacher/classroom/%d/attendance' % classroom_id
+            )
+
+        status = kw.get('status', 'present')
+        if status not in ('present', 'absent', 'late', 'excused'):
+            status = 'present'
+
+        try:
+            if status == 'present':
+                sheet.action_mark_all_present()
+            elif status == 'absent':
+                sheet.action_mark_all_absent()
+            elif status == 'late':
+                sheet.action_mark_all_late()
+            else:
+                # 'excused' — set all lines individually
+                if sheet.state == 'draft':
+                    sheet.action_start()
+                sheet.line_ids.write({'status': 'excused'})
+        except UserError as e:
+            _logger.warning('Bulk mark failed: %s', e)
+
+        return request.redirect(
+            '/portal/teacher/classroom/%d/attendance' % classroom_id
+        )
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/attendance/mark',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_attendance_mark(self, classroom_id, **kw):
+        """Mark a single student's attendance on a sheet."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return request.redirect('/portal/teacher/classroom/%d/attendance' % classroom_id)
+
+        sheet_id = int(kw.get('sheet_id', 0))
+        student_id = int(kw.get('student_id', 0))
+        raw_status = kw.get('status', 'present')
+        # Accept both short codes (p/a/l/e) and full names
+        status_map = {'p': 'present', 'a': 'absent', 'l': 'late', 'e': 'excused'}
+        status = status_map.get(raw_status, raw_status)
+        if status not in ('present', 'absent', 'late', 'excused'):
+            status = 'present'
+
+        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
+        if not sheet.exists():
+            return request.redirect('/portal/teacher/classroom/%d/attendance' % classroom_id)
+
+        # Start the sheet if still in draft
+        if sheet.state == 'draft':
             try:
                 sheet.action_start()
             except Exception:
                 pass
-        return request.redirect(
-            f'/portal/teacher/classroom/{classroom_id}/attendance'
-            f'?sheet_id={sheet.id}&modal=1'
-        )
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/submit',
-        type='http', auth='user', methods=['POST'], website=False, csrf=False,
-    )
-    def teacher_classroom_attendance_submit(self, classroom_id, sheet_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, _employee = guard
-        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
-        if not sheet.exists() or sheet.classroom_id != classroom:
-            return request.not_found()
-        if sheet.state == 'in_progress':
+        # Find existing line or create one
+        line = request.env['edu.attendance.sheet.line'].sudo().search([
+            ('sheet_id', '=', sheet.id),
+            ('student_id', '=', student_id),
+        ], limit=1)
+
+        if line:
             try:
-                sheet.action_submit()
-            except Exception:
-                pass
+                line.write({'status': status})
+            except UserError as e:
+                _logger.warning('Mark attendance line failed: %s', e)
+        elif student_id:
+            try:
+                request.env['edu.attendance.sheet.line'].sudo().create({
+                    'sheet_id': sheet.id,
+                    'student_id': student_id,
+                    'status': status,
+                })
+            except Exception as e:
+                _logger.warning('Create attendance line failed: %s', e)
+
+        # AJAX requests get a simple text response; normal requests redirect
+        if request.httprequest.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return 'ok'
         return request.redirect(
-            f'/portal/teacher/classroom/{classroom_id}/attendance'
-            f'?sheet_id={sheet.id}'
+            '/portal/teacher/classroom/%d/attendance/%d' % (classroom_id, sheet_id)
         )
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance/<int:sheet_id>/mark-all',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_attendance_mark_all(
-        self, classroom_id, sheet_id, status, **kw
-    ):
-        """Bulk-mark all lines on a sheet. Returns HTMX fragment."""
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, _employee = guard
-        sheet = request.env['edu.attendance.sheet'].sudo().browse(sheet_id)
-        if (not sheet.exists() or sheet.classroom_id != classroom
-                or sheet.state != 'in_progress'):
-            return request.not_found()
-        if status not in ('present', 'absent', 'late', 'excused'):
-            return request.not_found()
-        sheet.line_ids.write({'status': status})
-        sorted_lines = sheet.line_ids.sorted(
-            key=lambda l: (l.roll_number or '', l.student_id.display_name)
-        )
-        return request.render('edu_portal.teacher_attendance_modal_rows', {
-            'sorted_lines': sorted_lines,
-            'sheet': sheet,
-        })
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 3: Exams
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route(
-        '/portal/teacher/classroom/attendance/mark',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_attendance_mark(self, line_id, status, **kw):
-        """HTMX row update — auth-checked via the line's parent classroom."""
-        if get_portal_role(request.env.user) != 'teacher':
-            return request.not_found()
-        line = request.env['edu.attendance.sheet.line'].sudo().browse(int(line_id))
-        if not line.exists():
-            return request.not_found()
-        classroom = line.classroom_id
-        if not guard_classroom_access(classroom.id, 'teacher'):
-            return request.not_found()
-        if status not in ('present', 'absent', 'late', 'excused'):
-            return request.not_found()
-        line.write({'status': status})
-        return request.render('edu_portal.teacher_attendance_row_partial', {
-            'line': line,
-        })
-
-    # ─── Attendance matrix report ────────────────────────────
-
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/attendance/matrix',
-        type='http', auth='user', website=False,
-    )
-    def teacher_classroom_attendance_matrix(
-        self, classroom_id, date_from=None, date_to=None, **kw
-    ):
-        """Student × Date attendance matrix with date-range filter."""
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        register = self._get_or_create_register(classroom)
-
-        from datetime import date as _date, timedelta
-        today = _date.today()
-        try:
-            d_from = _date.fromisoformat(date_from) if date_from else None
-        except ValueError:
-            d_from = None
-        try:
-            d_to = _date.fromisoformat(date_to) if date_to else None
-        except ValueError:
-            d_to = None
-
-        # Default: last 30 days
-        if not d_to:
-            d_to = today
-        if not d_from:
-            d_from = d_to - timedelta(days=29)
-
-        AttendanceSheet = request.env['edu.attendance.sheet'].sudo()
-        sheets = AttendanceSheet.search([
-            ('register_id', '=', register.id),
-            ('session_date', '>=', d_from),
-            ('session_date', '<=', d_to),
-            ('state', '=', 'submitted'),
-        ], order='session_date asc')
-
-        # Build date columns (sorted dates with submitted sheets)
-        date_cols = [s.session_date for s in sheets]
-
-        # Build student rows: {student_id: {date: status, ...}}
-        # Collect unique students from all sheet lines
-        all_lines = request.env['edu.attendance.sheet.line'].sudo().search([
-            ('sheet_id', 'in', sheets.ids),
-        ])
-
-        student_map = {}  # student record → {date → status}
-        for ln in all_lines:
-            st = ln.student_id
-            if st.id not in student_map:
-                student_map[st.id] = {'student': st, 'dates': {}, 'present': 0, 'total': 0}
-            entry = student_map[st.id]
-            entry['dates'][ln.sheet_id.session_date] = ln.status
-            entry['total'] += 1
-            if ln.status in ('present', 'late'):
-                entry['present'] += 1
-
-        # Sort students by name
-        matrix_rows = sorted(
-            student_map.values(),
-            key=lambda r: (r['student'].roll_number or '', r['student'].display_name),
-        )
-
-        # Calculate per-student percentage
-        for row in matrix_rows:
-            row['pct'] = round(row['present'] / row['total'] * 100) if row['total'] else 0
-
-        context = build_portal_context(
-            active_sidebar_key='home',
-            active_tab_key='attendance',
-            classroom=classroom,
-            page_title=classroom.name,
-        )
-        context.update({
-            'employee': employee,
-            'date_cols': date_cols,
-            'matrix_rows': matrix_rows,
-            'date_from': d_from.isoformat(),
-            'date_to': d_to.isoformat(),
-            'total_sessions': len(sheets),
-        })
-        return request.render(
-            'edu_portal.teacher_classroom_attendance_matrix_page', context,
-        )
-
-    # ─── Tab: Exams ────────────────────────────────────────────
-
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/exams',
-        type='http', auth='user', website=False,
-    )
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/exams',
+                type='http', auth='user', website=False)
     def teacher_classroom_exams(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        ExamPaper = request.env['edu.exam.paper'].sudo()
-        papers = ExamPaper.search([
-            ('batch_id', '=', classroom.batch_id.id),
-            ('curriculum_line_id', '=', classroom.curriculum_line_id.id),
-        ], order='create_date desc')
-        context = build_portal_context(
-            active_sidebar_key='home',
-            active_tab_key='exams',
-            classroom=classroom,
-            page_title=classroom.name,
-        )
-        context.update({
-            'employee': employee,
-            'papers': papers,
-        })
-        return request.render('edu_portal.teacher_classroom_exams_page', context)
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/exams/<int:paper_id>',
-        type='http', auth='user', website=False,
-    )
+        papers = request.env['edu.exam.paper'].sudo().search([
+            ('classroom_id', '=', classroom.id),
+        ], order='exam_date desc, subject_id')
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
+            active_tab_key='exams',
+            active_sidebar_key='courses',
+            page_title='%s - Exams' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Exams'],
+            papers=papers,
+        )
+        return request.render('edu_portal.teacher_classroom_exams', ctx)
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/exams/<int:paper_id>',
+                type='http', auth='user', website=False)
     def teacher_classroom_exam_marks(self, classroom_id, paper_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
+        """View / enter marks for a specific exam paper."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
         paper = request.env['edu.exam.paper'].sudo().browse(paper_id)
-        if not paper.exists() or paper.batch_id != classroom.batch_id \
-                or paper.curriculum_line_id != classroom.curriculum_line_id:
+        if not paper.exists() or paper.classroom_id.id != classroom.id:
             return request.not_found()
+
         marksheets = request.env['edu.exam.marksheet'].sudo().search([
             ('exam_paper_id', '=', paper.id),
-            ('section_id', '=', classroom.section_id.id),
             ('is_latest_attempt', '=', True),
-        ])
-        context = build_portal_context(
-            active_sidebar_key='home',
-            active_tab_key='exams',
+        ], order='student_id')
+
+        ctx = build_portal_context(
+            'teacher',
             classroom=classroom,
-            page_title=f'{classroom.name} — {paper.display_name}',
+            active_tab_key='exams',
+            active_sidebar_key='courses',
+            page_title='%s - %s' % (classroom.name, paper.display_name),
+            crumbs=['Kopila', 'Courses', classroom.name, 'Exams',
+                    paper.subject_id.name or 'Paper'],
+            paper=paper,
+            marksheets=marksheets,
         )
-        context.update({
-            'employee': employee,
-            'paper': paper,
-            'marksheets': marksheets,
-        })
-        return request.render('edu_portal.teacher_classroom_exam_marks_page', context)
+        return request.render('edu_portal.teacher_classroom_exam_marks', ctx)
 
-    @http.route(
-        '/portal/teacher/classroom/exams/save',
-        type='http', auth='user', methods=['POST'],
-        website=False, csrf=False,
-    )
-    def teacher_classroom_exam_save(self, marksheet_id, marks_obtained, **kw):
-        if get_portal_role(request.env.user) != 'teacher':
-            return request.not_found()
-        employee = get_teacher_employee(request.env.user)
-        if not employee:
-            return request.not_found()
-        marksheet = request.env['edu.exam.marksheet'].sudo().browse(int(marksheet_id))
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/exams/save',
+                type='http', auth='user', website=False, methods=['POST'],
+                csrf=True)
+    def teacher_classroom_exam_save(self, classroom_id, **kw):
+        """Save a single marksheet mark via HTMX. Returns HTML fragment."""
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return ''
+
+        marksheet_id = int(kw.get('marksheet_id', 0))
+        raw_marks = kw.get('raw_marks', '')
+
+        marksheet = request.env['edu.exam.marksheet'].sudo().browse(marksheet_id)
         if not marksheet.exists():
-            return request.not_found()
-        # Verify the teacher owns a classroom matching this paper's batch/curriculum
-        classroom = request.env['edu.classroom'].sudo().search([
-            ('teacher_id', '=', employee.id),
-            ('batch_id', '=', marksheet.exam_paper_id.batch_id.id),
-            ('curriculum_line_id', '=', marksheet.exam_paper_id.curriculum_line_id.id),
-            ('section_id', '=', marksheet.section_id.id),
-        ], limit=1)
-        if not classroom:
-            return request.not_found()
+            return '<span class="text-danger">Not found</span>'
+
+        # Verify marksheet belongs to a paper in this classroom
+        if marksheet.exam_paper_id.classroom_id.id != classroom.id:
+            return '<span class="text-danger">Unauthorized</span>'
+
+        # Check paper is in marks_entry state
+        if marksheet.exam_paper_id.state != 'marks_entry':
+            return '<span class="text-muted">Locked</span>'
+
         try:
-            marks_value = float(marks_obtained) if marks_obtained else 0.0
-        except (TypeError, ValueError):
-            return request.not_found()
-        if marks_value < 0 or marks_value > marksheet.max_marks:
-            return request.render('edu_portal.teacher_marks_row_partial', {
-                'marksheet': marksheet,
-                'error': f'Invalid marks: must be between 0 and {marksheet.max_marks}',
+            marks_val = float(raw_marks)
+        except (ValueError, TypeError):
+            return '<span class="text-danger">Invalid</span>'
+
+        try:
+            marksheet.write({
+                'raw_marks': marks_val,
+                'entered_by': request.env.user.id,
+                'entered_on': odoo_fields.Datetime.now(),
             })
-        marksheet.write({'marks_obtained': marks_value})
-        return request.render('edu_portal.teacher_marks_row_partial', {
-            'marksheet': marksheet,
-            'error': None,
-        })
+        except (UserError, Exception) as e:
+            _logger.warning('Save marks failed: %s', e)
+            return '<span class="text-danger">Error</span>'
 
-    # ─── Tab: Assessments ──────────────────────────────────────
+        # Return updated fragment
+        is_pass = marksheet.is_pass
+        badge_class = 'bg-success' if is_pass else 'bg-danger'
+        return (
+            '<span class="badge %s">%.1f / %.1f</span>'
+            % (badge_class, marksheet.final_marks, marksheet.max_marks)
+        )
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/assessments',
-        type='http', auth='user', website=False,
-    )
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 4: Assessments
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/assessments',
+                type='http', auth='user', website=False)
     def teacher_classroom_assessments(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
         records = request.env['edu.continuous.assessment.record'].sudo().search([
             ('classroom_id', '=', classroom.id),
-        ], order='assessment_date desc', limit=100)
-        context = build_portal_context(
-            active_sidebar_key='home',
+        ], order='assessment_date desc, student_id')
+
+        # Group by category for display
+        categories = {}
+        for rec in records:
+            cat_name = rec.category_id.name or 'Uncategorized'
+            if cat_name not in categories:
+                categories[cat_name] = []
+            categories[cat_name].append(rec)
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
             active_tab_key='assessments',
-            classroom=classroom,
-            page_title=classroom.name,
+            active_sidebar_key='courses',
+            page_title='%s - Assessments' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Assessments'],
+            records=records,
+            categories=categories,
         )
-        context.update({
-            'employee': employee,
-            'records': records,
-        })
-        return request.render('edu_portal.teacher_classroom_assessments_page', context)
+        return request.render('edu_portal.teacher_classroom_assessments', ctx)
 
-    # ─── Tab: Results ──────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 5: Results
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/results',
-        type='http', auth='user', website=False,
-    )
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/results',
+                type='http', auth='user', website=False)
     def teacher_classroom_results(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        # Published student results scoped to this section + term
-        ResultStudent = request.env['edu.result.student'].sudo()
-        results = ResultStudent.search([
-            ('section_id', '=', classroom.section_id.id),
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        # Find published result sessions scoped to this classroom's batch/term
+        result_sessions = request.env['edu.result.session'].sudo().search([
+            ('batch_id', '=', classroom.batch_id.id),
             ('program_term_id', '=', classroom.program_term_id.id),
-            ('result_session_id.state', 'in', ('published', 'closed')),
-        ], order='student_id')
-        context = build_portal_context(
-            active_sidebar_key='home',
+            ('state', 'in', ('published', 'closed')),
+        ], order='name desc')
+
+        # Get subject lines for this classroom's subject
+        subject_lines = request.env['edu.result.subject.line'].sudo()
+        if result_sessions:
+            subject_lines = request.env['edu.result.subject.line'].sudo().search([
+                ('result_session_id', 'in', result_sessions.ids),
+                ('subject_id', '=', classroom.subject_id.id),
+                ('section_id', '=', classroom.section_id.id),
+            ], order='student_id')
+
+        ctx = build_portal_context(
+            'teacher',
+            classroom=classroom,
             active_tab_key='results',
-            classroom=classroom,
-            page_title=classroom.name,
+            active_sidebar_key='courses',
+            page_title='%s - Results' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'Results'],
+            result_sessions=result_sessions,
+            subject_lines=subject_lines,
         )
-        context.update({
-            'employee': employee,
-            'results': results,
-        })
-        return request.render('edu_portal.teacher_classroom_results_page', context)
+        return request.render('edu_portal.teacher_classroom_results', ctx)
 
-    # ─── Tab: People ───────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Tab 6: People
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route(
-        '/portal/teacher/classroom/<int:classroom_id>/people',
-        type='http', auth='user', website=False,
-    )
+    @http.route('/portal/teacher/classroom/<int:classroom_id>/people',
+                type='http', auth='user', website=False)
     def teacher_classroom_people(self, classroom_id, **kw):
-        guard = self._guard(classroom_id)
-        if not guard:
-            return request.not_found()
-        classroom, employee = guard
-        histories = request.env['edu.student.progression.history'].sudo().search([
-            ('section_id', '=', classroom.section_id.id),
-            ('state', '=', 'active'),
-        ])
-        students = histories.mapped('student_id')
-        context = build_portal_context(
-            active_sidebar_key='home',
-            active_tab_key='people',
+        classroom, employee, err = self._guard(classroom_id)
+        if err:
+            return err
+
+        students = get_section_students(classroom.section_id)
+
+        # Build people_rows dicts for the template
+        people_rows = []
+        for idx, s in enumerate(students):
+            name = s.partner_id.name if s.partner_id else (s.display_name or '')
+            words = [w for w in name.split() if w]
+            initials = (''.join(w[0] for w in words[:2])).upper() or '?'
+            people_rows.append({
+                'id': s.id,
+                'name': name,
+                'initials': initials,
+                'hue': (idx * 47) % 360,
+                'student_id': s.student_no or '',
+                'attendance_rate': 100,
+                'avg': '',
+                'at_risk': False,
+                'low_attendance': False,
+                'behavior_flag': False,
+            })
+
+        ctx = build_portal_context(
+            'teacher',
             classroom=classroom,
-            page_title=classroom.name,
+            active_tab_key='people',
+            active_sidebar_key='courses',
+            page_title='%s - People' % classroom.name,
+            crumbs=['Kopila', 'Courses', classroom.name, 'People'],
+            people_rows=people_rows,
+            teacher_employee=employee,
         )
-        context.update({
-            'employee': employee,
-            'students': students,
-        })
-        return request.render('edu_portal.teacher_classroom_people_page', context)
+        return request.render('edu_portal.teacher_classroom_people', ctx)

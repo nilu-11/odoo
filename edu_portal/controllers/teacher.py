@@ -1,314 +1,422 @@
-"""Teacher portal controllers — outside-classroom pages.
-
-Routes:
-* ``/portal/teacher/home`` — Today dashboard with schedule, tasks, courses.
-* ``/portal/teacher/profile`` — the logged-in teacher's own profile page.
-
-Every in-classroom tab (Stream, Attendance, Exams, Assessments, Results,
-People) is owned by ``teacher_classroom.py``.
-"""
+import logging
 from datetime import date
 
-from odoo import fields, http
+from odoo import http, fields
 from odoo.http import request
 
 from .helpers import (
-    build_portal_context,
     get_portal_role,
     get_teacher_employee,
+    build_portal_context,
 )
 
+_logger = logging.getLogger(__name__)
 
-class TeacherPortalController(http.Controller):
 
-    def _guard_teacher(self):
-        """Return the teacher's hr.employee or None if not authorised."""
+class EduPortalTeacher(http.Controller):
+    """Teacher outside-classroom portal routes."""
+
+    # ── Guard helper ───────────────────────────────────────────────────────
+
+    def _check_teacher(self):
+        """Return (employee, error_response) tuple.
+
+        If the user is not a teacher, error_response is a redirect.
+        Otherwise error_response is None and employee is the hr.employee record.
+        """
         user = request.env.user
-        if get_portal_role(user) != 'teacher':
-            return None
-        return get_teacher_employee(user)
+        role = get_portal_role(user)
+        if role != 'teacher':
+            return None, request.redirect('/portal')
+        employee = get_teacher_employee(user)
+        if not employee:
+            return None, request.redirect('/portal')
+        return employee, None
 
-    # ─── Home: Today dashboard ───────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Today Dashboard
+    # ══════════════════════════════════════════════════════════════════════
 
     @http.route('/portal/teacher/home', type='http', auth='user', website=False)
     def teacher_home(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
+        employee, err = self._check_teacher()
+        if err:
+            return err
 
-        Classroom = request.env['edu.classroom'].sudo()
-        ExamPaper = request.env['edu.exam.paper'].sudo()
-        classrooms = Classroom.search([('teacher_id', '=', employee.id)])
+        today = date.today()
 
-        # ── Marks due check (batch query) ──
-        batch_ids = [cl.batch_id.id for cl in classrooms if cl.batch_id]
-        cl_line_ids = [cl.curriculum_line_id.id for cl in classrooms if cl.curriculum_line_id]
-        if batch_ids and cl_line_ids:
-            papers = ExamPaper.search_read(
-                [
-                    ('batch_id', 'in', batch_ids),
-                    ('curriculum_line_id', 'in', cl_line_ids),
-                    ('state', '=', 'marks_entry'),
-                ],
-                fields=['batch_id', 'curriculum_line_id'],
-            )
-            marks_due_keys = {
-                (p['batch_id'][0], p['curriculum_line_id'][0]) for p in papers
-            }
-        else:
-            marks_due_keys = set()
+        # Active classrooms for this teacher
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ], order='name')
 
-        marks_due_count = len(marks_due_keys)
-
-        classroom_cards = []
-        total_students = 0
+        # Today's attendance sheets (across all classrooms)
+        today_sheets = request.env['edu.attendance.sheet'].sudo()
+        register_ids = []
         for cl in classrooms:
-            marks_due = (cl.batch_id.id, cl.curriculum_line_id.id) in marks_due_keys
-            if marks_due:
-                status_label, status_class = 'Marks Due', 'badge-danger'
-            elif cl.state == 'active':
-                status_label, status_class = 'Active', 'badge-success'
-            else:
-                status_label, status_class = cl.state.title(), 'badge-muted'
-            total_students += cl.student_count or 0
-            classroom_cards.append({
-                'classroom': cl,
-                'status_label': status_label,
-                'status_class': status_class,
-                'detail_url': '/portal/teacher/classroom/%d' % cl.id,
-            })
+            reg = getattr(cl, 'attendance_register_id', False)
+            if reg:
+                register_ids.append(reg.id)
+        if register_ids:
+            today_sheets = request.env['edu.attendance.sheet'].sudo().search([
+                ('register_id', 'in', register_ids),
+                ('session_date', '=', today),
+            ], order='time_from')
 
-        # ── Today's schedule (soft check for edu_timetable) ──
-        today_slots = []
-        if 'edu.timetable.slot' in request.env:
-            today = date.today()
-            day_of_week = str(today.weekday())  # 0=Mon, 6=Sun
-            slots = request.env['edu.timetable.slot'].sudo().search([
-                ('teacher_id', '=', employee.id),
-                ('day_of_week', '=', day_of_week),
-                ('slot_type', '!=', 'cancelled'),
-            ], order='period_id')
-            for slot in slots:
-                period = slot.period_id
-                today_slots.append({
-                    'time': '%s – %s' % (
-                        period.time_from if period else '?',
-                        period.time_to if period else '?',
-                    ),
-                    'title': slot.subject_id.name or slot.name or 'Class',
-                    'room': slot.room_id.name if slot.room_id else '',
-                    'section': slot.section_id.name if slot.section_id else '',
-                    'classroom_id': slot.classroom_id.id if slot.classroom_id else False,
-                    'slot_type': slot.slot_type,
-                })
+        # Papers needing marks entry
+        papers_marking = request.env['edu.exam.paper'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'marks_entry'),
+        ], limit=10)
 
-        # ── Attention queue (matches Kopilā design) ──
-        attention_items = []
-        today_date = fields.Date.today()
+        # Recent announcements (classroom posts)
+        recent_posts = request.env['edu.classroom.post'].sudo()
+        if classrooms:
+            recent_posts = request.env['edu.classroom.post'].sudo().search([
+                ('classroom_id', 'in', classrooms.ids),
+                ('active', '=', True),
+            ], order='posted_at desc', limit=5)
 
-        # Pending marks (featured item)
-        if marks_due_count:
-            attention_items.append({
-                'text': '%d paper(s) to mark' % marks_due_count,
-                'detail': 'Marks entry pending',
+        attention_items = [
+            {
                 'url': '/portal/teacher/marking',
-                'featured': True,
-            })
+                'label': p.display_name or 'Exam paper',
+                'detail': 'Awaiting marks entry',
+            }
+            for p in papers_marking[:6]
+        ]
 
-        # Attendance not taken today
-        for cl in classrooms:
-            if cl.state != 'active' or not cl.attendance_register_id:
-                continue
-            has_today = request.env['edu.attendance.sheet'].sudo().search_count([
-                ('register_id', '=', cl.attendance_register_id.id),
-                ('session_date', '=', today_date),
-            ])
-            if not has_today:
-                attention_items.append({
-                    'text': '%s — attendance not taken' % cl.name,
-                    'detail': 'Today',
-                    'url': '/portal/teacher/classroom/%d/attendance' % cl.id,
-                })
-
-        context = build_portal_context(
-            active_sidebar_key='home',
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='today',
             page_title='Today',
+            crumbs=['Kopila', 'Today'],
+            today=today,
+            classrooms=classrooms,
+            today_sheets=today_sheets,
+            papers_marking=papers_marking,
+            recent_posts=recent_posts,
+            today_date_label=today.strftime('%A, %B %-d %Y'),
+            today_nepali_label='',
+            today_day_name=today.strftime('%A'),
+            today_events_count=0,
+            teacher_first_name=(employee.name or '').split()[0] or 'Teacher',
+            classes_today_count=len(today_sheets),
+            total_to_grade=len(papers_marking),
+            unread_messages=0,
+            attention_items=attention_items,
+            attention_highlight={
+                'url': '/portal/teacher/marking',
+                'label': '%d paper%s awaiting marks' % (len(papers_marking), 's' if len(papers_marking) != 1 else ''),
+                'detail': 'Click to open marking queue',
+            } if papers_marking else None,
         )
-        context.update({
-            'employee': employee,
-            'classroom_cards': classroom_cards,
-            'today_slots': today_slots,
-            'attention_items': attention_items,
-            'total_students': total_students,
-            'total_courses': len(classrooms),
-            'marks_due_count': marks_due_count,
-            'sessions_today': len(today_slots),
-            'today_date': today_date,
-        })
-        return request.render('edu_portal.teacher_home_page', context)
+        return request.render('edu_portal.teacher_home', ctx)
 
-    # ─── Courses: classroom grid (dedicated page) ──────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Courses
+    # ══════════════════════════════════════════════════════════════════════
 
     @http.route('/portal/teacher/courses', type='http', auth='user', website=False)
     def teacher_courses(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        Classroom = request.env['edu.classroom'].sudo()
-        classrooms = Classroom.search([('teacher_id', '=', employee.id)])
-        classroom_cards = []
-        for cl in classrooms:
-            if cl.state == 'active':
-                status_label, status_class = 'Active', 'badge-success'
-            else:
-                status_label, status_class = cl.state.title(), 'badge-muted'
-            classroom_cards.append({
-                'classroom': cl,
-                'status_label': status_label,
-                'status_class': status_class,
-                'detail_url': '/portal/teacher/classroom/%d' % cl.id,
-            })
-        context = build_portal_context(
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ], order='batch_id, section_id, name')
+
+        ctx = build_portal_context(
+            'teacher',
             active_sidebar_key='courses',
             page_title='Courses',
+            crumbs=['Kopila', 'Courses'],
+            classrooms=classrooms,
         )
-        context.update({
-            'employee': employee,
-            'classroom_cards': classroom_cards,
-        })
-        return request.render('edu_portal.teacher_courses_page', context)
+        return request.render('edu_portal.teacher_courses', ctx)
 
-    # ─── Attendance: cross-classroom overview ─────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Attendance Overview (cross-classroom)
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route('/portal/teacher/attendance', type='http', auth='user', website=False)
+    @http.route('/portal/teacher/attendance', type='http', auth='user',
+                website=False)
     def teacher_attendance(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        Classroom = request.env['edu.classroom'].sudo()
-        classrooms = Classroom.search([
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ], order='name')
+
+        # Gather attendance registers for teacher's classrooms
+        registers = request.env['edu.attendance.register'].sudo()
+        for cl in classrooms:
+            reg = getattr(cl, 'attendance_register_id', False)
+            if reg:
+                registers |= reg
+
+        # Recent sheets across all registers
+        recent_sheets = request.env['edu.attendance.sheet'].sudo()
+        if registers:
+            recent_sheets = request.env['edu.attendance.sheet'].sudo().search([
+                ('register_id', 'in', registers.ids),
+            ], order='session_date desc, time_from desc', limit=20)
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='attendance',
+            page_title='Attendance',
+            crumbs=['Kopila', 'Attendance'],
+            classrooms=classrooms,
+            registers=registers,
+            recent_sheets=recent_sheets,
+        )
+        return request.render('edu_portal.teacher_attendance', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Marking (papers needing marks)
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/marking', type='http', auth='user',
+                website=False)
+    def teacher_marking(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        # Papers in marks_entry state for this teacher
+        papers = request.env['edu.exam.paper'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'marks_entry'),
+        ], order='exam_date, subject_id')
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='marking',
+            page_title='Marking',
+            crumbs=['Kopila', 'Marking'],
+            papers=papers,
+        )
+        return request.render('edu_portal.teacher_marking', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Gradebook
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/gradebook', type='http', auth='user',
+                website=False)
+    def teacher_gradebook(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ], order='name', limit=1)
+
+        # Redirect to first classroom's results tab if available
+        if classrooms:
+            return request.redirect(
+                '/portal/teacher/classroom/%d/results' % classrooms[0].id
+            )
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='gradebook',
+            page_title='Gradebook',
+            crumbs=['Kopila', 'Gradebook'],
+        )
+        return request.render('edu_portal.teacher_gradebook', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Report Cards (placeholder)
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/reports', type='http', auth='user',
+                website=False)
+    def teacher_reports(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        # Published result sessions for the teacher's classrooms
+        classrooms = request.env['edu.classroom'].sudo().search([
             ('teacher_id', '=', employee.id),
             ('state', '=', 'active'),
         ])
-        today_date = fields.Date.today()
-        classroom_att = []
-        for cl in classrooms:
-            has_today = False
-            if cl.attendance_register_id:
-                has_today = bool(request.env['edu.attendance.sheet'].sudo().search_count([
-                    ('register_id', '=', cl.attendance_register_id.id),
-                    ('session_date', '=', today_date),
-                    ('state', '=', 'submitted'),
-                ]))
-            classroom_att.append({
-                'classroom': cl,
-                'today_done': has_today,
-                'url': '/portal/teacher/classroom/%d/attendance' % cl.id,
-            })
-        context = build_portal_context(
-            active_sidebar_key='attendance',
-            page_title='Attendance',
-        )
-        context.update({
-            'employee': employee,
-            'classroom_att': classroom_att,
-            'today_date': today_date,
-        })
-        return request.render('edu_portal.teacher_attendance_overview_page', context)
-
-    # ─── Marking: exams needing marks ─────────────────────────
-
-    @http.route('/portal/teacher/marking', type='http', auth='user', website=False)
-    def teacher_marking(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        Classroom = request.env['edu.classroom'].sudo()
-        ExamPaper = request.env['edu.exam.paper'].sudo()
-        classrooms = Classroom.search([('teacher_id', '=', employee.id)])
-        batch_ids = [cl.batch_id.id for cl in classrooms if cl.batch_id]
-        cl_line_ids = [cl.curriculum_line_id.id for cl in classrooms if cl.curriculum_line_id]
-        papers = ExamPaper.browse()
-        if batch_ids and cl_line_ids:
-            papers = ExamPaper.search([
+        batch_ids = classrooms.mapped('batch_id').ids
+        result_sessions = request.env['edu.result.session'].sudo()
+        if batch_ids:
+            result_sessions = request.env['edu.result.session'].sudo().search([
                 ('batch_id', 'in', batch_ids),
-                ('curriculum_line_id', 'in', cl_line_ids),
-                ('state', '=', 'marks_entry'),
-            ])
-        context = build_portal_context(
-            active_sidebar_key='marking',
-            page_title='Marking',
-        )
-        context.update({
-            'employee': employee,
-            'papers': papers,
-            'classrooms': classrooms,
-        })
-        return request.render('edu_portal.teacher_marking_overview_page', context)
+                ('state', 'in', ('published', 'closed')),
+            ], order='name desc', limit=20)
 
-    # ─── Gradebook: redirect to first classroom results ───────
-
-    @http.route('/portal/teacher/gradebook', type='http', auth='user', website=False)
-    def teacher_gradebook(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        Classroom = request.env['edu.classroom'].sudo()
-        classrooms = Classroom.search([('teacher_id', '=', employee.id)])
-        classroom_cards = []
-        for cl in classrooms:
-            classroom_cards.append({
-                'classroom': cl,
-                'url': '/portal/teacher/classroom/%d/results' % cl.id,
-            })
-        context = build_portal_context(
-            active_sidebar_key='gradebook',
-            page_title='Gradebook',
-        )
-        context.update({
-            'employee': employee,
-            'classroom_cards': classroom_cards,
-        })
-        return request.render('edu_portal.teacher_gradebook_overview_page', context)
-
-    # ─── Report Cards: placeholder ────────────────────────────
-
-    @http.route('/portal/teacher/reports', type='http', auth='user', website=False)
-    def teacher_reports(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        context = build_portal_context(
+        ctx = build_portal_context(
+            'teacher',
             active_sidebar_key='reports',
             page_title='Report Cards',
+            crumbs=['Kopila', 'Report Cards'],
+            result_sessions=result_sessions,
         )
-        context.update({'employee': employee})
-        return request.render('edu_portal.teacher_reports_overview_page', context)
+        return request.render('edu_portal.teacher_reports', ctx)
 
-    # ─── Calendar (hold — placeholder) ─────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Messages (placeholder)
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route('/portal/teacher/calendar', type='http', auth='user', website=False)
+    @http.route('/portal/teacher/messages', type='http', auth='user',
+                website=False)
+    def teacher_messages(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='messages',
+            page_title='Messages',
+            crumbs=['Kopila', 'Messages'],
+        )
+        return request.render('edu_portal.teacher_messages', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Announcements
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/announcements', type='http', auth='user',
+                website=False)
+    def teacher_announcements(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ])
+
+        posts = request.env['edu.classroom.post'].sudo()
+        if classrooms:
+            posts = request.env['edu.classroom.post'].sudo().search([
+                ('classroom_id', 'in', classrooms.ids),
+                ('active', '=', True),
+            ], order='pinned desc, posted_at desc', limit=50)
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='announcements',
+            page_title='Announcements',
+            crumbs=['Kopila', 'Announcements'],
+            classrooms=classrooms,
+            posts=posts,
+        )
+        return request.render('edu_portal.teacher_announcements', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Calendar (placeholder)
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/calendar', type='http', auth='user',
+                website=False)
     def teacher_calendar(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        context = build_portal_context(
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        ctx = build_portal_context(
+            'teacher',
             active_sidebar_key='calendar',
             page_title='Calendar',
+            crumbs=['Kopila', 'Calendar'],
         )
-        context.update({'employee': employee})
-        return request.render('edu_portal.teacher_calendar_page', context)
+        return request.render('edu_portal.teacher_calendar', ctx)
 
-    # ─── Profile ────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Behavior Notes (placeholder)
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route('/portal/teacher/profile', type='http', auth='user', website=False)
+    @http.route('/portal/teacher/behavior', type='http', auth='user',
+                website=False)
+    def teacher_behavior(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='behavior',
+            page_title='Behavior Notes',
+            crumbs=['Kopila', 'Behavior Notes'],
+        )
+        return request.render('edu_portal.teacher_behavior', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Fees Overview
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/fees', type='http', auth='user', website=False)
+    def teacher_fees(self, **kw):
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        classrooms = request.env['edu.classroom'].sudo().search([
+            ('teacher_id', '=', employee.id),
+            ('state', '=', 'active'),
+        ])
+
+        # Get section student IDs for fee overview
+        section_ids = classrooms.mapped('section_id').ids
+        histories = request.env['edu.student.progression.history'].sudo()
+        if section_ids:
+            histories = request.env['edu.student.progression.history'].sudo().search([
+                ('section_id', 'in', section_ids),
+                ('state', '=', 'active'),
+            ])
+        student_ids = histories.mapped('student_id').ids
+
+        # Fee dues summary for those students
+        dues = request.env['edu.student.fee.due'].sudo()
+        if student_ids:
+            dues = request.env['edu.student.fee.due'].sudo().search([
+                ('student_id', 'in', student_ids),
+                ('state', 'in', ('due', 'partial', 'overdue')),
+            ], order='due_date')
+
+        ctx = build_portal_context(
+            'teacher',
+            active_sidebar_key='fees',
+            page_title='Fees Overview',
+            crumbs=['Kopila', 'Fees Overview'],
+            classrooms=classrooms,
+            dues=dues,
+        )
+        return request.render('edu_portal.teacher_fees', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Teacher Profile
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/teacher/profile', type='http', auth='user',
+                website=False)
     def teacher_profile(self, **kw):
-        employee = self._guard_teacher()
-        if not employee:
-            return request.redirect('/portal')
-        context = build_portal_context(
+        employee, err = self._check_teacher()
+        if err:
+            return err
+
+        ctx = build_portal_context(
+            'teacher',
             active_sidebar_key='profile',
             page_title='My Profile',
+            crumbs=['Kopila', 'My Profile'],
+            employee=employee,
         )
-        context.update({'employee': employee})
-        return request.render('edu_portal.teacher_profile_page', context)
+        return request.render('edu_portal.teacher_profile', ctx)

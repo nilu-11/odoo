@@ -1,36 +1,320 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ══════════════════════════════════════════════════════
-         Master Portal Layout
-         Used by all portal pages via t-call.
-    ══════════════════════════════════════════════════════ -->
-    <template id="portal_layout" name="EMIS Portal Layout">&lt;!DOCTYPE html&gt;
-<html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title><t t-esc="page_title or 'EMIS Portal'"/></title>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap"/>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap"/>
-        <link rel="stylesheet" type="text/css" href="/edu_portal/static/src/css/portal.css"/>
-        <script src="/edu_portal/static/src/vendor/htmx.min.js"/>
-    </head>
-    <body t-attf-class="portal-body #{'sidebar-collapsed' if sidebar_collapsed else ''}"
-          t-att-data-role="portal_role"
-          data-theme="saffron"
-          data-mode="light">
-        <t t-call="edu_portal.sidebar_component"/>
-        <div class="portal-main">
-            <t t-call="edu_portal.topbar_component"/>
-            <main class="portal-content">
-                <t t-out="0"/>
-            </main>
-        </div>
-        <script src="/edu_portal/static/src/js/portal.js"/>
-        <script src="/edu_portal/static/src/js/entry.js"/>
-    </body>
-</html>
+
+    <!-- ============================================================
+         Kopila Portal Layout — Master template
+         All portal pages extend this via t-call.
+         Contains: sidebar, topbar, command palette, toast layer.
+         ============================================================ -->
+
+    <!-- ─── SVG Icon Helper ──────────────────────────────────────── -->
+    <template id="icon" name="Kopila SVG Icon">
+        <!--
+            Usage: <t t-call="edu_portal.icon"><t t-set="ico" t-value="'home'"/><t t-set="sz" t-value="16"/></t>
+            Defaults: sz=16
+        -->
+        <t t-set="sz" t-value="sz or 16"/>
+        <svg t-att-width="sz" t-att-height="sz" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round"
+             class="ico">
+            <!-- home -->
+            <t t-if="ico == 'home'"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-8.5Z"/></t>
+            <!-- book -->
+            <t t-if="ico == 'book'"><path d="M4 5a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2V5Z"/><path d="M6 18h12v3H6a2 2 0 0 1 0-3Z"/></t>
+            <!-- check -->
+            <t t-if="ico == 'check'"><path d="M4 12.5 9 17l11-11"/></t>
+            <!-- x -->
+            <t t-if="ico == 'x'"><path d="M6 6l12 12M6 18 18 6"/></t>
+            <!-- clock -->
+            <t t-if="ico == 'clock'"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></t>
+            <!-- users -->
+            <t t-if="ico == 'users'"><circle cx="9" cy="9" r="3.2"/><path d="M3 20c0-3 2.8-5 6-5s6 2 6 5"/><path d="M15 10.5a3 3 0 0 0 0-5.8"/><path d="M17 20c0-2.5 1.5-4 4-4"/></t>
+            <!-- user -->
+            <t t-if="ico == 'user'"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></t>
+            <!-- pen -->
+            <t t-if="ico == 'pen'"><path d="M14 5l5 5L8 21H3v-5L14 5Z"/><path d="M12 7l5 5"/></t>
+            <!-- grid -->
+            <t t-if="ico == 'grid'"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></t>
+            <!-- msg -->
+            <t t-if="ico == 'msg'"><path d="M4 5h16v11H8l-4 4V5Z"/></t>
+            <!-- bell -->
+            <t t-if="ico == 'bell'"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 19a2 2 0 0 0 4 0"/></t>
+            <!-- mega -->
+            <t t-if="ico == 'mega'"><path d="M4 9v6l11 4V5L4 9Z"/><path d="M15 8v8"/><path d="M18 10a3 3 0 0 1 0 4"/></t>
+            <!-- cal -->
+            <t t-if="ico == 'cal'"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></t>
+            <!-- chart -->
+            <t t-if="ico == 'chart'"><path d="M4 20V9M10 20V4M16 20v-8M22 20H2"/></t>
+            <!-- coin -->
+            <t t-if="ico == 'coin'"><circle cx="12" cy="12" r="9"/><path d="M8 10c0-1.4 1.8-2.5 4-2.5s4 1.1 4 2.5-1.5 2-4 2.5-4 1.1-4 2.5 1.8 2.5 4 2.5 4-1.1 4-2.5"/><path d="M12 5v14"/></t>
+            <!-- flag -->
+            <t t-if="ico == 'flag'"><path d="M5 22V3h12l-2 4 2 4H5"/></t>
+            <!-- search -->
+            <t t-if="ico == 'search'"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></t>
+            <!-- menu -->
+            <t t-if="ico == 'menu'"><path d="M4 7h16M4 12h16M4 17h16"/></t>
+            <!-- plus -->
+            <t t-if="ico == 'plus'"><path d="M12 5v14M5 12h14"/></t>
+            <!-- caret -->
+            <t t-if="ico == 'caret'"><path d="M6 9l6 6 6-6"/></t>
+            <!-- caretRight -->
+            <t t-if="ico == 'caretRight'"><path d="M9 6l6 6-6 6"/></t>
+            <!-- dots -->
+            <t t-if="ico == 'dots'"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></t>
+            <!-- filter -->
+            <t t-if="ico == 'filter'"><path d="M4 5h16l-6 8v6l-4-2v-4L4 5Z"/></t>
+            <!-- download -->
+            <t t-if="ico == 'download'"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></t>
+            <!-- settings -->
+            <t t-if="ico == 'settings'"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></t>
+            <!-- star -->
+            <t t-if="ico == 'star'"><path d="M12 3l2.8 5.8 6.2.9-4.5 4.4 1.1 6.3L12 17.4 6.4 20.4l1.1-6.3L3 9.7l6.2-.9L12 3Z"/></t>
+            <!-- paper -->
+            <t t-if="ico == 'paper'"><path d="M6 3h9l5 5v13H6V3Z"/><path d="M15 3v5h5"/><path d="M9 13h7M9 17h7M9 9h3"/></t>
+            <!-- sparkle -->
+            <t t-if="ico == 'sparkle'"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><path d="M6 6l3 3M18 18l-3-3M6 18l3-3M18 6l-3 3"/></t>
+            <!-- inbox -->
+            <t t-if="ico == 'inbox'"><path d="M3 13l2-9h14l2 9v7H3v-7Z"/><path d="M3 13h6l1 3h4l1-3h6"/></t>
+            <!-- moon -->
+            <t t-if="ico == 'moon'"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11Z"/></t>
+            <!-- sun -->
+            <t t-if="ico == 'sun'"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></t>
+            <!-- sliders -->
+            <t t-if="ico == 'sliders'"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h14M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></t>
+            <!-- panel -->
+            <t t-if="ico == 'panel'"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></t>
+        </svg>
     </template>
+
+    <!-- ─── Portal Layout — Master Shell ─────────────────────────── -->
+    <template id="portal_layout" name="Kopila Portal Layout">
+        <t t-call="web.frontend_layout">
+            <t t-set="body_classname" t-value="'kopila-portal'"/>
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+
+            <div class="kopila-portal"
+                 t-att-data-theme="request.httprequest.cookies.get('kopila_theme', 'saffron')"
+                 t-att-data-mode="request.httprequest.cookies.get('kopila_mode', 'light')"
+                 t-att-data-density="request.httprequest.cookies.get('kopila_density', 'comfortable')"
+                 t-att-data-sidebar="request.httprequest.cookies.get('kopila_sidebar', 'labeled')">
+
+                <div class="portal-app">
+                    <!-- Sidebar -->
+                    <t t-call="edu_portal.portal_sidebar"/>
+
+                    <!-- Main area -->
+                    <div class="portal-main">
+                        <!-- Topbar -->
+                        <t t-call="edu_portal.portal_topbar"/>
+
+                        <!-- Page content inserted here -->
+                        <t t-out="0"/>
+                    </div>
+                </div>
+
+                <!-- Command Palette -->
+                <t t-call="edu_portal.command_palette"/>
+
+                <!-- Toast container -->
+                <div class="toast-layer" id="toast-layer"/>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Sidebar ──────────────────────────────────────────────── -->
+    <template id="portal_sidebar" name="Kopila Portal Sidebar">
+        <aside class="portal-sidebar">
+            <!-- Brand -->
+            <div class="brand">
+                <div class="brand-mark">&#0915;</div>
+                <div class="brand-text">
+                    <div class="brand-name">Kopila</div>
+                    <div class="brand-sub">
+                        <t t-if="institution_short" t-esc="institution_short"/>
+                        <t t-else="">EMIS</t>
+                        <t t-if="term_name"> · <t t-esc="term_name"/></t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable navigation -->
+            <div style="overflow:auto;flex:1;">
+                <!-- Nav groups from controller context -->
+                <t t-foreach="sidebar_groups or []" t-as="group">
+                    <div class="nav-section"><t t-esc="group.get('group', group.get('title', ''))"/></div>
+                    <div class="nav-list">
+                        <t t-foreach="group.get('items', [])" t-as="item">
+                            <a class="nav-item"
+                               t-att-class="'active' if item.get('key') == active_sidebar_key else ''"
+                               t-att-href="item.get('url', '#')">
+                                <t t-call="edu_portal.icon">
+                                    <t t-set="ico" t-value="item.get('icon', 'home')"/>
+                                    <t t-set="sz" t-value="20"/>
+                                </t>
+                                <span class="nav-label"><t t-esc="item.get('label', '')"/></span>
+                                <t t-if="item.get('badge')">
+                                    <span class="nav-badge"
+                                          t-att-class="'accent' if item.get('badge_accent') else ''">
+                                        <t t-esc="item.get('badge')"/>
+                                    </span>
+                                </t>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Teacher: My courses section -->
+                <t t-if="teacher_courses">
+                    <div class="nav-section">My courses</div>
+                    <div class="nav-courses">
+                        <t t-foreach="teacher_courses" t-as="tc">
+                            <a t-att-href="'/portal/teacher/classroom/%s/stream' % tc.get('id', '')"
+                               class="nav-course"
+                               t-att-class="'active' if active_classroom_id == tc.get('id') else ''">
+                                <span class="course-dot saffron"/>
+                                <span class="nav-label"><t t-esc="tc.get('subject', '') or tc.get('title', '')"/></span>
+                                <span class="course-code-short"><t t-esc="tc.get('section', '') or tc.get('code_num', '') or tc.get('code', '')"/></span>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Student: My classrooms section -->
+                <t t-if="student_classrooms">
+                    <div class="nav-section">My classrooms</div>
+                    <div class="nav-courses">
+                        <t t-foreach="student_classrooms" t-as="sc">
+                            <a t-att-href="'/portal/student/classroom/%s/stream' % sc.get('id', '')"
+                               class="nav-course"
+                               t-att-class="'active' if active_classroom_id == sc.get('id') else ''">
+                                <span class="course-dot saffron"/>
+                                <span class="nav-label"><t t-esc="sc.get('subject', '') or sc.get('title', '')"/></span>
+                                <span class="course-code-short"><t t-esc="sc.get('section', '') or sc.get('code_num', '') or sc.get('code', '')"/></span>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer: user avatar + name + role -->
+            <div class="sidebar-footer">
+                <div class="avatar"><t t-esc="user_initials or 'U'"/></div>
+                <div class="user-text" style="min-width:0;flex:1;">
+                    <div class="user-name"><t t-esc="user_display_name or 'User'"/></div>
+                    <div class="user-role"><t t-esc="user_role_label or 'Portal user'"/></div>
+                </div>
+                <a href="/portal/settings" class="iconbtn" title="Settings">
+                    <t t-call="edu_portal.icon">
+                        <t t-set="ico" t-value="'sliders'"/>
+                        <t t-set="sz" t-value="16"/>
+                    </t>
+                </a>
+            </div>
+        </aside>
+    </template>
+
+    <!-- ─── Topbar ───────────────────────────────────────────────── -->
+    <template id="portal_topbar" name="Kopila Portal Topbar">
+        <div class="portal-topbar">
+            <!-- Sidebar toggle -->
+            <button class="iconbtn" id="sidebar-toggle" title="Toggle sidebar">
+                <t t-call="edu_portal.icon">
+                    <t t-set="ico" t-value="'panel'"/>
+                    <t t-set="sz" t-value="16"/>
+                </t>
+            </button>
+
+            <!-- Breadcrumbs -->
+            <div class="crumbs">
+                <t t-foreach="crumbs or ['Kopila']" t-as="crumb">
+                    <t t-if="not crumb_first">
+                        <span class="sep">/</span>
+                    </t>
+                    <span t-att-class="'current' if crumb_last else 'crumb-hide-sm'">
+                        <t t-esc="crumb"/>
+                    </span>
+                </t>
+            </div>
+
+            <!-- Command palette trigger -->
+            <button class="cmd-trigger" id="cmd-open">
+                <t t-call="edu_portal.icon">
+                    <t t-set="ico" t-value="'search'"/>
+                    <t t-set="sz" t-value="14"/>
+                </t>
+                <span>Jump to...</span>
+                <span class="kbd">&#8984;K</span>
+            </button>
+
+            <!-- Theme toggle -->
+            <button class="iconbtn" id="theme-toggle" title="Toggle theme">
+                <t t-call="edu_portal.icon">
+                    <t t-set="ico" t-value="'moon'"/>
+                    <t t-set="sz" t-value="16"/>
+                </t>
+            </button>
+
+            <!-- Notification bell -->
+            <button class="iconbtn" title="Notifications">
+                <t t-call="edu_portal.icon">
+                    <t t-set="ico" t-value="'bell'"/>
+                    <t t-set="sz" t-value="16"/>
+                </t>
+                <t t-if="notification_count">
+                    <span class="dot"/>
+                </t>
+            </button>
+
+            <!-- Role switcher (multi-role users) -->
+            <t t-if="available_roles and len(available_roles) > 1">
+                <select class="btn sm" id="role-switcher" style="min-width:120px;">
+                    <t t-foreach="available_roles" t-as="role">
+                        <option t-att-value="role.get('key')"
+                                t-att-selected="'selected' if role.get('key') == active_role else None">
+                            <t t-esc="role.get('label', '')"/>
+                        </option>
+                    </t>
+                </select>
+            </t>
+
+            <!-- Child selector (parent role) -->
+            <t t-if="active_role == 'parent' and children_list">
+                <select class="btn sm" id="child-selector" style="min-width:140px;">
+                    <t t-foreach="children_list" t-as="child">
+                        <option t-att-value="child.get('id')"
+                                t-att-selected="'selected' if child.get('id') == active_child_id else None">
+                            <t t-esc="child.get('name', '')"/>
+                        </option>
+                    </t>
+                </select>
+            </t>
+        </div>
+    </template>
+
+    <!-- ─── Command Palette ──────────────────────────────────────── -->
+    <template id="command_palette" name="Kopila Command Palette">
+        <div class="scrim" id="cmd-scrim" style="display:none;">
+            <div class="cmd" id="cmd-dialog">
+                <input class="cmd-input" id="cmd-input"
+                       placeholder="Search for a page, student, or action..."/>
+                <div class="cmd-list" id="cmd-list">
+                    <!-- JS populates search results here -->
+                    <div class="cmd-group">Navigate</div>
+                    <t t-foreach="cmd_items or []" t-as="ci">
+                        <div class="cmd-row" t-att-data-goto="ci.get('goto', '')">
+                            <t t-call="edu_portal.icon">
+                                <t t-set="ico" t-value="ci.get('icon', 'caretRight')"/>
+                                <t t-set="sz" t-value="16"/>
+                            </t>
+                            <span><t t-esc="ci.get('label', '')"/></span>
+                            <span class="meta"><t t-esc="ci.get('meta', '')"/></span>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </template>
+
 </odoo>

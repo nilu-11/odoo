@@ -1,47 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ══════════════════════════════════════════════════════
-         Portal Privilege Category
+         Module Category + Privilege (Odoo 19 pattern)
+         res.groups now uses privilege_id → res.groups.privilege
+         instead of category_id → ir.module.category directly.
     ══════════════════════════════════════════════════════ -->
-    <record id="privilege_edu_portal" model="res.groups.privilege">
+    <record id="module_category_edu_portal" model="ir.module.category">
         <field name="name">Education Portal</field>
-        <field name="sequence">95</field>
-        <field name="category_id" ref="edu_academic_structure.module_category_education"/>
+        <field name="sequence">25</field>
+    </record>
+
+    <record id="privilege_edu_portal" model="res.groups.privilege">
+        <field name="name">Education Portal Role</field>
+        <field name="sequence">25</field>
+        <field name="category_id" ref="module_category_edu_portal"/>
+        <field name="placeholder">No portal role</field>
     </record>
 
     <!-- ══════════════════════════════════════════════════════
-         Portal Groups
-         All three inherit from base.group_portal (free licensing)
+         Security Groups — all inherit base.group_portal
+         Using separate privilege (not exclusive_with) to allow
+         multi-role: a user can be teacher AND parent simultaneously.
     ══════════════════════════════════════════════════════ -->
 
     <record id="group_edu_portal_student" model="res.groups">
-        <field name="name">Portal: Student</field>
+        <field name="name">Student Portal</field>
         <field name="privilege_id" ref="privilege_edu_portal"/>
         <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
-        <field name="comment">Student portal user. Can view own attendance, results, assessments, and fees.</field>
+        <field name="comment">Students can view their own academic data, attendance, marks, fees, and classroom stream.</field>
     </record>
 
     <record id="group_edu_portal_parent" model="res.groups">
-        <field name="name">Portal: Parent</field>
+        <field name="name">Parent Portal</field>
         <field name="privilege_id" ref="privilege_edu_portal"/>
         <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
-        <field name="comment">Parent portal user. Can view children's attendance, results, assessments, and fees.</field>
+        <field name="comment">Parents can view their children's academic data, attendance, marks, fees, and classroom stream.</field>
     </record>
 
     <record id="group_edu_portal_teacher" model="res.groups">
-        <field name="name">Portal: Teacher</field>
+        <field name="name">Teacher Portal</field>
         <field name="privilege_id" ref="privilege_edu_portal"/>
         <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
-        <field name="comment">Teacher portal user. Can mark attendance, enter marks, and record assessments for their classrooms via the portal controller.</field>
+        <field name="comment">Teachers can manage classroom posts and view classroom data for sections they teach.</field>
     </record>
 
     <!-- ══════════════════════════════════════════════════════
-         Student Portal — Record Rules
-         Scope all reads to the student's own partner.
+         RECORD RULES — Student Portal
+         Students see only their own records.
     ══════════════════════════════════════════════════════ -->
 
-    <record id="rule_portal_student_own_record" model="ir.rule">
-        <field name="name">Portal Student: own record only</field>
+    <!-- Student: read own edu.student record -->
+    <record id="rule_student_read_own_student" model="ir.rule">
+        <field name="name">Student Portal: own student record</field>
         <field name="model_id" ref="edu_student.model_edu_student"/>
         <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -51,8 +61,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_attendance" model="ir.rule">
-        <field name="name">Portal Student: own attendance lines</field>
+    <!-- Student: read own attendance lines -->
+    <record id="rule_student_read_own_attendance" model="ir.rule">
+        <field name="name">Student Portal: own attendance lines</field>
         <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet_line"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -62,8 +73,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_marksheet" model="ir.rule">
-        <field name="name">Portal Student: own marksheets</field>
+    <!-- Student: read own exam marksheets -->
+    <record id="rule_student_read_own_marksheets" model="ir.rule">
+        <field name="name">Student Portal: own exam marksheets</field>
         <field name="model_id" ref="edu_exam.model_edu_exam_marksheet"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -73,8 +85,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_assessment" model="ir.rule">
-        <field name="name">Portal Student: own assessments</field>
+    <!-- Student: read own continuous assessment records -->
+    <record id="rule_student_read_own_assessments" model="ir.rule">
+        <field name="name">Student Portal: own assessment records</field>
         <field name="model_id" ref="edu_assessment.model_edu_continuous_assessment_record"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -84,8 +97,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_fee_due" model="ir.rule">
-        <field name="name">Portal Student: own fee dues</field>
+    <!-- Student: read own fee dues -->
+    <record id="rule_student_read_own_fee_dues" model="ir.rule">
+        <field name="name">Student Portal: own fee dues</field>
         <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -95,8 +109,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_fee_plan" model="ir.rule">
-        <field name="name">Portal Student: own fee plans</field>
+    <!-- Student: read own fee plans -->
+    <record id="rule_student_read_own_fee_plans" model="ir.rule">
+        <field name="name">Student Portal: own fee plans</field>
         <field name="model_id" ref="edu_fees.model_edu_student_fee_plan"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -106,8 +121,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_student_payment" model="ir.rule">
-        <field name="name">Portal Student: own payments</field>
+    <!-- Student: read own payments -->
+    <record id="rule_student_read_own_payments" model="ir.rule">
+        <field name="name">Student Portal: own payments</field>
         <field name="model_id" ref="edu_fees.model_edu_student_payment"/>
         <field name="domain_force">[('student_id.partner_id', '=', user.partner_id.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
@@ -118,13 +134,14 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════
-         Parent Portal — Record Rules
-         Scope reads to children linked via guardian relationship.
-         Uses user.children_partner_ids (computed on res.users).
+         RECORD RULES — Parent Portal
+         Parents see children's records (via guardian linkage).
+         Domain uses children_partner_ids computed on res.users.
     ══════════════════════════════════════════════════════ -->
 
-    <record id="rule_portal_parent_student" model="ir.rule">
-        <field name="name">Portal Parent: children records</field>
+    <!-- Parent: read children's edu.student records -->
+    <record id="rule_parent_read_children_student" model="ir.rule">
+        <field name="name">Parent Portal: children's student records</field>
         <field name="model_id" ref="edu_student.model_edu_student"/>
         <field name="domain_force">[('partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -134,8 +151,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_attendance" model="ir.rule">
-        <field name="name">Portal Parent: children attendance</field>
+    <!-- Parent: read children's attendance lines -->
+    <record id="rule_parent_read_children_attendance" model="ir.rule">
+        <field name="name">Parent Portal: children's attendance lines</field>
         <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet_line"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -145,8 +163,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_marksheet" model="ir.rule">
-        <field name="name">Portal Parent: children marksheets</field>
+    <!-- Parent: read children's exam marksheets -->
+    <record id="rule_parent_read_children_marksheets" model="ir.rule">
+        <field name="name">Parent Portal: children's exam marksheets</field>
         <field name="model_id" ref="edu_exam.model_edu_exam_marksheet"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -156,8 +175,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_assessment" model="ir.rule">
-        <field name="name">Portal Parent: children assessments</field>
+    <!-- Parent: read children's assessment records -->
+    <record id="rule_parent_read_children_assessments" model="ir.rule">
+        <field name="name">Parent Portal: children's assessment records</field>
         <field name="model_id" ref="edu_assessment.model_edu_continuous_assessment_record"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -167,8 +187,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_fee_due" model="ir.rule">
-        <field name="name">Portal Parent: children fee dues</field>
+    <!-- Parent: read children's fee dues -->
+    <record id="rule_parent_read_children_fee_dues" model="ir.rule">
+        <field name="name">Parent Portal: children's fee dues</field>
         <field name="model_id" ref="edu_fees.model_edu_student_fee_due"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -178,8 +199,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_fee_plan" model="ir.rule">
-        <field name="name">Portal Parent: children fee plans</field>
+    <!-- Parent: read children's fee plans -->
+    <record id="rule_parent_read_children_fee_plans" model="ir.rule">
+        <field name="name">Parent Portal: children's fee plans</field>
         <field name="model_id" ref="edu_fees.model_edu_student_fee_plan"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -189,8 +211,9 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_portal_parent_payment" model="ir.rule">
-        <field name="name">Portal Parent: children payments</field>
+    <!-- Parent: read children's payments -->
+    <record id="rule_parent_read_children_payments" model="ir.rule">
+        <field name="name">Parent Portal: children's payments</field>
         <field name="model_id" ref="edu_fees.model_edu_student_payment"/>
         <field name="domain_force">[('student_id.partner_id', 'in', user.children_partner_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
@@ -201,33 +224,31 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════
-         Classroom Stream Posts — Record Rules
-
-         Teachers can create/edit/archive posts on classrooms they
-         own (classroom_id.teacher_id == current user). Students can
-         read posts whose classroom matches their active progression
-         section. Parents can read posts for their children's sections.
+         RECORD RULES — Classroom Posts (Teacher CRUD)
     ══════════════════════════════════════════════════════ -->
 
-    <record id="rule_edu_classroom_post_teacher_own" model="ir.rule">
-        <field name="name">Portal Teacher: own classroom posts</field>
+    <!-- Teacher: CRUD own classroom posts (posts in classrooms they teach) -->
+    <record id="rule_teacher_crud_own_posts" model="ir.rule">
+        <field name="name">Teacher Portal: CRUD own classroom posts</field>
         <field name="model_id" ref="model_edu_classroom_post"/>
-        <!--
-            edu_hr makes edu.classroom.teacher_id m2o to hr.employee,
-            so ownership is checked via the employee user_id back-ref.
-        -->
-        <field name="domain_force">[('classroom_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">[('classroom_id.teacher_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_teacher'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 
-    <record id="rule_edu_classroom_post_student_read" model="ir.rule">
-        <field name="name">Portal Student: section classroom posts</field>
+    <!-- ══════════════════════════════════════════════════════
+         RECORD RULES — Classroom Posts (Student/Parent Read)
+         Students and parents can read posts from their sections.
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- Student: read classroom posts from their sections -->
+    <record id="rule_student_read_section_posts" model="ir.rule">
+        <field name="name">Student Portal: read classroom posts from own sections</field>
         <field name="model_id" ref="model_edu_classroom_post"/>
-        <field name="domain_force">[('classroom_id.section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -235,14 +256,87 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
-    <record id="rule_edu_classroom_post_parent_read" model="ir.rule">
-        <field name="name">Portal Parent: children's section posts</field>
+    <!-- Parent: read classroom posts from children's sections -->
+    <record id="rule_parent_read_section_posts" model="ir.rule">
+        <field name="name">Parent Portal: read classroom posts from children's sections</field>
         <field name="model_id" ref="model_edu_classroom_post"/>
-        <field name="domain_force">[('classroom_id.section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         RECORD RULES — Classroom read access
+         Students see classrooms in their sections.
+         Parents see classrooms in children's sections.
+         Teachers see classrooms they teach.
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- Student: read classrooms from own sections -->
+    <record id="rule_student_read_classrooms" model="ir.rule">
+        <field name="name">Student Portal: read classrooms from own sections</field>
+        <field name="model_id" ref="edu_classroom.model_edu_classroom"/>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Parent: read classrooms from children's sections -->
+    <record id="rule_parent_read_classrooms" model="ir.rule">
+        <field name="name">Parent Portal: read classrooms from children's sections</field>
+        <field name="model_id" ref="edu_classroom.model_edu_classroom"/>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Teacher: read classrooms they teach -->
+    <record id="rule_teacher_read_classrooms" model="ir.rule">
+        <field name="name">Teacher Portal: read own classrooms</field>
+        <field name="model_id" ref="edu_classroom.model_edu_classroom"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════
+         RECORD RULES — Attendance sheets (read-only for portal)
+         Students see sheets from their sections.
+         Parents see sheets from children's sections.
+    ══════════════════════════════════════════════════════ -->
+
+    <record id="rule_student_read_attendance_sheets" model="ir.rule">
+        <field name="name">Student Portal: read attendance sheets from own sections</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet"/>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_student'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_parent_read_attendance_sheets" model="ir.rule">
+        <field name="name">Parent Portal: read attendance sheets from children's sections</field>
+        <field name="model_id" ref="edu_attendance.model_edu_attendance_sheet"/>
+        <field name="domain_force">[('section_id', 'in', user.stream_visible_section_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('group_edu_portal_parent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
 </odoo>

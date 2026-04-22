@@ -1,106 +1,169 @@
-"""Student portal controllers — outside-classroom pages.
+import logging
 
-Only three routes live here:
-
-* ``/portal/student/home``    — classroom card grid (Google Classroom).
-* ``/portal/student/profile`` — the logged-in student's profile page.
-* ``/portal/student/fees``    — sidebar link: dues, payments, balance.
-
-Every in-classroom tab is owned by ``student_classroom.py``.
-"""
 from odoo import http
 from odoo.http import request
 
 from .helpers import (
-    build_portal_context,
     get_portal_role,
     get_student_record,
+    build_portal_context,
 )
 
+_logger = logging.getLogger(__name__)
 
-class StudentPortalController(http.Controller):
 
-    def _guard_student(self):
-        """Return the student's edu.student record or None if not authorised."""
+class EduPortalStudent(http.Controller):
+    """Student outside-classroom portal routes."""
+
+    # ── Guard helper ───────────────────────────────────────────────────────
+
+    def _check_student(self):
+        """Return (student, error_response) tuple.
+
+        If the user is not a student, error_response is a redirect.
+        Otherwise error_response is None and student is the edu.student record.
+        """
         user = request.env.user
-        if get_portal_role(user) != 'student':
-            return None
-        return get_student_record(user)
+        role = get_portal_role(user)
+        if role != 'student':
+            return None, request.redirect('/portal')
+        student = get_student_record(user)
+        if not student:
+            return None, request.redirect('/portal')
+        return student, None
 
-    # ─── Home: classroom grid ──────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Home — Classroom card grid
+    # ══════════════════════════════════════════════════════════════════════
 
     @http.route('/portal/student/home', type='http', auth='user', website=False)
     def student_home(self, **kw):
-        student = self._guard_student()
-        if not student:
-            return request.redirect('/portal')
+        student, err = self._check_student()
+        if err:
+            return err
 
-        # Student's current active progression → section
-        history = request.env['edu.student.progression.history'].sudo().search([
+        # Get active progression histories to find classrooms
+        histories = request.env['edu.student.progression.history'].sudo().search([
             ('student_id', '=', student.id),
             ('state', '=', 'active'),
-        ], limit=1)
-        classroom_cards = []
-        if history:
-            classrooms = request.env['edu.classroom'].sudo().search([
-                ('section_id', '=', history.section_id.id),
-            ])
-            for cl in classrooms:
-                classroom_cards.append({
-                    'classroom': cl,
-                    'status_label': cl.state.title(),
-                    'status_class': (
-                        'badge-success' if cl.state == 'active' else 'badge-muted'
-                    ),
-                    'detail_url': '/portal/student/classroom/%d' % cl.id,
-                })
+        ])
+        section_ids = histories.mapped('section_id').ids
 
-        context = build_portal_context(
+        # Find all active classrooms in the student's sections
+        classrooms = request.env['edu.classroom'].sudo()
+        if section_ids:
+            classrooms = request.env['edu.classroom'].sudo().search([
+                ('section_id', 'in', section_ids),
+                ('state', '=', 'active'),
+            ], order='name')
+
+        ctx = build_portal_context(
+            'student',
             active_sidebar_key='home',
             page_title='Home',
+            crumbs=['Kopila', 'Home'],
+            student=student,
+            classrooms=classrooms,
+            histories=histories,
         )
-        context.update({
-            'student': student,
-            'classroom_cards': classroom_cards,
-        })
-        return request.render('edu_portal.student_home_page', context)
+        return request.render('edu_portal.student_home', ctx)
 
-    # ─── Profile ────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Courses
+    # ══════════════════════════════════════════════════════════════════════
 
-    @http.route('/portal/student/profile', type='http', auth='user', website=False)
-    def student_profile(self, **kw):
-        student = self._guard_student()
-        if not student:
-            return request.redirect('/portal')
-        context = build_portal_context(
-            active_sidebar_key='profile',
-            page_title='My Profile',
+    @http.route('/portal/student/courses', type='http', auth='user',
+                website=False)
+    def student_courses(self, **kw):
+        student, err = self._check_student()
+        if err:
+            return err
+
+        histories = request.env['edu.student.progression.history'].sudo().search([
+            ('student_id', '=', student.id),
+            ('state', '=', 'active'),
+        ])
+        section_ids = histories.mapped('section_id').ids
+
+        classrooms = request.env['edu.classroom'].sudo()
+        if section_ids:
+            classrooms = request.env['edu.classroom'].sudo().search([
+                ('section_id', 'in', section_ids),
+                ('state', '=', 'active'),
+            ], order='batch_id, section_id, name')
+
+        ctx = build_portal_context(
+            'student',
+            active_sidebar_key='courses',
+            page_title='Courses',
+            crumbs=['Kopila', 'Courses'],
+            student=student,
+            classrooms=classrooms,
         )
-        context.update({'student': student})
-        return request.render('edu_portal.student_profile_page', context)
+        return request.render('edu_portal.student_courses', ctx)
 
-    # ─── Fees ───────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # Fees
+    # ══════════════════════════════════════════════════════════════════════
 
     @http.route('/portal/student/fees', type='http', auth='user', website=False)
     def student_fees(self, **kw):
-        student = self._guard_student()
-        if not student:
-            return request.redirect('/portal')
-        dues = request.env['edu.student.fee.due'].search(
-            [('student_id', '=', student.id)], order='due_date',
-        )
-        payments = request.env['edu.student.payment'].search(
-            [('student_id', '=', student.id)], order='payment_date desc',
-        )
-        total_due = sum(dues.mapped('balance_amount')) if dues else 0.0
-        context = build_portal_context(
+        student, err = self._check_student()
+        if err:
+            return err
+
+        # Fee plans for this student
+        fee_plans = request.env['edu.student.fee.plan'].sudo().search([
+            ('student_id', '=', student.id),
+        ], order='create_date desc')
+
+        # Outstanding dues
+        dues = request.env['edu.student.fee.due'].sudo().search([
+            ('student_id', '=', student.id),
+            ('state', 'in', ('due', 'partial', 'overdue')),
+        ], order='due_date')
+
+        # Recent payments
+        payments = request.env['edu.student.payment'].sudo().search([
+            ('student_id', '=', student.id),
+            ('state', '=', 'posted'),
+        ], order='payment_date desc', limit=20)
+
+        ctx = build_portal_context(
+            'student',
             active_sidebar_key='fees',
-            page_title='My Fees',
+            page_title='Fees',
+            crumbs=['Kopila', 'Fees'],
+            student=student,
+            fee_plans=fee_plans,
+            dues=dues,
+            payments=payments,
         )
-        context.update({
-            'student': student,
-            'dues': dues,
-            'payments': payments,
-            'total_due': total_due,
-        })
-        return request.render('edu_portal.student_fees_page', context)
+        return request.render('edu_portal.student_fees', ctx)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Profile
+    # ══════════════════════════════════════════════════════════════════════
+
+    @http.route('/portal/student/profile', type='http', auth='user',
+                website=False)
+    def student_profile(self, **kw):
+        student, err = self._check_student()
+        if err:
+            return err
+
+        # Active progression context
+        histories = request.env['edu.student.progression.history'].sudo().search([
+            ('student_id', '=', student.id),
+            ('state', '=', 'active'),
+        ])
+
+        ctx = build_portal_context(
+            'student',
+            active_sidebar_key='profile',
+            page_title='My Profile',
+            crumbs=['Kopila', 'My Profile'],
+            student=student,
+            histories=histories,
+        )
+        return request.render('edu_portal.student_profile', ctx)

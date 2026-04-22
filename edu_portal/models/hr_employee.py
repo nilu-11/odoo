@@ -1,7 +1,11 @@
+import logging
 import secrets
 import string
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class HrEmployee(models.Model):
@@ -11,86 +15,138 @@ class HrEmployee(models.Model):
         string='Portal Access',
         default=False,
         tracking=True,
-        help='When enabled, this teaching staff has access to the teacher portal at /portal.',
-    )
-    portal_user_id = fields.Many2one(
-        comodel_name='res.users',
-        string='Portal User',
-        compute='_compute_portal_user_id',
+        help='Whether this employee has teacher portal login credentials.',
     )
 
-    @api.depends('user_id')
-    def _compute_portal_user_id(self):
-        Group = self.env.ref('edu_portal.group_edu_portal_teacher', raise_if_not_found=False)
-        for rec in self:
-            if rec.user_id and Group and Group in rec.user_id.group_ids:
-                rec.portal_user_id = rec.user_id
-            else:
-                rec.portal_user_id = False
+    # ── Grant portal access ────────────────────────────────────────────────────
 
     def action_grant_portal_access(self):
-        """Create or upgrade a res.users record for this employee as a teacher portal user."""
+        """Create or upgrade a res.users record with the teacher portal group.
+
+        If the employee already has a linked user, add the teacher portal
+        group.  Otherwise, create a new portal user with a temporary password
+        and send the welcome email.
+        """
         self.ensure_one()
-        if not self.is_teaching_staff:
-            raise UserError(_('Portal access is only available for teaching staff.'))
 
-        group = self.env.ref('edu_portal.group_edu_portal_teacher')
-        temp_password = _generate_portal_password()
+        if not self.work_email:
+            raise UserError(_(
+                'Employee "%s" has no work email. '
+                'Set an email before granting portal access.'
+            ) % self.name)
 
-        if self.user_id:
-            # Existing user — add the teacher portal group
-            self.user_id.write({'group_ids': [(4, group.id)]})
-            user = self.user_id
-        elif self.work_contact_id and self.work_contact_id.user_ids:
-            user = self.work_contact_id.user_ids[:1]
-            user.write({'group_ids': [(4, group.id)]})
-            self.user_id = user
+        teacher_group = self.env.ref('edu_portal.group_edu_portal_teacher')
+        portal_group = self.env.ref('base.group_portal')
+
+        # Use existing linked user if available
+        user = self.user_id
+
+        if not user:
+            # Search by partner or by email
+            user = self.env['res.users'].sudo().search([
+                '|',
+                ('partner_id', '=', self.address_home_id.id if self.address_home_id else -1),
+                ('login', '=', self.work_email),
+            ], limit=1)
+
+        temp_password = self._generate_temp_password()
+
+        if user:
+            # Add teacher portal group if not already present
+            groups_to_add = [(4, teacher_group.id)]
+            if not user.sudo().has_group('base.group_portal'):
+                groups_to_add.append((4, portal_group.id))
+            user.sudo().write({'group_ids': groups_to_add})
+            # Link user to employee if not yet linked
+            if not self.user_id:
+                self.sudo().write({'user_id': user.id})
         else:
-            # Create new user linked to employee
-            login = self.work_email or f'teacher_{self.id}@portal.local'
+            # Create new portal user
+            partner = self.address_home_id or self.env['res.partner'].sudo().create({
+                'name': self.name,
+                'email': self.work_email,
+                'company_type': 'person',
+            })
             user = self.env['res.users'].sudo().create({
                 'name': self.name,
-                'login': login,
+                'login': self.work_email,
+                'email': self.work_email,
+                'partner_id': partner.id,
                 'password': temp_password,
-                'group_ids': [(6, 0, [group.id])],
+                'group_ids': [
+                    (6, 0, [portal_group.id, teacher_group.id]),
+                ],
             })
-            self.user_id = user
+            self.sudo().write({'user_id': user.id})
+            if not self.address_home_id:
+                self.sudo().write({'address_home_id': partner.id})
 
-        self.portal_access = True
-        self._send_portal_welcome_email(user, temp_password)
+        self.write({'portal_access': True})
+
+        # Send welcome email
+        self._send_welcome_email(user, temp_password, 'teacher')
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': _('Portal Access Granted'),
-                'message': _('Teacher portal user created for %s. Login: %s') % (self.name, user.login),
+                'message': _('Teacher portal access granted for %s.') % self.name,
                 'type': 'success',
                 'sticky': False,
             },
         }
 
+    # ── Revoke portal access ──────────────────────────────────────────────────
+
     def action_revoke_portal_access(self):
+        """Remove the teacher portal group from the user."""
         self.ensure_one()
-        group = self.env.ref('edu_portal.group_edu_portal_teacher')
-        if self.portal_user_id:
-            self.portal_user_id.sudo().write({'group_ids': [(3, group.id)]})
-        self.portal_access = False
-        return True
 
-    def _send_portal_welcome_email(self, user, temp_password):
-        """Send a welcome email with login credentials directly (no template)."""
-        if not user.email:
-            return
-        from .portal_mail import build_welcome_body
-        self.env['mail.mail'].sudo().create({
-            'subject': 'Welcome to the EMIS Portal',
-            'body_html': build_welcome_body(user, temp_password, role='teacher'),
-            'email_to': user.email,
-            'email_from': self.env.company.email or self.env.user.email or False,
-            'auto_delete': True,
-        }).send()
+        teacher_group = self.env.ref('edu_portal.group_edu_portal_teacher')
+        user = self.user_id
 
+        if user and user.sudo().has_group('edu_portal.group_edu_portal_teacher'):
+            user.sudo().write({
+                'group_ids': [(3, teacher_group.id)],
+            })
 
-def _generate_portal_password(length=12):
-    alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+        self.write({'portal_access': False})
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Portal Access Revoked'),
+                'message': _('Teacher portal access revoked for %s.') % self.name,
+                'type': 'warning',
+                'sticky': False,
+            },
+        }
+
+    # ── Helpers ───────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _generate_temp_password(length=12):
+        """Generate a secure temporary password."""
+        alphabet = string.ascii_letters + string.digits + '!@#$%'
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+    def _send_welcome_email(self, user, password, role):
+        """Send the portal welcome email using the portal_mail helper."""
+        from .portal_mail import PortalMail
+
+        try:
+            body_html = PortalMail.build_welcome_email(user, password, role)
+            mail_values = {
+                'subject': _('Welcome to the Education Portal'),
+                'body_html': body_html,
+                'email_to': user.email,
+                'email_from': self.env.company.email or self.env.user.email,
+                'auto_delete': True,
+            }
+            self.env['mail.mail'].sudo().create(mail_values).send()
+        except Exception as e:
+            _logger.warning(
+                'Failed to send welcome email to %s: %s', user.login, e,
+            )

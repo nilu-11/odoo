@@ -1,216 +1,584 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ══════════════════════════════════════════════════════
-         Parent Home — Children Overview
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_home_page" name="Parent Home">
+
+    <!-- ============================================================
+         Parent Portal Templates
+         Parents view their child's data through a child-selector lens.
+         The active_child_id is set via the topbar child selector.
+         ============================================================ -->
+
+    <!-- ─── Parent Home — Children Overview ──────────────────────── -->
+    <template id="parent_home" name="Parent — Home Dashboard">
         <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">Children Overview</h2>
-            <t t-if="summaries">
-                <t t-foreach="summaries" t-as="s">
-                    <div class="card">
-                        <h3 style="margin:0 0 12px 0; font-size:18px;">
-                            <t t-esc="s['student'].display_name"/>
-                        </h3>
-                        <div class="stat-grid" style="margin-bottom:0;">
-                            <div>
-                                <p class="card-title">Attendance</p>
-                                <p class="card-value" style="font-size:20px;"><t t-esc="s['attendance_pct']"/>%</p>
+            <div class="content" data-screen-label="Home">
+                <div class="page-head">
+                    <div>
+                        <div style="font-size:12px;color:var(--ink-softer);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">
+                            <t t-esc="today_date_label or ''"/>
+                        </div>
+                        <h1 class="page-title">Good morning, <em style="font-style:italic;"><t t-esc="parent_first_name or 'Parent'"/></em>.</h1>
+                        <div class="page-sub">
+                            Viewing data for <t t-esc="len(children_list or [])"/> child<t t-if="len(children_list or []) != 1">ren</t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Children cards -->
+                <div class="grid cols-2" style="margin-bottom:24px;">
+                    <t t-foreach="children_list or []" t-as="child">
+                        <div class="card" style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:flex-start;">
+                            <div class="avatar" style="width:56px;height:56px;font-size:18px;"
+                                 t-att-style="'background:oklch(92% 0.06 ' + str(child.get('hue', 0)) + ');color:oklch(30% 0.12 ' + str(child.get('hue', 0)) + ');'">
+                                <t t-esc="child.get('initials', '')"/>
                             </div>
                             <div>
-                                <p class="card-title">Outstanding</p>
-                                <p class="card-value" style="font-size:20px;"><t t-esc="'{:,.0f}'.format(s['outstanding'])"/></p>
+                                <div style="font-family:var(--font-display);font-size:22px;">
+                                    <t t-esc="child.get('name', '')"/>
+                                </div>
+                                <div class="mono" style="font-size:11px;color:var(--ink-softer);margin-top:2px;">
+                                    <t t-esc="child.get('student_id', '')"/> · <t t-esc="child.get('program', '')"/>
+                                </div>
+                                <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--ink-soft);">
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'check'"/><t t-set="sz" t-value="12"/></t>
+                                        Att: <t t-esc="child.get('attendance', '—')"/>%
+                                    </span>
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'chart'"/><t t-set="sz" t-value="12"/></t>
+                                        GPA: <t t-esc="child.get('gpa', '—')"/>
+                                    </span>
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'coin'"/><t t-set="sz" t-value="12"/></t>
+                                        Fees: <t t-esc="child.get('fees_status', '—')"/>
+                                    </span>
+                                </div>
+
+                                <!-- Quick stat bars -->
+                                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                                    <t t-foreach="child.get('courses', [])" t-as="cc">
+                                        <div style="flex:1;min-width:100px;">
+                                            <div style="font-size:11px;color:var(--ink-softer);margin-bottom:3px;">
+                                                <t t-esc="cc.get('code', '')"/>
+                                            </div>
+                                            <div class="bar">
+                                                <span t-att-style="'width:' + str(cc.get('attendance_pct', 0)) + '%;background:var(--accent-' + str(cc.get('color', 'saffron')) + ');'"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <div style="display:flex;gap:8px;margin-top:12px;">
+                                    <a t-att-href="'/portal/parent/attendance?child=%s' % child.get('id', '')" class="btn sm">
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'check'"/><t t-set="sz" t-value="12"/></t> Attendance
+                                    </a>
+                                    <a t-att-href="'/portal/parent/results?child=%s' % child.get('id', '')" class="btn sm">
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'grid'"/><t t-set="sz" t-value="12"/></t> Results
+                                    </a>
+                                    <a t-att-href="'/portal/parent/fees?child=%s' % child.get('id', '')" class="btn sm">
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'coin'"/><t t-set="sz" t-value="12"/></t> Fees
+                                    </a>
+                                </div>
                             </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Notifications / recent activity for selected child -->
+                <t t-if="active_child">
+                    <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;">
+                        <!-- Recent activity -->
+                        <div class="card">
+                            <h3 class="card-title">Recent activity — <t t-esc="active_child.get('first_name', '')"/></h3>
+                            <div class="card-sub">Updates from teachers</div>
+                            <t t-foreach="parent_activity or []" t-as="pa">
+                                <div style="display:flex;gap:12px;padding:10px 0;"
+                                     t-att-style="'border-top:1px solid var(--border);' if not pa_first else ''">
+                                    <div style="width:28px;height:28px;background:var(--bg-sunk);border-radius:8px;display:grid;place-items:center;flex:0 0 28px;">
+                                        <t t-call="edu_portal.icon">
+                                            <t t-set="ico" t-value="pa.get('icon', 'paper')"/>
+                                            <t t-set="sz" t-value="14"/>
+                                        </t>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:13.5px;"><t t-esc="pa.get('text', '')"/></div>
+                                        <div style="font-size:11.5px;color:var(--ink-softer);margin-top:2px;">
+                                            <t t-esc="pa.get('course', '')"/> · <t t-esc="pa.get('time_ago', '')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="not parent_activity">
+                                <div class="empty">No recent activity for this child.</div>
+                            </t>
+                        </div>
+
+                        <!-- Behavior notes (parent-visible) -->
+                        <div class="card">
+                            <h3 class="card-title">Behavior notes</h3>
+                            <div class="card-sub">Shared by teachers</div>
+                            <t t-foreach="parent_behavior_notes or []" t-as="bn">
+                                <div style="display:flex;gap:12px;padding:10px 0;"
+                                     t-att-style="'border-top:1px solid var(--border);' if not bn_first else ''">
+                                    <div style="width:32px;height:32px;border-radius:8px;display:grid;place-items:center;"
+                                         t-att-style="'background:var(--success-soft);color:var(--success);' if bn.get('kind') == 'praise' else 'background:var(--warn-soft);color:oklch(48%% 0.14 70);'">
+                                        <t t-call="edu_portal.icon">
+                                            <t t-set="ico" t-value="'star' if bn.get('kind') == 'praise' else 'flag'"/>
+                                            <t t-set="sz" t-value="14"/>
+                                        </t>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="display:flex;gap:6px;align-items:baseline;">
+                                            <span class="pill"
+                                                  t-att-class="'success' if bn.get('kind') == 'praise' else 'warn'">
+                                                <t t-esc="bn.get('kind', '')"/>
+                                            </span>
+                                            <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                                <t t-esc="bn.get('date', '')"/> · <t t-esc="bn.get('teacher', '')"/>
+                                            </span>
+                                        </div>
+                                        <div style="font-size:13px;color:var(--ink-soft);margin-top:4px;">
+                                            <t t-esc="bn.get('note', '')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="not parent_behavior_notes">
+                                <div class="empty">No behavior notes shared yet.</div>
+                            </t>
                         </div>
                     </div>
                 </t>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'👨‍👩‍👧'"/>
-                    <t t-set="title" t-value="'No children linked'"/>
-                    <t t-set="message" t-value="'Please contact the school administrator.'"/>
-                </t>
-            </t>
+            </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Parent Attendance (reuses student_attendance_page layout)
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_attendance_page" name="Parent Attendance">
+    <!-- ─── Parent Attendance ────────────────────────────────────── -->
+    <template id="parent_attendance" name="Parent — Child Attendance">
         <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">
-                Attendance
-                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
-            </h2>
-            <t t-if="lines">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Date</th><th>Subject</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="lines" t-as="l">
-                            <tr>
-                                <td><t t-esc="l.session_date"/></td>
-                                <td><t t-esc="l.subject_id.name or l.classroom_id.subject_id.name"/></td>
-                                <td>
-                                    <t t-if="l.status == 'present'"><span class="classroom-card-badge badge-success">Present</span></t>
-                                    <t t-if="l.status == 'absent'"><span class="classroom-card-badge badge-danger">Absent</span></t>
-                                    <t t-if="l.status == 'late'"><span class="classroom-card-badge badge-warning">Late</span></t>
-                                    <t t-if="l.status == 'excused'"><span class="classroom-card-badge badge-muted">Excused</span></t>
-                                </td>
-                            </tr>
+            <div class="content" data-screen-label="Attendance">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title"><t t-esc="active_child.get('first_name', 'Child')"/>'s attendance</h1>
+                        <div class="page-sub">
+                            <t t-esc="active_child.get('name', '')"/> ·
+                            <t t-esc="active_child.get('student_id', '')"/> ·
+                            <t t-esc="term_name or ''"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary stats -->
+                <div class="grid cols-4" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Overall</div>
+                        <div class="display" style="font-size:36px;margin-top:8px;line-height:1;">
+                            <t t-esc="child_attendance_avg or '—'"/>%
+                        </div>
+                        <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;">across all courses</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Present</div>
+                        <div class="display" style="font-size:36px;margin-top:8px;line-height:1;color:var(--success);">
+                            <t t-esc="child_present_total or 0"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Absent</div>
+                        <div class="display" style="font-size:36px;margin-top:8px;line-height:1;color:var(--danger);">
+                            <t t-esc="child_absent_total or 0"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Late / Excused</div>
+                        <div class="display" style="font-size:36px;margin-top:8px;line-height:1;">
+                            <t t-esc="child_late_total or 0"/> / <t t-esc="child_excused_total or 0"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Per-course attendance breakdown -->
+                <t t-foreach="child_attendance_by_course or []" t-as="cac">
+                    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <span t-attf-class="course-dot #{cac.get('color', 'saffron')}"/>
+                                <div>
+                                    <div style="font-weight:500;"><t t-esc="cac.get('course_code', '')"/> · <t t-esc="cac.get('course_title', '')"/></div>
+                                    <div style="font-size:12px;color:var(--ink-softer);"><t t-esc="cac.get('teacher', '')"/></div>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div class="bar" style="width:100px;">
+                                    <span t-att-style="'width:' + str(cac.get('rate', 0)) + '%;background:' + ('var(--success)' if cac.get('rate', 0) >= 80 else 'var(--danger)') + ';'"/>
+                                </div>
+                                <span class="mono" style="font-size:13px;font-weight:500;">
+                                    <t t-esc="cac.get('rate', 0)"/>%
+                                </span>
+                            </div>
+                        </div>
+                        <table class="tbl">
+                            <thead><tr><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="cac.get('history', [])[:6]" t-as="h">
+                                    <tr>
+                                        <td style="font-weight:500;"><t t-esc="h.get('date', '')"/></td>
+                                        <td class="mono"><t t-esc="h.get('time', '')"/></td>
+                                        <td>
+                                            <span class="pill"
+                                                  t-att-class="'success' if h.get('status') == 'present' else 'danger' if h.get('status') == 'absent' else 'warn' if h.get('status') == 'late' else 'info'">
+                                                <t t-esc="h.get('status_label', '')"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Parent Results ───────────────────────────────────────── -->
+    <template id="parent_results" name="Parent — Child Results">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Results">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title"><t t-esc="active_child.get('first_name', 'Child')"/>'s results</h1>
+                        <div class="page-sub">
+                            <t t-esc="active_child.get('name', '')"/> ·
+                            <t t-esc="active_child.get('student_id', '')"/> ·
+                            <t t-esc="term_name or ''"/>
+                        </div>
+                    </div>
+                    <button class="btn">
+                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Download report card
+                    </button>
+                </div>
+
+                <!-- Results by course -->
+                <t t-foreach="child_results_by_course or []" t-as="crc">
+                    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+                        <!-- Course header -->
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <span t-attf-class="course-dot #{crc.get('color', 'saffron')}"/>
+                                <div>
+                                    <div style="font-weight:500;">
+                                        <t t-esc="crc.get('course_code', '')"/> · <t t-esc="crc.get('course_title', '')"/>
+                                    </div>
+                                    <div style="font-size:12px;color:var(--ink-softer);">
+                                        <t t-esc="crc.get('teacher', '')"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="display" style="font-size:28px;line-height:1;">
+                                    <t t-esc="crc.get('grade', '—')"/>
+                                </div>
+                                <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                    <t t-esc="crc.get('pct', '—')"/>%
+                                </div>
+                            </div>
+                        </div>
+                        <table class="tbl">
+                            <thead><tr><th>Component</th><th>Max</th><th>Marks</th><th>%</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="crc.get('breakdown', [])" t-as="rb">
+                                    <tr t-att-style="'background:var(--bg-sunk);font-weight:550;' if rb.get('is_total') else ''">
+                                        <td><t t-esc="rb.get('component', '')"/></td>
+                                        <td class="mono"><t t-esc="rb.get('max', 0)"/></td>
+                                        <td class="mono"><t t-esc="rb.get('marks', 0)"/></td>
+                                        <td class="mono"><t t-esc="rb.get('pct', 0)"/>%</td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <t t-if="crc.get('comments')">
+                            <div style="padding:14px 16px;border-top:1px solid var(--border);background:var(--bg-sunk);">
+                                <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">
+                                    Teacher comments
+                                </div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.6;">
+                                    <t t-esc="crc.get('comments', '')"/>
+                                </div>
+                            </div>
                         </t>
-                    </tbody>
-                </table>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'✓'"/>
-                    <t t-set="title" t-value="'No attendance records for the selected child'"/>
+                    </div>
                 </t>
-            </t>
+                <t t-if="not child_results_by_course">
+                    <div class="empty">No results published yet for this term.</div>
+                </t>
+            </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Parent Results
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_results_page" name="Parent Results">
+    <!-- ─── Parent Assessments ───────────────────────────────────── -->
+    <template id="parent_assessments" name="Parent — Child Assessments">
         <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">
-                Results
-                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
-            </h2>
-            <t t-if="marksheets">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Paper</th><th>Session</th><th>Marks</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="marksheets" t-as="ms">
-                            <tr>
-                                <td><t t-esc="ms.exam_paper_id.display_name"/></td>
-                                <td><t t-esc="ms.exam_paper_id.exam_session_id.name"/></td>
-                                <td><t t-esc="ms.marks_obtained"/> / <t t-esc="ms.max_marks"/></td>
-                                <td>
-                                    <t t-if="ms.marks_obtained &gt;= (ms.exam_paper_id.pass_marks or 0)">
-                                        <span class="classroom-card-badge badge-success">Pass</span>
-                                    </t>
-                                    <t t-else="">
-                                        <span class="classroom-card-badge badge-danger">Fail</span>
-                                    </t>
-                                </td>
-                            </tr>
+            <div class="content" data-screen-label="Assessments">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title"><t t-esc="active_child.get('first_name', 'Child')"/>'s assessments</h1>
+                        <div class="page-sub">
+                            Continuous assessment records across all courses · <t t-esc="term_name or ''"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="grid cols-3" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Overall CA average</div>
+                        <div class="display" style="font-size:30px;margin-top:4px;">
+                            <t t-esc="child_ca_avg or '—'"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Completed</div>
+                        <div class="display" style="font-size:30px;margin-top:4px;">
+                            <t t-esc="child_ca_completed or 0"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Pending / Missing</div>
+                        <div class="display" style="font-size:30px;margin-top:4px;">
+                            <t t-esc="child_ca_pending or 0"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Per-course breakdown -->
+                <t t-foreach="child_assessments_by_course or []" t-as="cac">
+                    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);">
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <span t-attf-class="course-dot #{cac.get('color', 'saffron')}"/>
+                                <div>
+                                    <div style="font-weight:500;">
+                                        <t t-esc="cac.get('course_code', '')"/> · <t t-esc="cac.get('course_title', '')"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="mono" style="font-size:13px;font-weight:500;">
+                                Avg: <t t-esc="cac.get('avg', '—')"/>
+                            </span>
+                        </div>
+                        <table class="tbl">
+                            <thead><tr><th>Date</th><th>Category</th><th>Title</th><th>Max</th><th>Marks</th><th>%</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="cac.get('records', [])" t-as="ar">
+                                    <tr>
+                                        <td class="mono"><t t-esc="ar.get('date', '')"/></td>
+                                        <td><span class="pill"><t t-esc="ar.get('category', '')"/></span></td>
+                                        <td style="font-weight:500;"><t t-esc="ar.get('title', '')"/></td>
+                                        <td class="mono"><t t-esc="ar.get('max', 0)"/></td>
+                                        <td class="mono" style="font-weight:600;"><t t-esc="ar.get('marks', '—')"/></td>
+                                        <td class="mono"
+                                            t-att-style="'color:var(--success);' if ar.get('pct', 0) >= 70 else 'color:var(--danger);' if ar.get('pct', 0) &lt; 50 else ''">
+                                            <t t-esc="ar.get('pct', '—')"/>%
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+                <t t-if="not child_assessments_by_course">
+                    <div class="empty">No assessment records found for this term.</div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Parent Fees ──────────────────────────────────────────── -->
+    <template id="parent_fees" name="Parent — Child Fees">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Fees">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title"><t t-esc="active_child.get('first_name', 'Child')"/>'s fees</h1>
+                        <div class="page-sub">
+                            <t t-esc="active_child.get('name', '')"/> ·
+                            <t t-esc="active_child.get('student_id', '')"/> ·
+                            Fee plan: <t t-esc="child_fee_plan or '—'"/>
+                        </div>
+                    </div>
+                    <button class="btn">
+                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Download statement
+                    </button>
+                </div>
+
+                <!-- Summary -->
+                <div class="grid cols-4" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Total fee</div>
+                        <div class="display" style="font-size:30px;margin-top:8px;">
+                            <t t-esc="child_total_fee or '—'"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Paid</div>
+                        <div class="display" style="font-size:30px;margin-top:8px;color:var(--success);">
+                            <t t-esc="child_paid or '—'"/>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Outstanding</div>
+                        <div class="display" style="font-size:30px;margin-top:8px;">
+                            <t t-esc="child_outstanding or '—'"/>
+                        </div>
+                        <t t-if="child_overdue">
+                            <div style="font-size:12px;color:var(--danger);margin-top:4px;">
+                                <t t-esc="child_overdue"/> overdue
+                            </div>
                         </t>
-                    </tbody>
-                </table>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'📊'"/>
-                    <t t-set="title" t-value="'No results for the selected child'"/>
-                </t>
-            </t>
-        </t>
-    </template>
+                    </div>
+                    <div class="card">
+                        <div class="card-sub" style="margin:0;">Scholarship</div>
+                        <div class="display" style="font-size:30px;margin-top:8px;">
+                            <t t-esc="child_scholarship or '—'"/>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         Parent Assessments
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_assessments_page" name="Parent Assessments">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">
-                Assessments
-                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
-            </h2>
-            <t t-if="records">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Date</th><th>Category</th><th>Title</th><th>Marks</th></tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="records" t-as="r">
-                            <tr>
-                                <td><t t-esc="r.assessment_date"/></td>
-                                <td><t t-esc="r.category_id.name"/></td>
-                                <td><t t-esc="r.name or ''"/></td>
-                                <td><t t-esc="r.marks_obtained"/> / <t t-esc="r.max_marks"/></td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </t>
-            <t t-else="">
-                <t t-call="edu_portal.empty_state_component">
-                    <t t-set="icon" t-value="'📝'"/>
-                    <t t-set="title" t-value="'No assessments for the selected child'"/>
-                </t>
-            </t>
-        </t>
-    </template>
+                <!-- Dues -->
+                <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+                    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+                        <div style="font-weight:500;">Fee dues</div>
+                        <div class="mono" style="font-size:11px;color:var(--ink-softer);">edu.fee.due</div>
+                    </div>
+                    <table class="tbl">
+                        <thead><tr><th>Due date</th><th>Description</th><th>Amount</th><th>Status</th><th>Paid on</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="child_fee_dues or []" t-as="fd">
+                                <tr>
+                                    <td class="mono"><t t-esc="fd.get('due_date', '')"/></td>
+                                    <td style="font-weight:500;"><t t-esc="fd.get('description', '')"/></td>
+                                    <td class="mono"><t t-esc="fd.get('amount', '')"/></td>
+                                    <td>
+                                        <span class="pill"
+                                              t-att-class="'success' if fd.get('status') == 'paid' else 'warn' if fd.get('status') == 'partial' else 'danger' if fd.get('status') == 'overdue' else ''">
+                                            <t t-esc="fd.get('status_label', '')"/>
+                                        </span>
+                                    </td>
+                                    <td class="mono" style="color:var(--ink-softer);"><t t-esc="fd.get('paid_on', '—')"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="not child_fee_dues">
+                                <tr><td colspan="5" class="empty" style="border:0;">No fee records found.</td></tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         Parent Fees
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_fees_page" name="Parent Fees">
-        <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">
-                Fees
-                <t t-if="active_child"> · <t t-esc="active_child.display_name"/></t>
-            </h2>
-            <div class="stat-grid">
-                <div class="card">
-                    <p class="card-title">Outstanding</p>
-                    <p class="card-value"><t t-esc="'{:,.0f}'.format(total_due)"/></p>
+                <!-- Payment history -->
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+                        <div style="font-weight:500;">Payment history</div>
+                    </div>
+                    <table class="tbl">
+                        <thead><tr><th>Date</th><th>Receipt #</th><th>Amount</th><th>Method</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="child_payments or []" t-as="cp">
+                                <tr>
+                                    <td class="mono"><t t-esc="cp.get('date', '')"/></td>
+                                    <td class="mono"><t t-esc="cp.get('receipt', '')"/></td>
+                                    <td class="mono" style="font-weight:500;"><t t-esc="cp.get('amount', '')"/></td>
+                                    <td><t t-esc="cp.get('method', '')"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="not child_payments">
+                                <tr><td colspan="4" class="empty" style="border:0;">No payment records found.</td></tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Payment note -->
+                <div style="padding:12px;border-radius:8px;background:var(--bg-sunk);margin-top:16px;font-size:12.5px;color:var(--ink-soft);">
+                    <b>Note:</b> For payment inquiries, please contact the Finance office. Online payment is not yet available through this portal.
                 </div>
             </div>
-            <h3 class="page-title" style="font-size:18px; margin-top:20px;">Dues</h3>
-            <t t-if="dues">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Due Date</th><th>Fee Head</th><th>Amount</th><th>Balance</th><th>State</th></tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="dues" t-as="d">
-                            <tr>
-                                <td><t t-esc="d.due_date"/></td>
-                                <td><t t-esc="d.fee_head_id.name"/></td>
-                                <td><t t-esc="d.amount"/></td>
-                                <td><t t-esc="d.balance_amount"/></td>
-                                <td><span class="classroom-card-badge badge-muted"><t t-esc="d.state.title()"/></span></td>
-                            </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </t>
-            <t t-else=""><p style="color:var(--text-muted);">No fee dues on record.</p></t>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Parent Profile
-    ══════════════════════════════════════════════════════ -->
-    <template id="parent_profile_page" name="Parent Profile">
+    <!-- ─── Parent Profile ───────────────────────────────────────── -->
+    <template id="parent_profile" name="Parent — Guardian Profile">
         <t t-call="edu_portal.portal_layout">
-            <h2 class="page-title">My Profile</h2>
-            <t t-if="guardian">
-                <div class="card">
-                    <p class="card-title">Name</p>
-                    <p class="card-value"><t t-esc="guardian.full_name"/></p>
-                </div>
-                <div class="stat-grid">
-                    <div class="card">
-                        <p class="card-title">Phone</p>
-                        <p class="card-value" style="font-size:18px;"><t t-esc="guardian.phone or '—'"/></p>
-                    </div>
-                    <div class="card">
-                        <p class="card-title">Email</p>
-                        <p class="card-value" style="font-size:18px;"><t t-esc="guardian.email or '—'"/></p>
+            <div class="content" data-screen-label="Profile">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Guardian profile</h1>
+                        <div class="page-sub">Your information and linked students</div>
                     </div>
                 </div>
-            </t>
+
+                <div class="grid" style="grid-template-columns:1fr 1.5fr;gap:16px;">
+                    <!-- Profile card -->
+                    <div class="card" style="text-align:center;padding:32px;">
+                        <div class="avatar" style="width:80px;height:80px;font-size:28px;margin:0 auto 16px;">
+                            <t t-esc="user_initials or ''"/>
+                        </div>
+                        <div style="font-family:var(--font-display);font-size:24px;">
+                            <t t-esc="parent_name or ''"/>
+                        </div>
+                        <div style="font-size:13px;color:var(--ink-softer);margin-top:4px;">Guardian</div>
+                        <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+                            <t t-if="parent_email">
+                                <span class="pill"><t t-esc="parent_email"/></span>
+                            </t>
+                            <t t-if="parent_phone">
+                                <span class="pill"><t t-esc="parent_phone"/></span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Info + children -->
+                    <div class="card">
+                        <h3 class="card-title">Guardian information</h3>
+                        <div class="card-sub">From your portal profile</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+                            <t t-foreach="parent_profile_fields or []" t-as="pf">
+                                <div>
+                                    <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">
+                                        <t t-esc="pf.get('label', '')"/>
+                                    </div>
+                                    <div style="font-size:14px;margin-top:4px;"><t t-esc="pf.get('value', '—')"/></div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Linked children -->
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-top:20px;margin-bottom:8px;">
+                            Linked students
+                        </div>
+                        <t t-foreach="children_list or []" t-as="child">
+                            <div style="display:flex;gap:12px;padding:10px 0;align-items:center;"
+                                 t-att-style="'border-top:1px solid var(--border);' if not child_first else ''">
+                                <div class="avatar" style="width:36px;height:36px;font-size:12px;"
+                                     t-att-style="'background:oklch(92% 0.06 ' + str(child.get('hue', 0)) + ');color:oklch(30% 0.12 ' + str(child.get('hue', 0)) + ');'">
+                                    <t t-esc="child.get('initials', '')"/>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-weight:500;"><t t-esc="child.get('name', '')"/></div>
+                                    <div style="font-size:12px;color:var(--ink-softer);">
+                                        <t t-esc="child.get('student_id', '')"/> ·
+                                        <t t-esc="child.get('relation', '')"/> ·
+                                        <t t-esc="child.get('program', '')"/>
+                                    </div>
+                                </div>
+                                <a t-att-href="'/portal/parent/attendance?child=%s' % child.get('id', '')" class="btn sm ghost">
+                                    View
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/><t t-set="sz" t-value="11"/></t>
+                                </a>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
         </t>
     </template>
+
 </odoo>

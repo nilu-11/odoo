@@ -1,114 +1,143 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ══════════════════════════════════════════════════════
-         Today — Teacher dashboard (hero view)
-         Matches Kopilā today.jsx exactly.
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_home_page" name="Teacher Today">
-        <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
 
-                <!-- ── Page head ── -->
+    <!-- ============================================================
+         Teacher Outside-Classroom Templates
+         Each wraps content in edu_portal.portal_layout.
+         ============================================================ -->
+
+    <!-- ─── Today Dashboard ──────────────────────────────────────── -->
+    <template id="teacher_home" name="Teacher — Today Dashboard">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Today">
+                <!-- Page head -->
                 <div class="page-head">
                     <div>
-                        <div style="font-size:12px; color:var(--ink-softer); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px;">
-                            <t t-esc="today_date"/>
+                        <div style="font-size:12px;color:var(--ink-softer);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">
+                            <t t-esc="today_date_label or ''"/>
+                            <span style="opacity:0.6;"> · </span>
+                            <t t-esc="today_nepali_label or ''"/>
                         </div>
-                        <h1 class="page-title">Good morning, <em style="font-style:italic"><t t-esc="employee.name.split(' ')[0] if employee.name else 'Teacher'"/></em>.</h1>
+                        <h1 class="page-title">Good morning, <em style="font-style:italic;"><t t-esc="teacher_first_name or 'Teacher'"/></em>.</h1>
                         <div class="page-sub">
-                            You have <b style="color:var(--ink)"><t t-esc="sessions_today"/> class(es)</b> today,
-                            <b style="color:var(--ink)"><t t-esc="marks_due_count"/> paper(s)</b> awaiting marking,
-                            and <b style="color:var(--ink)"><t t-esc="total_courses"/> course(s)</b> active.
+                            You have <b style="color:var(--ink);"><t t-esc="classes_today_count or 0"/> classes</b> today,
+                            <b style="color:var(--ink);"><t t-esc="total_to_grade or 0"/> papers</b> awaiting marking,
+                            and <b style="color:var(--ink);"><t t-esc="unread_messages or 0"/> new messages</b>.
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <a href="/portal/teacher/attendance" class="btn primary">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div style="display:flex;gap:8px;">
+                        <a href="/portal/announcements" class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'mega'"/></t>
+                            Post announcement
+                        </a>
+                        <a href="/portal/attendance" class="btn primary">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'check'"/></t>
                             Take attendance
                         </a>
                     </div>
                 </div>
 
-                <!-- ── Stat strip (4 cards) ── -->
+                <!-- Stat strip -->
                 <div class="grid cols-4" style="margin-bottom:16px;">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div class="card-sub" style="margin:0;">Classes today</div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        </div>
-                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="sessions_today"/></div>
-                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Scheduled sessions</div>
-                    </div>
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div class="card-sub" style="margin:0;">To grade</div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                        </div>
-                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="marks_due_count"/></div>
-                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Papers awaiting marks</div>
-                    </div>
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div class="card-sub" style="margin:0;">Total students</div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        </div>
-                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="total_students"/></div>
-                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Across <t t-esc="total_courses"/> courses</div>
-                    </div>
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div class="card-sub" style="margin:0;">My courses</div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                        </div>
-                        <div class="display" style="font-size:36px; margin-top:8px; line-height:1;"><t t-esc="total_courses"/></div>
-                        <div style="font-size:12px; color:var(--ink-softer); margin-top:6px;">Active classrooms</div>
-                    </div>
-                </div>
-
-                <!-- ── Schedule + Attention (two columns) ── -->
-                <div class="grid" style="grid-template-columns:1.4fr 1fr; gap:16px;">
-                    <!-- Today's schedule -->
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
-                            <div>
-                                <h3 class="card-title">Today's schedule</h3>
-                                <div class="card-sub" style="margin-bottom:0;"><t t-esc="len(today_slots)"/> items</div>
-                            </div>
-                            <a href="/portal/teacher/calendar" class="btn ghost sm">
-                                Open calendar
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                            </a>
-                        </div>
-                        <t t-if="today_slots">
-                            <div style="display:flex; flex-direction:column;">
-                                <t t-foreach="today_slots" t-as="slot">
-                                    <div style="display:grid; grid-template-columns:80px 4px 1fr auto; gap:14px; padding:12px 0; border-bottom:1px solid var(--border);"
-                                         t-att-style="'' if not slot_last else 'border-bottom:none;'">
-                                        <div class="mono" style="font-size:12px; color:var(--ink-soft);"><t t-esc="slot['time']"/></div>
-                                        <div t-attf-style="background:var(--accent); border-radius:2px;"/>
-                                        <div>
-                                            <div style="font-weight:500;"><t t-esc="slot['title']"/></div>
-                                            <div style="font-size:12px; color:var(--ink-softer);">
-                                                <t t-esc="slot['room'] or '—'"/>
-                                                <t t-if="slot['section']"> · <t t-esc="slot['section']"/></t>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex; gap:6px; align-items:center;">
-                                            <t t-if="slot['classroom_id']">
-                                                <a t-attf-href="/portal/teacher/classroom/#{slot['classroom_id']}" class="btn sm ghost">Open</a>
-                                                <a t-attf-href="/portal/teacher/classroom/#{slot['classroom_id']}/attendance" class="btn sm">Attendance</a>
-                                            </t>
-                                            <t t-else="">
-                                                <span class="pill"><t t-esc="slot['slot_type']"/></span>
-                                            </t>
-                                        </div>
-                                    </div>
+                    <t t-foreach="today_stats or []" t-as="stat">
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div class="card-sub" style="margin:0;"><t t-esc="stat.get('label', '')"/></div>
+                                <t t-call="edu_portal.icon">
+                                    <t t-set="ico" t-value="stat.get('icon', 'chart')"/>
+                                    <t t-set="sz" t-value="14"/>
                                 </t>
                             </div>
-                        </t>
-                        <t t-else="">
-                            <div class="empty">No classes scheduled today.</div>
-                        </t>
+                            <div class="display" style="font-size:36px;margin-top:8px;line-height:1;">
+                                <t t-esc="stat.get('value', '')"/>
+                            </div>
+                            <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;">
+                                <t t-esc="stat.get('sub', '')"/>
+                            </div>
+                        </div>
+                    </t>
+                    <!-- Fallback static stats if no context -->
+                    <t t-if="not today_stats">
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div class="card-sub" style="margin:0;">Classes today</div>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'clock'"/><t t-set="sz" t-value="14"/></t>
+                            </div>
+                            <div class="display" style="font-size:36px;margin-top:8px;line-height:1;"><t t-esc="classes_today_count or 0"/></div>
+                            <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;">Next in <t t-esc="next_class_in or '-- min'"/></div>
+                        </div>
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div class="card-sub" style="margin:0;">To grade</div>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'pen'"/><t t-set="sz" t-value="14"/></t>
+                            </div>
+                            <div class="display" style="font-size:36px;margin-top:8px;line-height:1;"><t t-esc="total_to_grade or 0"/></div>
+                            <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;">across <t t-esc="to_grade_assignments or 0"/> assignments</div>
+                        </div>
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div class="card-sub" style="margin:0;">Attendance avg</div>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'users'"/><t t-set="sz" t-value="14"/></t>
+                            </div>
+                            <div class="display" style="font-size:36px;margin-top:8px;line-height:1;"><t t-esc="attendance_avg or '—'"/></div>
+                            <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;"><t t-esc="attendance_trend or ''"/></div>
+                        </div>
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div class="card-sub" style="margin:0;">Messages</div>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'msg'"/><t t-set="sz" t-value="14"/></t>
+                            </div>
+                            <div class="display" style="font-size:36px;margin-top:8px;line-height:1;"><t t-esc="'%s unread' % (unread_messages or 0)"/></div>
+                            <div style="font-size:12px;color:var(--ink-softer);margin-top:6px;"><t t-esc="messages_sub or ''"/></div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Schedule + Attention queue (2-column) -->
+                <div class="grid" style="grid-template-columns:1.4fr 1fr;gap:16px;">
+                    <!-- Today's schedule -->
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
+                            <div>
+                                <h3 class="card-title">Today's schedule</h3>
+                                <div class="card-sub" style="margin-bottom:0;">
+                                    <t t-esc="today_events_count or 0"/> items · <t t-esc="today_day_name or 'Today'"/>
+                                </div>
+                            </div>
+                            <a href="/portal/calendar" class="btn ghost sm">
+                                Open calendar
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/><t t-set="sz" t-value="12"/></t>
+                            </a>
+                        </div>
+                        <div style="display:flex;flex-direction:column;">
+                            <t t-foreach="today_events or []" t-as="ev">
+                                <div style="display:grid;grid-template-columns:80px 4px 1fr auto;gap:14px;padding:12px 0;"
+                                     t-att-style="'' if ev_last else 'border-bottom:1px solid var(--border);'">
+                                    <div class="mono" style="font-size:12px;color:var(--ink-soft);">
+                                        <t t-esc="ev.get('time_label', '')"/>
+                                    </div>
+                                    <div t-att-style="'background:var(--accent-%s);border-radius:2px;' % ev.get('color', 'saffron') if ev.get('is_class') else 'background:var(--border-strong);border-radius:2px;'"/>
+                                    <div>
+                                        <div style="font-weight:500;"><t t-esc="ev.get('title', '')"/></div>
+                                        <div style="font-size:12px;color:var(--ink-softer);">
+                                            <t t-esc="ev.get('room', '—')"/>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <t t-if="ev.get('is_class')">
+                                            <a t-att-href="'/portal/teacher/classroom/%s/stream' % ev.get('classroom_id', '')" class="btn sm ghost">Open</a>
+                                            <a t-att-href="'/portal/attendance?classroom_id=%s' % ev.get('classroom_id', '')" class="btn sm">Attendance</a>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="pill"><t t-esc="ev.get('kind', '')"/></span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="not today_events">
+                                <div class="empty">No events scheduled for today.</div>
+                            </t>
+                        </div>
                     </div>
 
                     <!-- Attention queue -->
@@ -116,280 +145,1463 @@
                         <h3 class="card-title">Needs your attention</h3>
                         <div class="card-sub">Across all courses</div>
 
-                        <t t-if="attention_items">
-                            <t t-foreach="attention_items" t-as="item">
-                                <a t-att-href="item.get('url', '#')"
-                                   t-attf-style="display:flex; padding:10px 12px; border-radius:8px; justify-content:space-between; align-items:center; #{'background:var(--accent-soft); margin-bottom:8px;' if item_first else 'border-top:1px solid var(--border);'}">
+                        <!-- Highlight: papers to mark -->
+                        <t t-if="attention_highlight">
+                            <a t-att-href="attention_highlight.get('url', '/portal/marking')"
+                               style="display:block;padding:10px 12px;border-radius:8px;background:var(--accent-soft);margin-bottom:8px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
                                     <div>
-                                        <div t-attf-style="font-size:13.5px; #{'font-weight:500; color:var(--accent-ink);' if item_first else ''}">
-                                            <t t-esc="item['text']"/>
+                                        <div style="font-weight:500;color:var(--accent-ink);">
+                                            <t t-esc="attention_highlight.get('label', '')"/>
                                         </div>
-                                        <t t-if="item.get('detail')">
-                                            <div style="font-size:12px; color:var(--ink-softer);"><t t-esc="item['detail']"/></div>
-                                        </t>
+                                        <div style="font-size:12px;color:var(--accent-ink);opacity:0.8;">
+                                            <t t-esc="attention_highlight.get('detail', '')"/>
+                                        </div>
                                     </div>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                                </a>
-                            </t>
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/></t>
+                                </div>
+                            </a>
                         </t>
-                        <t t-else="">
-                            <div class="empty">All clear — nothing needs attention.</div>
+
+                        <!-- Attention items list -->
+                        <t t-foreach="attention_items or []" t-as="ai">
+                            <a t-att-href="ai.get('url', '#')"
+                               style="display:flex;padding:10px 12px;border-radius:8px;border-top:1px solid var(--border);justify-content:space-between;align-items:center;">
+                                <div>
+                                    <div style="font-size:13.5px;"><t t-esc="ai.get('label', '')"/></div>
+                                    <div style="font-size:12px;color:var(--ink-softer);"><t t-esc="ai.get('detail', '')"/></div>
+                                </div>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/></t>
+                            </a>
                         </t>
                     </div>
                 </div>
 
-                <!-- ── Course cards ── -->
-                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:28px; margin-bottom:12px;">
-                    <h2 class="display" style="font-size:24px; margin:0;">Your courses</h2>
-                    <a href="/portal/teacher/courses" class="btn ghost sm">
+                <!-- Course cards -->
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:28px;margin-bottom:12px;">
+                    <h2 class="display" style="font-size:24px;margin:0;">Your courses</h2>
+                    <a href="/portal/courses" class="btn ghost sm">
                         View all
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/><t t-set="sz" t-value="12"/></t>
                     </a>
                 </div>
                 <div class="grid cols-4">
-                    <t t-foreach="classroom_cards" t-as="card">
-                        <a t-att-href="card['detail_url']" class="card" style="display:flex; flex-direction:column; gap:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <span class="mono" style="font-size:11px; color:var(--ink-softer);"><t t-esc="card['classroom'].subject_id.code or card['classroom'].subject_id.name"/></span>
-                                <span class="course-dot saffron" style="width:10px; height:10px;"/>
+                    <t t-foreach="teacher_courses or []" t-as="c">
+                        <a t-att-href="'/portal/teacher/classroom/%s/stream' % c.get('id', '')"
+                           class="card" style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <span class="mono" style="font-size:11px;color:var(--ink-softer);"><t t-esc="c.get('code', '')"/></span>
+                                <span t-attf-class="course-dot #{c.get('color', 'saffron')}" style="width:10px;height:10px;"/>
                             </div>
-                            <div style="font-family:var(--font-display); font-size:22px; line-height:1.1;"><t t-esc="card['classroom'].name"/></div>
-                            <div style="font-size:12px; color:var(--ink-softer);">
-                                <t t-esc="card['classroom'].section_id.name"/> ·
-                                <t t-esc="card['classroom'].program_term_id.name or ''"/>
+                            <div style="font-family:var(--font-display);font-size:22px;line-height:1.1;">
+                                <t t-esc="c.get('title', '')"/>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:auto;">
-                                <span><t t-esc="card['classroom'].student_count or 0"/> students</span>
+                            <div style="font-size:12px;color:var(--ink-softer);">
+                                <t t-esc="c.get('semester', '')"/>
                             </div>
-                            <span t-attf-class="pill #{card['status_class']}"><t t-esc="card['status_label']"/></span>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-top:auto;">
+                                <span><t t-esc="c.get('students', 0)"/> students</span>
+                                <span class="mono">Wk <t t-esc="c.get('current_week', 0)"/>/<t t-esc="c.get('total_weeks', 15)"/></span>
+                            </div>
+                            <div class="bar">
+                                <span t-att-style="'width:' + str(c.get('progress_pct', 0)) + '%;background:var(--accent-' + str(c.get('color', 'saffron')) + ');'"/>
+                            </div>
                         </a>
                     </t>
                 </div>
 
+                <!-- Activity feed + Upcoming (2-column) -->
+                <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:24px;">
+                    <!-- Recent activity -->
+                    <div class="card">
+                        <h3 class="card-title">Recent activity</h3>
+                        <div class="card-sub">Across your courses</div>
+                        <div style="display:flex;flex-direction:column;">
+                            <t t-foreach="recent_activity or []" t-as="act">
+                                <div style="display:flex;gap:12px;padding:10px 0;"
+                                     t-att-style="'border-top:1px solid var(--border);' if not act_first else ''">
+                                    <div style="width:28px;height:28px;background:var(--bg-sunk);border-radius:8px;display:grid;place-items:center;flex:0 0 28px;">
+                                        <t t-call="edu_portal.icon">
+                                            <t t-set="ico" t-value="act.get('icon', 'paper')"/>
+                                            <t t-set="sz" t-value="14"/>
+                                        </t>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:13.5px;">
+                                            <t t-out="act.get('text_html', '')"/>
+                                        </div>
+                                        <div style="font-size:11.5px;color:var(--ink-softer);margin-top:2px;">
+                                            <t t-esc="act.get('course_code', '')"/> · <t t-esc="act.get('time_ago', '')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="not recent_activity">
+                                <div class="empty">No recent activity yet.</div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming -->
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;">
+                            <div>
+                                <h3 class="card-title">Upcoming</h3>
+                                <div class="card-sub">Next 2 weeks</div>
+                            </div>
+                            <a href="/portal/calendar" class="btn ghost sm">
+                                Calendar
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/><t t-set="sz" t-value="12"/></t>
+                            </a>
+                        </div>
+                        <div style="display:flex;flex-direction:column;">
+                            <t t-foreach="upcoming_events or []" t-as="ue">
+                                <div style="display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:10px 0;align-items:center;"
+                                     t-att-style="'border-top:1px solid var(--border);' if not ue_first else ''">
+                                    <div class="mono" style="font-size:12px;color:var(--ink-soft);"><t t-esc="ue.get('date', '')"/></div>
+                                    <div style="font-size:13.5px;"><t t-esc="ue.get('title', '')"/></div>
+                                    <span class="pill"
+                                          t-att-class="'warn' if ue.get('kind') == 'deadline' else 'info' if ue.get('kind') == 'holiday' else 'accent' if ue.get('kind') == 'today' else ''">
+                                        <t t-esc="ue.get('kind', '')"/>
+                                    </span>
+                                </div>
+                            </t>
+                            <t t-if="not upcoming_events">
+                                <div class="empty">No upcoming events.</div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Courses — full grid with detail cards
-         Matches Kopilā courses.jsx.
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_courses_page" name="Teacher Courses">
+    <!-- ─── Courses Grid ─────────────────────────────────────────── -->
+    <template id="teacher_courses" name="Teacher — Courses Grid">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Courses">
                 <div class="page-head">
                     <div>
                         <h1 class="page-title">Courses</h1>
                         <div class="page-sub">
-                            <t t-esc="len(classroom_cards)"/> active courses ·
-                            <t t-esc="total_students"/> students total
+                            <t t-esc="term_name or 'Current term'"/> ·
+                            <t t-esc="len(teacher_courses or [])"/> active courses ·
+                            <t t-esc="total_students or 0"/> students total
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <div class="seg">
+                            <button class="active">Current term</button>
+                            <button>Archive</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid cols-2" style="gap:16px;">
-                    <t t-foreach="classroom_cards" t-as="card">
-                        <a t-att-href="card['detail_url']" class="card" style="display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:flex-start;">
-                            <div style="width:56px; height:56px; background:var(--accent-soft); border-radius:12px; display:grid; place-items:center; color:var(--accent-ink); font-family:var(--font-display); font-size:22px;">
-                                <t t-esc="(card['classroom'].subject_id.code or card['classroom'].subject_id.name or '?')[:3]"/>
+                    <t t-foreach="teacher_courses or []" t-as="c">
+                        <a t-att-href="'/portal/teacher/classroom/%s/stream' % c.get('id', '')"
+                           class="card" style="display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:flex-start;">
+                            <!-- Course icon block -->
+                            <div t-att-style="'width:56px;height:56px;background:var(--accent-%s-soft);border-radius:12px;display:grid;place-items:center;color:var(--accent-%s-ink);font-family:var(--font-display);font-size:22px;' % (c.get('color', 'saffron'), c.get('color', 'saffron'))">
+                                <t t-esc="c.get('code_num', '')"/>
                             </div>
                             <div>
-                                <div class="mono" style="font-size:11px; color:var(--ink-softer);">
-                                    <t t-esc="card['classroom'].subject_id.code or ''"/> ·
-                                    <t t-esc="card['classroom'].section_id.name"/>
+                                <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                    <t t-esc="c.get('code', '')"/> · <t t-esc="c.get('credits', 3)"/> credits
                                 </div>
-                                <div style="font-family:var(--font-display); font-size:22px; margin:4px 0;">
-                                    <t t-esc="card['classroom'].name"/>
+                                <div style="font-family:var(--font-display);font-size:22px;margin:4px 0;">
+                                    <t t-esc="c.get('title', '')"/>
                                 </div>
-                                <div style="font-size:12px; color:var(--ink-soft);">
-                                    <t t-esc="card['classroom'].program_term_id.name or ''"/>
+                                <div style="font-size:12px;color:var(--ink-soft);">
+                                    <t t-esc="c.get('semester', '')"/>
                                 </div>
-                                <div style="display:flex; gap:12px; margin-top:10px; font-size:12px; color:var(--ink-soft);">
-                                    <span><t t-esc="card['classroom'].student_count or 0"/> students</span>
+                                <div style="display:flex;gap:12px;margin-top:10px;font-size:12px;color:var(--ink-soft);">
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'users'"/><t t-set="sz" t-value="12"/></t>
+                                        <t t-esc="c.get('students', 0)"/> students
+                                    </span>
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'clock'"/><t t-set="sz" t-value="12"/></t>
+                                        Next: <t t-esc="c.get('next_class', '')"/>
+                                    </span>
+                                    <span>
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'book'"/><t t-set="sz" t-value="12"/></t>
+                                        <t t-esc="c.get('room', '')"/>
+                                    </span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+                                    <div class="bar" style="flex:1;">
+                                        <span t-att-style="'width:' + str(c.get('progress_pct', 0)) + '%;background:var(--accent-' + str(c.get('color', 'saffron')) + ');'"/>
+                                    </div>
+                                    <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                        Wk <t t-esc="c.get('current_week', 0)"/>/<t t-esc="c.get('total_weeks', 15)"/>
+                                    </span>
                                 </div>
                             </div>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/></t>
                         </a>
                     </t>
                 </div>
-
-                <t t-if="not classroom_cards">
-                    <div class="empty">No classrooms assigned yet. Classrooms will appear here once an administrator assigns you as the teacher.</div>
-                </t>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Attendance — cross-classroom overview
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_attendance_overview_page" name="Teacher Attendance Overview">
+    <!-- ─── Attendance Overview ───────────────────────────────────── -->
+    <template id="teacher_attendance" name="Teacher — Attendance">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Attendance">
                 <div class="page-head">
                     <div>
+                        <div class="mono" style="font-size:12px;color:var(--ink-softer);display:flex;gap:8px;align-items:center;">
+                            <span><t t-esc="attendance_course_code or ''"/> · <t t-esc="today_date_label or ''"/> · Sheet #<t t-esc="sheet_number or ''"/></span>
+                            <span class="pill"
+                                  t-att-class="'warn' if sheet_state == 'in_progress' else 'success' if sheet_state == 'submitted' else ''">
+                                <t t-if="sheet_state == 'draft'">Draft</t>
+                                <t t-if="sheet_state == 'in_progress'">In progress</t>
+                                <t t-if="sheet_state == 'submitted'">Submitted</t>
+                            </span>
+                        </div>
                         <h1 class="page-title">Attendance</h1>
                         <div class="page-sub">
-                            <t t-esc="today_date"/> — select a classroom to take or view attendance
+                            <t t-esc="attendance_course_title or ''"/> ·
+                            <t t-esc="attendance_room or ''"/> ·
+                            <t t-esc="attendance_time or ''"/> ·
+                            <span class="mono" style="font-size:11px;">edu.attendance.sheet</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <div class="seg">
+                            <a t-att-href="'/portal/teacher/classroom/%s/attendance/%s?view=roster' % (classroom.get('id', ''), sheet_id or '')"
+                               t-att-class="'active' if attendance_variant == 'roster' else ''">Roster</a>
+                            <a t-att-href="'/portal/teacher/classroom/%s/attendance/%s?view=photo' % (classroom.get('id', ''), sheet_id or '')"
+                               t-att-class="'active' if attendance_variant == 'photo' else ''">Photo grid</a>
+                        </div>
+                        <t t-if="sheet_state != 'submitted'">
+                            <button class="btn" id="mark-all-present">
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'check'"/></t> All present
+                            </button>
+                        </t>
+                        <t t-if="sheet_state == 'submitted'">
+                            <button class="btn" id="reset-draft">Reset to draft</button>
+                        </t>
+                        <t t-if="sheet_state != 'submitted'">
+                            <button class="btn primary" id="submit-sheet">Submit sheet</button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Stat strip -->
+                <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+                    <t t-set="att_counters" t-value="[
+                        {'k': 'Present', 'v': present_count or 0, 'c': 'success'},
+                        {'k': 'Absent', 'v': absent_count or 0, 'c': 'danger'},
+                        {'k': 'Late', 'v': late_count or 0, 'c': 'warn'},
+                        {'k': 'Excused', 'v': excused_count or 0, 'c': 'info'},
+                        {'k': 'Unmarked', 'v': unmarked_count or 0, 'c': ''},
+                    ]"/>
+                    <t t-foreach="att_counters" t-as="ac">
+                        <div class="card" style="flex:1;min-width:140px;padding:14px;">
+                            <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">
+                                <t t-esc="ac.get('k')"/>
+                            </div>
+                            <div class="display" style="font-size:30px;"><t t-esc="ac.get('v')"/></div>
+                            <div class="bar" style="margin-top:6px;">
+                                <span t-att-style="'width:' + str(int(ac.get('v', 0) / max(total_students or 1, 1) * 100)) + '%;background:var(--' + str(ac.get('c') or 'border-strong') + ');'"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Roster / Photo grid -->
+                <t t-if="attendance_variant in ('roster', 'photo')">
+                    <div class="card" style="padding:0;overflow:hidden;">
+                        <!-- Search bar -->
+                        <div style="display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--border);align-items:center;">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'search'"/><t t-set="sz" t-value="14"/></t>
+                            <input id="att-search" placeholder="Find student by name or ID..."
+                                   style="flex:1;border:0;outline:0;background:transparent;font-size:13.5px;"/>
+                            <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                <t t-esc="len(attendance_students or [])"/> students
+                            </span>
+                        </div>
+
+                        <!-- Hidden form fields for JS AJAX -->
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <!-- Roster list -->
+                        <t t-if="attendance_variant == 'roster'">
+                            <div id="attendance-roster"
+                                 t-att-data-mark-url="'/portal/teacher/classroom/%s/attendance/mark' % classroom.get('id', '')"
+                                 t-att-data-sheet-id="sheet_id or ''">
+                                <t t-foreach="attendance_students or []" t-as="s">
+                                    <div t-att-data-student-id="s.get('id')"
+                                         t-att-data-att-status="s.get('status', '')"
+                                         t-attf-class="att-row #{'att-row--' + s.get('status') if s.get('status') else ''}">
+                                        <div class="avatar"
+                                             t-att-style="'background:oklch(94% 0.04 ' + str(s.get('hue', 0)) + ');color:oklch(35% 0.08 ' + str(s.get('hue', 0)) + ');'">
+                                            <t t-esc="s.get('initials', '')"/>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:500;"><t t-esc="s.get('name', '')"/></div>
+                                            <div class="mono" style="font-size:11.5px;color:var(--ink-softer);">
+                                                <t t-esc="s.get('student_id', '')"/> · Att <t t-esc="s.get('attendance_rate', '')"/>%
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;gap:4px;">
+                                            <t t-if="s.get('low_attendance')"><span class="pill warn">low att</span></t>
+                                            <t t-if="s.get('at_risk')"><span class="pill danger">at risk</span></t>
+                                        </div>
+                                        <div style="display:flex;gap:4px;">
+                                            <button t-attf-class="att-btn #{'active' if s.get('status') == 'p' else ''}" data-status="p">Present</button>
+                                            <button t-attf-class="att-btn #{'active' if s.get('status') == 'a' else ''}" data-status="a">Absent</button>
+                                            <button t-attf-class="att-btn #{'active' if s.get('status') == 'l' else ''}" data-status="l">Late</button>
+                                            <button t-attf-class="att-btn #{'active' if s.get('status') == 'e' else ''}" data-status="e">Excused</button>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Photo grid variant -->
+                        <t t-if="attendance_variant == 'photo'">
+                            <div id="attendance-photo"
+                                 t-att-data-mark-url="'/portal/teacher/classroom/%s/attendance/mark' % classroom.get('id', '')"
+                                 t-att-data-sheet-id="sheet_id or ''"
+                                 style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;">
+                                <t t-foreach="attendance_students or []" t-as="s">
+                                    <div t-attf-class="att-photo-card" t-att-data-student-id="s.get('id')"
+                                         t-att-data-att-status="s.get('status', '')">
+                                        <div class="att-photo-avatar"
+                                             t-att-style="'background:oklch(94% 0.06 ' + str(s.get('hue', 0)) + ');color:oklch(32% 0.1 ' + str(s.get('hue', 0)) + ');'">
+                                            <t t-esc="s.get('initials', '')"/>
+                                            <t t-if="s.get('status')">
+                                                <span class="att-photo-badge">
+                                                    <t t-esc="s.get('status', '').upper()"/>
+                                                </span>
+                                            </t>
+                                        </div>
+                                        <div style="font-size:12px;font-weight:500;text-align:center;">
+                                            <t t-esc="s.get('name', '')"/>
+                                        </div>
+                                        <div class="mono" style="font-size:10px;color:var(--ink-softer);">
+                                            <t t-esc="s.get('id_short', '')"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Marking (Marks Entry) ────────────────────────────────── -->
+    <template id="teacher_marking" name="Teacher — Marks Entry">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Marking" style="padding-right:0;">
+                <div class="page-head">
+                    <div>
+                        <div class="mono" style="font-size:12px;color:var(--ink-softer);">
+                            <t t-esc="marking_course_code or ''"/> ·
+                            <t t-esc="marking_exam_title or 'Exam'"/> ·
+                            <t t-esc="marking_duration or ''"/> ·
+                            Max <t t-esc="marking_max_marks or 0"/> ·
+                            Pass <t t-esc="marking_pass_marks or 0"/> ·
+                            <span>edu.exam.paper state=marks_entry</span>
+                        </div>
+                        <h1 class="page-title">Marks entry</h1>
+                        <div class="page-sub">
+                            <t t-esc="marking_entered or 0"/> of <t t-esc="marking_total or 0"/> marksheets entered ·
+                            avg <t t-esc="marking_avg_pct or '—'"/>% ·
+                            pass rate <t t-esc="marking_pass_rate or '—'"/>%
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-right:32px;">
+                        <button class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Export CSV
+                        </button>
+                        <button class="btn" id="save-draft">Save draft</button>
+                        <button class="btn primary" id="lock-next">
+                            Lock &amp; next
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'caretRight'"/><t t-set="sz" t-value="12"/></t>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:260px 1fr 340px;gap:0;min-height:calc(100vh - 200px);margin-right:32px;">
+                    <!-- Left: submissions list -->
+                    <div style="border-right:1px solid var(--border);padding-right:16px;">
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Submissions</div>
+                        <div class="seg" style="margin-bottom:10px;width:100%;">
+                            <button class="active" style="flex:1;">Unmarked</button>
+                            <button style="flex:1;">All</button>
+                        </div>
+                        <t t-foreach="marking_submissions or []" t-as="ms">
+                            <button class="marking-sub-btn" t-att-data-index="ms_index"
+                                    style="width:100%;text-align:left;padding:10px;border-radius:8px;margin-bottom:4px;"
+                                    t-att-style="'background:var(--accent-soft);border:1px solid transparent;color:var(--accent-ink);' if ms.get('active') else 'background:transparent;border:1px solid var(--border);color:var(--ink);'">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <div style="font-weight:500;font-size:13px;"><t t-esc="ms.get('name', '')"/></div>
+                                    <t t-if="ms.get('status') == 'flagged'"><span class="pill warn" style="font-size:10px;">flag</span></t>
+                                    <t t-if="ms.get('status') == 'marked'"><span class="pill success" style="font-size:10px;">done</span></t>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                    <span class="mono" style="font-size:11px;opacity:0.7;"><t t-esc="ms.get('id_short', '')"/></span>
+                                    <span class="mono" style="font-size:11px;">
+                                        <t t-esc="ms.get('total_marks', 0)"/>/<t t-esc="marking_max_marks or 0"/> ·
+                                        <t t-esc="ms.get('pct', 0)"/>%
+                                    </span>
+                                </div>
+                            </button>
+                        </t>
+                    </div>
+
+                    <!-- Middle: question-by-question -->
+                    <div style="padding:0 20px;">
+                        <!-- Current student header -->
+                        <t t-if="marking_current">
+                            <div style="padding:16px;border-radius:10px;background:var(--bg-sunk);margin-bottom:16px;display:flex;align-items:center;gap:16px;">
+                                <div class="avatar" style="width:44px;height:44px;font-size:14px;"
+                                     t-att-style="'background:oklch(92% 0.07 ' + str(marking_current.get('hue', 0)) + ');color:oklch(30% 0.12 ' + str(marking_current.get('hue', 0)) + ');'">
+                                    <t t-esc="marking_current.get('initials', '')"/>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-weight:550;font-size:15px;"><t t-esc="marking_current.get('name', '')"/></div>
+                                    <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                        <t t-esc="marking_current.get('student_id', '')"/> · attempt: regular · entered_by: <t t-esc="user_initials or ''"/>
+                                    </div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div class="display" style="font-size:32px;line-height:1;">
+                                        <t t-esc="marking_current.get('final_marks', 0)"/><span style="color:var(--ink-softer);font-size:18px;">/<t t-esc="marking_max_marks or 0"/></span>
+                                    </div>
+                                    <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                        <t t-esc="marking_current.get('pct', 0)"/>% ·
+                                        <span t-att-style="'color:var(--success);' if marking_current.get('is_pass') else 'color:var(--danger);'">
+                                            <t t-esc="'PASS' if marking_current.get('is_pass') else marking_current.get('status_label', 'FAIL')"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Marksheet status + grace row -->
+                            <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;padding:10px 14px;border:1px solid var(--border);border-radius:10px;">
+                                <span class="mono" style="font-size:10.5px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;">Status</span>
+                                <div class="seg" style="gap:2px;">
+                                    <t t-foreach="['present', 'absent', 'exempt', 'withheld', 'malpractice']" t-as="st">
+                                        <button t-att-class="'active' if marking_current.get('ms_status') == st else ''"
+                                                style="font-size:11.5px;" data-ms-status=""
+                                                t-att-data-ms-status="st">
+                                            <t t-esc="st.capitalize()"/>
+                                        </button>
+                                    </t>
+                                </div>
+                                <div style="flex:1;"/>
+                                <span class="mono" style="font-size:10.5px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Raw</span>
+                                <span class="mono" style="font-size:13px;font-weight:500;min-width:28px;" id="raw-marks">
+                                    <t t-esc="marking_current.get('raw_marks', 0)"/>
+                                </span>
+                                <span class="mono" style="font-size:10.5px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">+Grace</span>
+                                <input type="number" min="0" max="5" id="grace-input"
+                                       t-att-value="marking_current.get('grace', 0)"
+                                       style="width:48px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-mono);font-size:13px;background:var(--bg-elev);color:var(--ink);text-align:center;"/>
+                                <span class="mono" style="font-size:10.5px;color:var(--ink-softer);">=</span>
+                                <span class="mono" style="font-size:14px;font-weight:600;min-width:28px;" id="final-marks">
+                                    <t t-esc="marking_current.get('final_marks', 0)"/>
+                                </span>
+                            </div>
+                        </t>
+
+                        <!-- Questions -->
+                        <t t-foreach="marking_questions or []" t-as="q">
+                            <div class="marking-question" t-att-data-qi="q_index"
+                                 style="padding:16px;border-radius:10px;margin-bottom:10px;border:1px solid var(--border);">
+                                <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                                    <div>
+                                        <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                            Q<t t-esc="q.get('number', '')"/> · <t t-esc="q.get('max_marks', 0)"/> marks
+                                        </span>
+                                        <div style="font-size:13.5px;margin-top:3px;max-width:560px;">
+                                            <t t-esc="q.get('prompt', '')"/>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:4px;align-items:center;">
+                                        <t t-foreach="range(q.get('max_marks', 0) + 1)" t-as="n">
+                                            <button class="mark-btn" t-att-data-qi="q_index" t-att-data-mark="n"
+                                                    t-att-style="'width:30px;height:30px;border-radius:6px;font-size:12px;font-weight:500;font-family:var(--font-mono);' + ('background:var(--ink);color:var(--ink-inverse);border:1px solid transparent;' if q.get('awarded') == n else 'background:var(--bg-sunk);color:var(--ink-soft);border:1px solid var(--border);')">
+                                                <t t-esc="n"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                                <!-- Answer excerpt -->
+                                <t t-if="q.get('answer_excerpt')">
+                                    <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);background:var(--bg-sunk);padding:12px;border-radius:6px;line-height:1.6;white-space:pre-wrap;">
+                                        <t t-esc="q.get('answer_excerpt', '')"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Right: rubric + feedback -->
+                    <div style="border-left:1px solid var(--border);padding-left:16px;">
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+                            Rubric — Q<t t-esc="(active_question_index or 0) + 1"/>
+                        </div>
+                        <div class="card" style="margin-bottom:14px;">
+                            <t t-foreach="active_rubric or []" t-as="r">
+                                <div style="display:flex;gap:10px;padding:6px 0;"
+                                     t-att-style="'border-top:1px solid var(--border);' if not r_first else ''">
+                                    <span class="mono" style="font-size:11px;color:var(--accent-ink);font-weight:500;flex:0 0 28px;">
+                                        +<t t-esc="r.get('pts', 0)"/>
+                                    </span>
+                                    <span style="font-size:12.5px;"><t t-esc="r.get('desc', '')"/></span>
+                                </div>
+                            </t>
+                        </div>
+
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Quick comments</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+                            <t t-foreach="['Clear reasoning', 'Needs examples', 'Missing citation', 'Partial credit', 'Excellent', 'Review this concept']" t-as="qc">
+                                <button class="btn sm quick-comment" t-att-data-comment="qc"><t t-esc="qc"/></button>
+                            </t>
+                        </div>
+
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Feedback to student</div>
+                        <textarea id="marking-feedback"
+                                  placeholder="Write private feedback — visible to student and parent after you publish."
+                                  style="width:100%;min-height:120px;resize:vertical;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--bg-elev);font-size:13px;font-family:var(--font-ui);"><t t-esc="marking_current.get('feedback', '') if marking_current else ''"/></textarea>
+                        <div style="font-size:11px;color:var(--ink-softer);margin-top:6px;">
+                            Ctrl+Enter to publish · Ctrl+Right for next submission
                         </div>
                     </div>
                 </div>
-                <div class="grid cols-2" style="gap:12px;">
-                    <t t-foreach="classroom_att" t-as="item">
-                        <a t-att-href="item['url']" class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-weight:500;"><t t-esc="item['classroom'].name"/></div>
-                                <div style="font-size:12px; color:var(--ink-softer);">
-                                    <t t-esc="item['classroom'].section_id.name"/> ·
-                                    <t t-esc="item['classroom'].subject_id.name"/>
-                                </div>
-                            </div>
-                            <t t-if="item['today_done']">
-                                <span class="pill success">Done</span>
-                            </t>
-                            <t t-else="">
-                                <span class="pill warn">Pending</span>
-                            </t>
-                        </a>
-                    </t>
-                </div>
-                <t t-if="not classroom_att">
-                    <div class="empty">No active classrooms. Attendance will be available once classrooms are activated.</div>
-                </t>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Marking — papers needing marks
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_marking_overview_page" name="Teacher Marking Overview">
+    <!-- ─── Gradebook ────────────────────────────────────────────── -->
+    <template id="teacher_gradebook" name="Teacher — Gradebook">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Gradebook">
                 <div class="page-head">
                     <div>
-                        <h1 class="page-title">Marking</h1>
-                        <div class="page-sub">Exam papers awaiting marks entry</div>
-                    </div>
-                </div>
-                <t t-if="papers">
-                    <div class="grid cols-2" style="gap:12px;">
-                        <t t-foreach="papers" t-as="paper">
-                            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-weight:500;"><t t-esc="paper.name or paper.exam_session_id.name"/></div>
-                                    <div style="font-size:12px; color:var(--ink-softer);">
-                                        <t t-esc="paper.batch_id.name"/> ·
-                                        <t t-esc="paper.curriculum_line_id.subject_id.name or ''"/>
-                                    </div>
-                                </div>
-                                <span class="pill danger">Marks Due</span>
-                            </div>
-                        </t>
-                    </div>
-                </t>
-                <t t-else="">
-                    <div class="empty">All caught up — no exam papers need marks entry right now.</div>
-                </t>
-            </div>
-        </t>
-    </template>
-
-    <!-- ══════════════════════════════════════════════════════
-         Gradebook — course selector
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_gradebook_overview_page" name="Teacher Gradebook Overview">
-        <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
-                <div class="page-head">
-                    <div>
+                        <div class="mono" style="font-size:12px;color:var(--ink-softer);">
+                            <t t-esc="gradebook_course_code or ''"/> · <t t-esc="term_name or ''"/>
+                        </div>
                         <h1 class="page-title">Gradebook</h1>
-                        <div class="page-sub">Select a course to view student results</div>
+                        <div class="page-sub">
+                            <t t-esc="gradebook_student_count or 0"/> students ·
+                            <t t-esc="gradebook_item_count or 0"/> graded items ·
+                            class avg <t t-esc="gradebook_class_avg or '—'"/>%
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <div class="seg">
+                            <button t-att-class="'active' if gradebook_variant == 'spreadsheet' else ''"
+                                    data-gb-variant="spreadsheet">Spreadsheet</button>
+                            <button t-att-class="'active' if gradebook_variant == 'cards' else ''"
+                                    data-gb-variant="cards">Student cards</button>
+                        </div>
+                        <button class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'filter'"/></t> Filter
+                        </button>
+                        <button class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Export
+                        </button>
                     </div>
                 </div>
-                <t t-if="classroom_cards">
-                    <div class="grid cols-2" style="gap:12px;">
-                        <t t-foreach="classroom_cards" t-as="card">
-                            <a t-att-href="card['url']" class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-weight:500;"><t t-esc="card['classroom'].name"/></div>
-                                    <div style="font-size:12px; color:var(--ink-softer);">
-                                        <t t-esc="card['classroom'].section_id.name"/> ·
-                                        <t t-esc="card['classroom'].subject_id.name"/>
+
+                <!-- Spreadsheet variant -->
+                <t t-if="gradebook_variant != 'cards'">
+                    <div class="card" style="padding:0;overflow:auto;">
+                        <table class="tbl" style="font-size:12.5px;">
+                            <thead>
+                                <tr>
+                                    <th style="position:sticky;left:0;background:var(--bg-elev);z-index:2;">Student</th>
+                                    <th>ID</th>
+                                    <t t-foreach="gradebook_columns or []" t-as="col">
+                                        <th style="text-align:center;">
+                                            <div><t t-esc="col.get('label', '')"/></div>
+                                            <div class="mono" style="font-size:10px;opacity:0.6;">/<t t-esc="col.get('max', 0)"/></div>
+                                        </th>
+                                    </t>
+                                    <th style="text-align:center;">Total</th>
+                                    <th style="text-align:center;">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="gradebook_rows or []" t-as="row">
+                                    <tr>
+                                        <td style="position:sticky;left:0;background:var(--bg-elev);font-weight:500;">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div class="avatar" style="width:22px;height:22px;font-size:9px;"
+                                                     t-att-style="'background:oklch(94% 0.04 ' + str(row.get('hue', 0)) + ');color:oklch(35% 0.08 ' + str(row.get('hue', 0)) + ');'">
+                                                    <t t-esc="row.get('initials', '')"/>
+                                                </div>
+                                                <t t-esc="row.get('name', '')"/>
+                                            </div>
+                                        </td>
+                                        <td class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                            <t t-esc="row.get('id_short', '')"/>
+                                        </td>
+                                        <t t-foreach="row.get('scores', [])" t-as="sc">
+                                            <td class="mono" style="text-align:center;"
+                                                t-att-style="'background:var(--success-soft);' if sc.get('pct', 0) >= 85 else 'background:color-mix(in oklch,var(--success-soft),transparent 50%);' if sc.get('pct', 0) >= 70 else 'background:var(--warn-soft);' if sc.get('pct', 0) >= 50 else 'background:var(--danger-soft);'">
+                                                <t t-esc="sc.get('value', 0)"/>
+                                            </td>
+                                        </t>
+                                        <td class="mono" style="text-align:center;font-weight:500;">
+                                            <t t-esc="row.get('total', 0)"/><span style="color:var(--ink-softer);">/<t t-esc="row.get('max_total', 0)"/></span>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <span class="pill"
+                                                  t-att-class="'success' if row.get('pct', 0) >= 70 else 'warn' if row.get('pct', 0) >= 50 else 'danger'">
+                                                <t t-esc="row.get('grade', '')"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <!-- Class average row -->
+                                <t t-if="gradebook_averages">
+                                    <tr style="background:var(--bg-sunk);">
+                                        <td style="position:sticky;left:0;background:var(--bg-sunk);font-weight:500;font-style:italic;">Class average</td>
+                                        <td>—</td>
+                                        <t t-foreach="gradebook_averages" t-as="avg">
+                                            <td class="mono" style="text-align:center;color:var(--ink-soft);">
+                                                <t t-esc="'%.1f' % avg"/>
+                                            </td>
+                                        </t>
+                                        <td class="mono" style="text-align:center;font-weight:500;">—</td>
+                                        <td>—</td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+
+                <!-- Cards variant -->
+                <t t-if="gradebook_variant == 'cards'">
+                    <div class="grid cols-3">
+                        <t t-foreach="gradebook_rows or []" t-as="row">
+                            <div class="card">
+                                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                    <div class="avatar" style="width:40px;height:40px;font-size:12px;"
+                                         t-att-style="'background:oklch(92% 0.06 ' + str(row.get('hue', 0)) + ');color:oklch(30% 0.12 ' + str(row.get('hue', 0)) + ');'">
+                                        <t t-esc="row.get('initials', '')"/>
+                                    </div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-weight:550;font-size:14px;"><t t-esc="row.get('name', '')"/></div>
+                                        <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                            <t t-esc="row.get('id_short', '')"/> · Att <t t-esc="row.get('attendance_rate', '')"/>%
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div class="display" style="font-size:28px;line-height:1;"><t t-esc="row.get('grade', '')"/></div>
+                                        <div class="mono" style="font-size:11px;color:var(--ink-softer);"><t t-esc="row.get('pct', 0)"/>%</div>
                                     </div>
                                 </div>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-softer)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                            </a>
+                                <!-- Mini bar chart -->
+                                <div style="display:grid;gap:4px;margin-bottom:10px;"
+                                     t-att-style="'grid-template-columns:repeat(%s,1fr);' % len(row.get('scores', []))">
+                                    <t t-foreach="row.get('scores', [])" t-as="sc">
+                                        <div style="height:28px;border-radius:4px;background:var(--bg-sunk);position:relative;overflow:hidden;">
+                                            <div t-att-style="'position:absolute;bottom:0;left:0;right:0;height:' + str(sc.get('pct', 0)) + '%;background:' + ('var(--success)' if sc.get('pct', 0) >= 70 else 'var(--warn)' if sc.get('pct', 0) >= 50 else 'var(--danger)') + ';opacity:0.6;'"/>
+                                            <div class="mono" style="position:relative;font-size:10px;text-align:center;padding:7px 0;color:var(--ink);font-weight:500;">
+                                                <t t-esc="sc.get('value', 0)"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div style="font-size:11px;color:var(--ink-softer);display:flex;justify-content:space-between;">
+                                    <span>Total <t t-esc="row.get('total', 0)"/>/<t t-esc="row.get('max_total', 0)"/></span>
+                                    <t t-if="row.get('at_risk')">
+                                        <span style="color:var(--danger);">at-risk</span>
+                                    </t>
+                                </div>
+                            </div>
                         </t>
                     </div>
                 </t>
-                <t t-else="">
-                    <div class="empty">No classrooms. Results will appear once classrooms are assigned.</div>
-                </t>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Report Cards — hold (backend not complete)
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_reports_overview_page" name="Teacher Reports Overview">
+    <!-- ─── Messages ─────────────────────────────────────────────── -->
+    <template id="teacher_messages" name="Teacher — Messages">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Messages" style="padding-bottom:0;">
                 <div class="page-head">
                     <div>
-                        <h1 class="page-title">Report Cards</h1>
-                        <div class="page-sub">CA marks submission and report generation</div>
+                        <h1 class="page-title">Messages</h1>
+                        <div class="page-sub">
+                            <t t-esc="unread_messages or 0"/> unread · Teachers, students, parents, admin
+                        </div>
+                    </div>
+                    <button class="btn primary">
+                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'plus'"/></t> New message
+                    </button>
+                </div>
+
+                <div class="card" style="padding:0;display:grid;grid-template-columns:320px 1fr 280px;min-height:560px;overflow:hidden;">
+                    <!-- Left: message list -->
+                    <div style="border-right:1px solid var(--border);display:flex;flex-direction:column;">
+                        <div style="padding:10px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
+                            <div style="display:flex;align-items:center;gap:6px;flex:1;padding:4px 8px;background:var(--bg-sunk);border-radius:6px;">
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'search'"/><t t-set="sz" t-value="13"/></t>
+                                <input placeholder="Search messages..." style="border:0;outline:0;background:transparent;flex:1;font-size:12.5px;"/>
+                            </div>
+                            <button class="iconbtn" style="width:28px;height:28px;">
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'filter'"/><t t-set="sz" t-value="14"/></t>
+                            </button>
+                        </div>
+                        <div style="overflow:auto;">
+                            <t t-foreach="message_list or []" t-as="m">
+                                <a t-att-href="'/portal/messages/%s' % m.get('id', '')"
+                                   style="width:100%;text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;"
+                                   t-att-style="'background:var(--bg-sunk);' if m.get('active') else ''">
+                                    <div class="avatar" style="width:32px;height:32px;font-size:11px;">
+                                        <t t-esc="m.get('initials', '')"/>
+                                    </div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;justify-content:space-between;">
+                                            <span t-att-style="'font-weight:550;font-size:13px;' if m.get('unread') else 'font-weight:500;font-size:13px;'">
+                                                <t t-esc="m.get('from', '')"/>
+                                            </span>
+                                            <span class="mono" style="font-size:10.5px;color:var(--ink-softer);">
+                                                <t t-esc="m.get('time_ago', '')"/>
+                                            </span>
+                                        </div>
+                                        <div style="font-size:11.5px;color:var(--ink-softer);margin-bottom:3px;">
+                                            <t t-esc="m.get('role', '')"/>
+                                        </div>
+                                        <div style="font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                             t-att-style="'color:var(--ink);' if m.get('unread') else 'color:var(--ink-soft);'">
+                                            <t t-esc="m.get('preview', '')"/>
+                                        </div>
+                                    </div>
+                                    <t t-if="m.get('unread')">
+                                        <span style="width:7px;height:7px;border-radius:999px;background:var(--accent);margin-top:8px;flex-shrink:0;"/>
+                                    </t>
+                                </a>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Middle: thread view -->
+                    <div style="display:flex;flex-direction:column;">
+                        <t t-if="active_message">
+                            <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                                <div style="display:flex;gap:12px;align-items:center;">
+                                    <div class="avatar" style="width:36px;height:36px;font-size:12px;">
+                                        <t t-esc="active_message.get('initials', '')"/>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:550;"><t t-esc="active_message.get('from', '')"/></div>
+                                        <div style="font-size:12px;color:var(--ink-softer);"><t t-esc="active_message.get('role', '')"/></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    <button class="btn sm">Mark unread</button>
+                                    <button class="btn sm">Archive</button>
+                                </div>
+                            </div>
+                            <div style="padding:20px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px;">
+                                <t t-foreach="message_thread or []" t-as="t_msg">
+                                    <div t-att-style="'max-width:74%;align-self:' + ('flex-end' if t_msg.get('is_me') else 'flex-start') + ';background:' + ('var(--accent)' if t_msg.get('is_me') else 'var(--bg-sunk)') + ';color:' + ('white' if t_msg.get('is_me') else 'var(--ink)') + ';padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.5;' + ('border-bottom-right-radius:4px;' if t_msg.get('is_me') else 'border-bottom-left-radius:4px;')">
+                                        <t t-esc="t_msg.get('text', '')"/>
+                                        <div style="font-size:10.5px;opacity:0.6;margin-top:4px;">
+                                            <t t-esc="t_msg.get('time', '')"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                            <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;">
+                                <textarea placeholder="Write a reply..."
+                                          style="flex:1;border:1px solid var(--border);border-radius:8px;padding:10px;resize:none;height:44px;font-family:var(--font-ui);font-size:13px;background:var(--bg-elev);"/>
+                                <button class="btn primary">Send</button>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Right: about panel -->
+                    <div style="border-left:1px solid var(--border);padding:16px;background:var(--bg-sunk);">
+                        <t t-if="active_message">
+                            <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">About</div>
+                            <div style="text-align:center;padding:12px 0;">
+                                <div class="avatar" style="width:64px;height:64px;font-size:20px;margin:0 auto 10px;">
+                                    <t t-esc="active_message.get('initials', '')"/>
+                                </div>
+                                <div style="font-weight:550;font-size:15px;"><t t-esc="active_message.get('from', '')"/></div>
+                                <div style="font-size:12px;color:var(--ink-softer);margin-top:2px;">
+                                    <t t-esc="active_message.get('role', '')"/>
+                                </div>
+                            </div>
+                            <t t-if="active_message.get('student_info')">
+                                <div style="font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--border);padding-top:12px;margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+                                    <t t-foreach="active_message.get('student_info', [])" t-as="si">
+                                        <div style="display:flex;justify-content:space-between;">
+                                            <span><t t-esc="si.get('label', '')"/></span>
+                                            <span class="mono"><t t-esc="si.get('value', '')"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                                <a href="#" class="btn sm" style="margin-top:14px;width:100%;">Open student profile</a>
+                            </t>
+                        </t>
                     </div>
                 </div>
-                <div class="empty">Coming soon — report card generation will be available once the backend feature is complete.</div>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Calendar — hold (needs timetable wiring)
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_calendar_page" name="Teacher Calendar">
+    <!-- ─── Announcements ────────────────────────────────────────── -->
+    <template id="teacher_announcements" name="Teacher — Announcements">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Announcements">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Announcements</h1>
+                        <div class="page-sub">Post updates to your courses · <t t-esc="len(announcements_list or [])"/> recent posts</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns:1.2fr 1fr;gap:16px;">
+                    <!-- Compose form -->
+                    <div class="card">
+                        <h3 class="card-title">Compose</h3>
+                        <div class="card-sub">Students and (optionally) parents will be notified</div>
+
+                        <form method="post" action="/portal/announcements/post" id="announcement-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:180px;">
+                                    <label style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Course</label>
+                                    <select name="course_id" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elev);margin-top:4px;">
+                                        <t t-foreach="teacher_courses or []" t-as="c">
+                                            <option t-att-value="c.get('id')">
+                                                <t t-esc="c.get('code', '')"/> · <t t-esc="c.get('title', '')"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div style="flex:1;min-width:180px;">
+                                    <label style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Priority</label>
+                                    <select name="priority" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elev);margin-top:4px;">
+                                        <option value="normal">Normal</option>
+                                        <option value="important">Important</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <input name="title" placeholder="Announcement title"
+                                   style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:var(--bg-elev);"/>
+                            <textarea name="body" placeholder="Write your announcement..."
+                                      style="width:100%;min-height:160px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-ui);font-size:13.5px;resize:vertical;background:var(--bg-elev);"/>
+
+                            <div style="display:flex;gap:8px;margin:12px 0;">
+                                <button type="button" class="btn sm">
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'paper'"/><t t-set="sz" t-value="12"/></t> Attach file
+                                </button>
+                                <button type="button" class="btn sm">
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'cal'"/><t t-set="sz" t-value="12"/></t> Schedule
+                                </button>
+                                <button type="button" class="btn sm">
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'star'"/><t t-set="sz" t-value="12"/></t> Pin
+                                </button>
+                            </div>
+
+                            <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Notify via</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+                                <t t-foreach="[('portal', 'Portal'), ('email', 'Email'), ('sms', 'SMS'), ('parents', 'Parents')]" t-as="ch">
+                                    <label class="pill" style="padding:6px 12px;font-size:12px;cursor:pointer;">
+                                        <input type="checkbox" t-att-name="'channel_%s' % ch[0]"
+                                               t-att-checked="'checked' if ch[0] in ('portal', 'email') else None"
+                                               style="display:none;" class="channel-check"/>
+                                        <t t-esc="ch[1]"/>
+                                    </label>
+                                </t>
+                            </div>
+
+                            <div style="display:flex;gap:8px;">
+                                <button type="button" class="btn">Save draft</button>
+                                <button type="submit" class="btn primary">Post announcement</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Recent posts feed -->
+                    <div>
+                        <h3 style="font-family:var(--font-display);font-size:22px;margin:0 0 12px;">Recent posts</h3>
+                        <t t-foreach="announcements_list or []" t-as="a">
+                            <div class="card" style="margin-bottom:12px;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                                    <div>
+                                        <div style="display:flex;gap:8px;align-items:center;">
+                                            <span t-attf-class="course-dot #{a.get('color', 'saffron')}"/>
+                                            <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                                <t t-esc="a.get('course_code', '')"/>
+                                            </span>
+                                            <t t-if="a.get('pinned')">
+                                                <span class="pill accent">Pinned</span>
+                                            </t>
+                                        </div>
+                                        <div style="font-weight:550;font-size:15px;margin-top:4px;">
+                                            <t t-esc="a.get('title', '')"/>
+                                        </div>
+                                    </div>
+                                    <button class="iconbtn" style="width:26px;height:26px;">
+                                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'dots'"/><t t-set="sz" t-value="14"/></t>
+                                    </button>
+                                </div>
+                                <div style="font-size:13px;color:var(--ink-soft);line-height:1.5;">
+                                    <t t-esc="a.get('body', '')"/>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px;color:var(--ink-softer);">
+                                    <span><t t-esc="a.get('time_ago', '')"/> · read by <t t-esc="a.get('read_count', '—')"/></span>
+                                    <span><t t-esc="a.get('reply_count', 0)"/> replies</span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Calendar ─────────────────────────────────────────────── -->
+    <template id="teacher_calendar" name="Teacher — Calendar">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Calendar">
                 <div class="page-head">
                     <div>
                         <h1 class="page-title">Calendar</h1>
-                        <div class="page-sub">Weekly timetable and upcoming events</div>
+                        <div class="page-sub">
+                            Week <t t-esc="term_week or ''"/> ·
+                            <t t-esc="calendar_week_label or ''"/>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <div class="seg">
+                            <button>Day</button>
+                            <button class="active">Week</button>
+                            <button>Month</button>
+                        </div>
+                        <button class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'plus'"/></t> New event
+                        </button>
                     </div>
                 </div>
-                <div class="empty">Coming soon — calendar view will be available after timetable integration is complete.</div>
+
+                <!-- Weekly timetable grid -->
+                <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+                    <!-- Day headers -->
+                    <div style="display:grid;border-bottom:1px solid var(--border);"
+                         t-att-style="'grid-template-columns:64px repeat(%s,1fr);' % len(calendar_days or ['Sun','Mon','Tue','Wed','Thu','Fri'])">
+                        <div/>
+                        <t t-foreach="calendar_days or ['Sun','Mon','Tue','Wed','Thu','Fri']" t-as="d">
+                            <div style="padding:12px;border-left:1px solid var(--border);text-align:center;"
+                                 t-att-style="'background:var(--accent-soft);' if d_first else ''">
+                                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;"
+                                     t-att-style="'color:var(--accent-ink);' if d_first else 'color:var(--ink-softer);'">
+                                    <t t-esc="d"/>
+                                </div>
+                                <div class="display" style="font-size:22px;"
+                                     t-att-style="'color:var(--accent-ink);' if d_first else 'color:var(--ink);'">
+                                    <t t-esc="calendar_day_numbers[d_index] if calendar_day_numbers else ''"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                    <!-- Time grid -->
+                    <div style="display:grid;position:relative;"
+                         t-att-style="'grid-template-columns:64px repeat(%s,1fr);' % len(calendar_days or ['Sun','Mon','Tue','Wed','Thu','Fri'])">
+                        <!-- Time labels -->
+                        <div>
+                            <t t-foreach="calendar_slots or ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00']" t-as="slot">
+                                <div style="height:54px;padding:6px;border-bottom:1px solid var(--border);font-size:10.5px;color:var(--ink-softer);font-family:var(--font-mono);">
+                                    <t t-esc="slot"/>
+                                </div>
+                            </t>
+                        </div>
+                        <!-- Day columns with events -->
+                        <t t-foreach="calendar_days or ['Sun','Mon','Tue','Wed','Thu','Fri']" t-as="d">
+                            <div style="border-left:1px solid var(--border);position:relative;">
+                                <t t-foreach="calendar_slots or ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00']" t-as="slot">
+                                    <div style="height:54px;border-bottom:1px solid var(--border);"/>
+                                </t>
+                                <!-- Events for this day -->
+                                <t t-foreach="calendar_events_by_day.get(d, []) if calendar_events_by_day else []" t-as="ev">
+                                    <div t-att-style="'position:absolute;top:%spx;height:%spx;left:4px;right:4px;padding:6px 8px;border-radius:6px;font-size:11.5px;overflow:hidden;background:%s;border-left:3px solid %s;color:%s;' % (ev.get('top_px', 0), ev.get('height_px', 54), ev.get('bg_color', 'var(--bg-sunk)'), ev.get('border_color', 'var(--border-strong)'), ev.get('text_color', 'var(--ink-soft)'))">
+                                        <div style="font-weight:550;"><t t-esc="ev.get('title', '')"/></div>
+                                        <div style="opacity:0.7;font-size:10.5px;margin-top:1px;"><t t-esc="ev.get('room', '')"/></div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Deadlines + Academic calendar -->
+                <div class="grid cols-2">
+                    <div class="card">
+                        <h3 class="card-title">Upcoming deadlines</h3>
+                        <div class="card-sub">Next 2 weeks</div>
+                        <t t-foreach="upcoming_events or []" t-as="ue">
+                            <div style="display:grid;grid-template-columns:60px 1fr auto;gap:10px;padding:10px 0;align-items:center;"
+                                 t-att-style="'border-top:1px solid var(--border);' if not ue_first else ''">
+                                <div class="mono" style="font-size:12px;color:var(--ink-soft);"><t t-esc="ue.get('date', '')"/></div>
+                                <div style="font-size:13.5px;"><t t-esc="ue.get('title', '')"/></div>
+                                <span class="pill"
+                                      t-att-class="'warn' if ue.get('kind') == 'deadline' else 'info' if ue.get('kind') == 'holiday' else 'accent' if ue.get('kind') == 'today' else ''">
+                                    <t t-esc="ue.get('kind', '')"/>
+                                </span>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Academic calendar · <t t-esc="term_name or ''"/></h3>
+                        <div class="card-sub"><t t-esc="institution_name or 'Institution'"/></div>
+                        <t t-foreach="academic_calendar or []" t-as="ac">
+                            <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;padding:8px 0;font-size:13px;"
+                                 t-att-style="'border-top:1px solid var(--border);' if not ac_first else ''">
+                                <span class="mono" style="color:var(--ink-softer);font-size:12px;"><t t-esc="ac.get('date', '')"/></span>
+                                <span><t t-esc="ac.get('event', '')"/></span>
+                            </div>
+                        </t>
+                    </div>
+                </div>
             </div>
         </t>
     </template>
 
-    <!-- ══════════════════════════════════════════════════════
-         Teacher Profile
-    ══════════════════════════════════════════════════════ -->
-    <template id="teacher_profile_page" name="Teacher Profile">
+    <!-- ─── Behavior Notes ───────────────────────────────────────── -->
+    <template id="teacher_behavior" name="Teacher — Behavior Notes">
         <t t-call="edu_portal.portal_layout">
-            <div class="page-wrap">
+            <div class="content" data-screen-label="Behavior">
                 <div class="page-head">
                     <div>
-                        <h1 class="page-title">My Profile</h1>
+                        <h1 class="page-title">Behavior notes</h1>
+                        <div class="page-sub">Private observations · visible to student, parent, and admin</div>
                     </div>
                 </div>
-                <div class="grid cols-3" style="gap:16px;">
+
+                <div class="grid" style="grid-template-columns:1.2fr 1fr;gap:16px;">
+                    <!-- New observation form -->
                     <div class="card">
-                        <div class="card-sub" style="margin:0;">Name</div>
-                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.name"/></div>
+                        <h3 class="card-title">New observation</h3>
+                        <div class="card-sub">Keep notes brief, specific, and factual</div>
+                        <form method="post" action="/portal/behavior/create" id="behavior-form">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div style="display:flex;gap:10px;margin-bottom:10px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Student</label>
+                                    <select name="student_id" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elev);margin-top:4px;">
+                                        <t t-foreach="behavior_students or []" t-as="bs">
+                                            <option t-att-value="bs.get('id')"><t t-esc="bs.get('name', '')"/></option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Kind</label>
+                                    <div class="seg" style="margin-top:4px;">
+                                        <button type="button" class="active" data-kind="praise">Praise</button>
+                                        <button type="button" data-kind="concern">Concern</button>
+                                        <button type="button" data-kind="neutral">Neutral</button>
+                                    </div>
+                                    <input type="hidden" name="kind" value="praise" id="behavior-kind"/>
+                                </div>
+                            </div>
+                            <textarea name="note" placeholder="Brief note..."
+                                      style="width:100%;min-height:100px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-ui);font-size:13.5px;"/>
+                            <div style="display:flex;gap:8px;margin-top:12px;">
+                                <button type="button" class="btn sm">
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'users'"/><t t-set="sz" t-value="12"/></t> Notify parent
+                                </button>
+                                <button type="button" class="btn sm">
+                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'msg'"/><t t-set="sz" t-value="12"/></t> Add to conference log
+                                </button>
+                                <div style="flex:1;"/>
+                                <button type="submit" class="btn primary sm">Save note</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="card">
+                        <h3 class="card-title">This month</h3>
+                        <div class="card-sub">Across your courses</div>
+                        <div style="display:flex;gap:16px;margin-bottom:16px;">
+                            <div style="flex:1;padding:12px;border-radius:8px;background:var(--success-soft);">
+                                <div class="display" style="font-size:32px;color:var(--success);line-height:1;">
+                                    <t t-esc="behavior_praise_count or 0"/>
+                                </div>
+                                <div style="font-size:12px;color:var(--success);">Praise notes</div>
+                            </div>
+                            <div style="flex:1;padding:12px;border-radius:8px;background:var(--warn-soft);">
+                                <div class="display" style="font-size:32px;color:oklch(48% 0.14 70);line-height:1;">
+                                    <t t-esc="behavior_concern_count or 0"/>
+                                </div>
+                                <div style="font-size:12px;color:oklch(48% 0.14 70);">Concerns</div>
+                            </div>
+                            <div style="flex:1;padding:12px;border-radius:8px;background:var(--bg-sunk);">
+                                <div class="display" style="font-size:32px;line-height:1;">
+                                    <t t-esc="behavior_parent_count or 0"/>
+                                </div>
+                                <div style="font-size:12px;color:var(--ink-soft);">Parent contacts</div>
+                            </div>
+                        </div>
+                        <div style="font-size:12px;color:var(--ink-softer);">
+                            Balanced ratios (>2:1 praise:concern) correlate with better engagement.
+                            You're at <b style="color:var(--ink);"><t t-esc="behavior_ratio or '—'"/></b> this month.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent notes -->
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:24px;margin-bottom:12px;">
+                    <h2 class="display" style="font-size:24px;margin:0;">Recent notes</h2>
+                    <div class="seg">
+                        <button class="active">All</button>
+                        <button>Praise</button>
+                        <button>Concerns</button>
+                    </div>
+                </div>
+                <div class="card" style="padding:0;">
+                    <t t-foreach="behavior_notes or []" t-as="bn">
+                        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:14px;align-items:flex-start;"
+                             t-att-style="'' if bn_last else 'border-bottom:1px solid var(--border);'">
+                            <div style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;"
+                                 t-att-style="'background:var(--success-soft);color:var(--success);' if bn.get('kind') == 'praise' else 'background:var(--warn-soft);color:oklch(48%% 0.14 70);'">
+                                <t t-call="edu_portal.icon">
+                                    <t t-set="ico" t-value="'star' if bn.get('kind') == 'praise' else 'flag'"/>
+                                    <t t-set="sz" t-value="16"/>
+                                </t>
+                            </div>
+                            <div>
+                                <div style="display:flex;gap:8px;align-items:baseline;">
+                                    <span style="font-weight:550;"><t t-esc="bn.get('student', '')"/></span>
+                                    <span class="pill"
+                                          t-att-class="'success' if bn.get('kind') == 'praise' else 'warn'">
+                                        <t t-esc="bn.get('kind', '')"/>
+                                    </span>
+                                    <span class="mono" style="font-size:11px;color:var(--ink-softer);margin-left:auto;">
+                                        <t t-esc="bn.get('date', '')"/>
+                                    </span>
+                                </div>
+                                <div style="font-size:13px;color:var(--ink-soft);margin-top:4px;">
+                                    <t t-esc="bn.get('note', '')"/>
+                                </div>
+                            </div>
+                            <button class="iconbtn" style="width:28px;height:28px;">
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'dots'"/><t t-set="sz" t-value="14"/></t>
+                            </button>
+                        </div>
+                    </t>
+                    <t t-if="not behavior_notes">
+                        <div class="empty" style="margin:16px;">No behavior notes recorded yet.</div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Fees Overview ────────────────────────────────────────── -->
+    <template id="teacher_fees" name="Teacher — Fees Overview">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Fees">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Fees overview</h1>
+                        <div class="page-sub">Visibility across your courses · Payments managed by Finance</div>
+                    </div>
+                    <button class="btn">
+                        <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Download report
+                    </button>
+                </div>
+
+                <!-- Stat strip -->
+                <div class="grid cols-4" style="margin-bottom:16px;">
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;">
+                            <div class="card-sub" style="margin:0;">Collected</div>
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'coin'"/><t t-set="sz" t-value="14"/></t>
+                        </div>
+                        <div class="display" style="font-size:30px;margin-top:8px;"><t t-esc="fees_collected_label or '—'"/></div>
+                        <div style="font-size:12px;color:var(--success);margin-top:4px;"><t t-esc="fees_collected_pct or ''"/></div>
                     </div>
                     <div class="card">
-                        <div class="card-sub" style="margin:0;">Employee Code</div>
-                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.employee_code or '—'"/></div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <div class="card-sub" style="margin:0;">Outstanding</div>
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'clock'"/><t t-set="sz" t-value="14"/></t>
+                        </div>
+                        <div class="display" style="font-size:30px;margin-top:8px;"><t t-esc="fees_outstanding_label or '—'"/></div>
+                        <div style="font-size:12px;color:var(--warn);margin-top:4px;"><t t-esc="fees_outstanding_sub or ''"/></div>
                     </div>
                     <div class="card">
-                        <div class="card-sub" style="margin:0;">Department</div>
-                        <div class="display" style="font-size:24px; margin-top:6px;"><t t-esc="employee.edu_department_id.name or '—'"/></div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <div class="card-sub" style="margin:0;">Cleared</div>
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'check'"/><t t-set="sz" t-value="14"/></t>
+                        </div>
+                        <div class="display" style="font-size:30px;margin-top:8px;"><t t-esc="fees_cleared_label or '—'"/></div>
+                        <div style="font-size:12px;color:var(--success);margin-top:4px;"><t t-esc="fees_cleared_pct or ''"/></div>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;">
+                            <div class="card-sub" style="margin:0;">Overdue</div>
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'flag'"/><t t-set="sz" t-value="14"/></t>
+                        </div>
+                        <div class="display" style="font-size:30px;margin-top:8px;"><t t-esc="fees_overdue_count or 0"/></div>
+                        <div style="font-size:12px;color:var(--danger);margin-top:4px;">Past due date</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns:1fr 1.3fr;gap:16px;">
+                    <!-- Collection status -->
+                    <div class="card">
+                        <h3 class="card-title">Collection status</h3>
+                        <div class="card-sub">Distribution across your courses</div>
+                        <!-- Stacked bar -->
+                        <div style="display:flex;height:14px;border-radius:999px;overflow:hidden;margin-bottom:14px;">
+                            <div t-att-style="'width:' + str(fees_cleared_bar_pct or 0) + '%;background:var(--success);'"/>
+                            <div t-att-style="'width:' + str(fees_partial_bar_pct or 0) + '%;background:var(--warn);'"/>
+                            <div t-att-style="'width:' + str(fees_overdue_bar_pct or 0) + '%;background:var(--danger);'"/>
+                        </div>
+                        <t t-foreach="[('Cleared', fees_cleared_students or 0, 'success'), ('Partial payment', fees_partial_students or 0, 'warn'), ('Overdue', fees_overdue_students or 0, 'danger')]" t-as="fl">
+                            <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
+                                <div t-att-style="'width:10px;height:10px;border-radius:3px;background:var(--%s);' % fl[2]"/>
+                                <div style="font-size:13px;flex:1;"><t t-esc="fl[0]"/></div>
+                                <div class="mono" style="font-size:12px;color:var(--ink-soft);"><t t-esc="fl[1]"/> students</div>
+                            </div>
+                        </t>
+                        <div style="padding:12px;border-radius:8px;background:var(--bg-sunk);margin-top:12px;font-size:12.5px;color:var(--ink-soft);">
+                            <b>Note:</b> you cannot process payments directly. Contact the Finance office for payment-related queries.
+                        </div>
+                    </div>
+
+                    <!-- Overdue students table -->
+                    <div class="card" style="padding:0;overflow:hidden;">
+                        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;">
+                            <div>
+                                <h3 class="card-title" style="margin:0;">Overdue students</h3>
+                                <div style="font-size:12px;color:var(--ink-softer);">Your courses · may affect exam eligibility</div>
+                            </div>
+                            <button class="btn sm">Flag all to finance</button>
+                        </div>
+                        <table class="tbl">
+                            <thead>
+                                <tr><th>Student</th><th>ID</th><th>Course</th><th>Due</th><th>Days</th><th/></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="fees_overdue_list or []" t-as="fo">
+                                    <tr>
+                                        <td style="font-weight:500;">
+                                            <div style="display:flex;gap:8px;align-items:center;">
+                                                <div class="avatar" style="width:24px;height:24px;font-size:10px;"
+                                                     t-att-style="'background:oklch(94% 0.04 ' + str(fo.get('hue', 0)) + ');color:oklch(35% 0.08 ' + str(fo.get('hue', 0)) + ');'">
+                                                    <t t-esc="fo.get('initials', '')"/>
+                                                </div>
+                                                <t t-esc="fo.get('name', '')"/>
+                                            </div>
+                                        </td>
+                                        <td class="mono" style="font-size:11px;color:var(--ink-softer);"><t t-esc="fo.get('id_short', '')"/></td>
+                                        <td class="mono" style="font-size:11px;"><t t-esc="fo.get('course_code', '')"/></td>
+                                        <td class="mono"><t t-esc="fo.get('amount_due', '')"/></td>
+                                        <td><span class="pill danger"><t t-esc="fo.get('days_overdue', '')"/>d</span></td>
+                                        <td><button class="btn sm ghost">Notify</button></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </t>
     </template>
+
+    <!-- ─── Report Cards ─────────────────────────────────────────── -->
+    <template id="teacher_reports" name="Teacher — Report Cards">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Reports">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Report cards</h1>
+                        <div class="page-sub">
+                            CA marks submission due <b style="color:var(--ink);"><t t-esc="ca_deadline or '—'"/></b> ·
+                            <t t-esc="reports_student_count or 0"/> students ·
+                            <t t-esc="reports_draft_count or 0"/> drafts ready
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="'download'"/></t> Bulk export PDF
+                        </button>
+                        <button class="btn primary">Submit to registrar</button>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns:280px 1fr;gap:16px;">
+                    <!-- Student list -->
+                    <div class="card" style="padding:0;overflow:auto;max-height:680px;">
+                        <div style="padding:10px;border-bottom:1px solid var(--border);">
+                            <input placeholder="Search students..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;background:var(--bg-elev);"/>
+                        </div>
+                        <t t-foreach="reports_students or []" t-as="rs">
+                            <a t-att-href="'/portal/reports?student_id=%s' % rs.get('id', '')"
+                               style="width:100%;text-align:left;padding:10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--border);"
+                               t-att-style="'background:var(--bg-sunk);' if rs.get('active') else ''">
+                                <div class="avatar" style="width:28px;height:28px;font-size:10px;"
+                                     t-att-style="'background:oklch(94% 0.04 ' + str(rs.get('hue', 0)) + ');color:oklch(35% 0.08 ' + str(rs.get('hue', 0)) + ');'">
+                                    <t t-esc="rs.get('initials', '')"/>
+                                </div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:500;"><t t-esc="rs.get('name', '')"/></div>
+                                    <div class="mono" style="font-size:10.5px;color:var(--ink-softer);"><t t-esc="rs.get('student_id', '')"/></div>
+                                </div>
+                                <span class="pill"
+                                      t-att-class="'success' if rs.get('avg', 0) >= 70 else 'warn' if rs.get('avg', 0) >= 50 else 'danger'">
+                                    <t t-esc="rs.get('avg', '')"/>
+                                </span>
+                            </a>
+                        </t>
+                    </div>
+
+                    <!-- Report card preview -->
+                    <t t-if="report_student">
+                        <div class="card" style="padding:0;overflow:hidden;">
+                            <!-- Dark gradient header -->
+                            <div style="background:linear-gradient(135deg,var(--ink) 0%,oklch(from var(--ink) calc(l + 0.12) c h) 100%);color:var(--ink-inverse);padding:24px;position:relative;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                    <div>
+                                        <div class="mono" style="font-size:11px;opacity:0.7;letter-spacing:0.06em;text-transform:uppercase;">
+                                            <t t-esc="institution_name or 'Institution'"/>
+                                        </div>
+                                        <div style="font-family:var(--font-display);font-size:28px;margin-top:6px;">
+                                            Report card · <t t-esc="term_name or ''"/>
+                                        </div>
+                                        <div style="font-size:12px;opacity:0.7;margin-top:4px;">
+                                            <t t-esc="report_student.get('exam_label', '')"/>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div class="display" style="font-size:48px;line-height:1;">
+                                            <t t-esc="report_student.get('grade', '')"/>
+                                        </div>
+                                        <div class="mono" style="font-size:12px;opacity:0.7;">
+                                            <t t-esc="report_student.get('avg', '')"/>%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Student info -->
+                            <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                <div>
+                                    <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Student</div>
+                                    <div style="font-family:var(--font-display);font-size:24px;">
+                                        <t t-esc="report_student.get('name', '')"/>
+                                    </div>
+                                    <div class="mono" style="font-size:12px;color:var(--ink-softer);">
+                                        <t t-esc="report_student.get('student_id', '')"/> · <t t-esc="report_student.get('semester', '')"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">Attendance</div>
+                                    <div style="font-family:var(--font-display);font-size:24px;">
+                                        <t t-esc="report_student.get('attendance_rate', '')"/>%
+                                    </div>
+                                    <div class="mono" style="font-size:12px;color:var(--ink-softer);">
+                                        <t t-esc="report_student.get('sessions_attended', '')"/> of <t t-esc="report_student.get('sessions_total', '')"/> sessions
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Breakdown table -->
+                            <div style="padding:0 24px 24px;">
+                                <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+                                    Continuous assessment breakdown
+                                </div>
+                                <div class="card" style="padding:0;">
+                                    <table class="tbl">
+                                        <thead><tr><th>Component</th><th>Weight</th><th>Max</th><th>Marks</th><th>%</th></tr></thead>
+                                        <tbody>
+                                            <t t-foreach="report_student.get('breakdown', [])" t-as="rb">
+                                                <tr t-att-style="'background:var(--bg-sunk);font-weight:550;' if rb.get('is_total') else ''">
+                                                    <td><t t-esc="rb.get('component', '')"/></td>
+                                                    <td class="mono"><t t-esc="rb.get('weight', '')"/></td>
+                                                    <td class="mono"><t t-esc="rb.get('max', '')"/></td>
+                                                    <td class="mono"><t t-esc="rb.get('marks', '')"/></td>
+                                                    <td class="mono"><t t-esc="rb.get('pct', '')"/>%</td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Faculty comments -->
+                                <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;">Faculty comments</div>
+                                <div style="padding:12px;background:var(--bg-sunk);border-radius:8px;font-size:13px;color:var(--ink-soft);line-height:1.6;">
+                                    <t t-esc="report_student.get('comments', 'No comments yet.')"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Teacher Profile ──────────────────────────────────────── -->
+    <template id="teacher_profile" name="Teacher — Profile">
+        <t t-call="edu_portal.portal_layout">
+            <div class="content" data-screen-label="Profile">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-title">Profile</h1>
+                        <div class="page-sub">Your public portal information</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns:1fr 1.5fr;gap:16px;">
+                    <!-- Profile card -->
+                    <div class="card" style="text-align:center;padding:32px;">
+                        <div class="avatar" style="width:80px;height:80px;font-size:28px;margin:0 auto 16px;">
+                            <t t-esc="user_initials or ''"/>
+                        </div>
+                        <div style="font-family:var(--font-display);font-size:24px;">
+                            <t t-esc="teacher_name or ''"/>
+                        </div>
+                        <div style="font-size:13px;color:var(--ink-softer);margin-top:4px;">
+                            <t t-esc="teacher_title or ''"/>
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+                            <span class="pill"><t t-esc="teacher_email or ''"/></span>
+                        </div>
+                    </div>
+
+                    <!-- Info grid -->
+                    <div class="card">
+                        <h3 class="card-title">Teacher information</h3>
+                        <div class="card-sub">From your HR profile</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+                            <t t-foreach="profile_fields or []" t-as="pf">
+                                <div>
+                                    <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;">
+                                        <t t-esc="pf.get('label', '')"/>
+                                    </div>
+                                    <div style="font-size:14px;margin-top:4px;"><t t-esc="pf.get('value', '—')"/></div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
 </odoo>

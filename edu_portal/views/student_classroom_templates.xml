@@ -1,241 +1,459 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ══════════════════════════════════════════════════════
-         Student in-classroom hub templates — read-only views.
-    ══════════════════════════════════════════════════════ -->
 
-    <!-- ─── Stream (read-only) ─── -->
-    <template id="student_classroom_stream_page" name="Student Classroom Stream">
-        <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body stream-body">
-                <t t-if="posts">
-                    <div class="stream-feed">
-                        <t t-foreach="posts" t-as="post">
-                            <t t-call="edu_portal.post_card_component">
-                                <t t-set="can_manage" t-value="False"/>
-                            </t>
-                        </t>
-                    </div>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'💬'"/>
-                        <t t-set="title" t-value="'No announcements yet'"/>
-                        <t t-set="message" t-value="'Your teacher hasn\'t posted anything yet.'"/>
-                    </t>
-                </t>
-            </div>
-        </t>
-    </template>
+    <!-- ============================================================
+         Student Classroom Hub — Read-only tab-based detail view
+         Students see: stream, attendance, exams, assessments, results, people
+         Same visual structure as teacher classroom but without edit actions.
+         ============================================================ -->
 
-    <!-- ─── Attendance (read-only log) ─── -->
-    <template id="student_classroom_attendance_page" name="Student Classroom Attendance">
+    <!-- ─── Student Classroom Base Layout ────────────────────────── -->
+    <template id="student_classroom" name="Student — Classroom Hub">
         <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <div class="attendance-summary">
-                    <div class="attendance-summary-metric">
-                        <span class="metric-label">Attendance</span>
-                        <span class="metric-value"><t t-esc="attendance_pct"/>%</span>
+            <div class="content" t-att-data-screen-label="'Classroom %s' % classroom.get('code', '')">
+                <!-- Page head -->
+                <div class="page-head" style="align-items:flex-start;">
+                    <div>
+                        <div class="mono" style="font-size:12px;color:var(--ink-softer);margin-bottom:6px;">
+                            <t t-esc="classroom.get('code', '')"/> ·
+                            <t t-esc="classroom.get('credits', 3)"/> credits ·
+                            <t t-esc="classroom.get('semester', '')"/>
+                        </div>
+                        <h1 class="page-title"><t t-esc="classroom.get('title', '')"/></h1>
+                        <div class="page-sub" style="display:flex;gap:14px;margin-top:8px;">
+                            <span>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'user'"/><t t-set="sz" t-value="12"/></t>
+                                <t t-esc="classroom.get('teacher_name', '')"/>
+                            </span>
+                            <span>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'book'"/><t t-set="sz" t-value="12"/></t>
+                                <t t-esc="classroom.get('room', '')"/>
+                            </span>
+                            <span>
+                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'clock'"/><t t-set="sz" t-value="12"/></t>
+                                <t t-esc="classroom.get('next_class', '')"/>
+                            </span>
+                            <span class="pill success">Active</span>
+                        </div>
                     </div>
                 </div>
-                <t t-if="lines">
-                    <table class="attendance-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Session</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="lines" t-as="line">
-                                <tr>
-                                    <td><t t-esc="line.session_date"/></td>
-                                    <td><t t-esc="line.sheet_id.name or ''"/></td>
-                                    <td>
-                                        <span t-attf-class="attendance-status status-#{line.status}">
-                                            <t t-esc="dict(line._fields['status'].selection).get(line.status, line.status)"/>
-                                        </span>
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📋'"/>
-                        <t t-set="title" t-value="'No attendance records yet'"/>
-                        <t t-set="message" t-value="'Your attendance log will appear here after your first class.'"/>
+
+                <!-- Tab bar -->
+                <div class="seg" style="margin-bottom:20px;overflow-x:auto;">
+                    <t t-foreach="[
+                        ('stream', 'Stream', 'mega'),
+                        ('attendance', 'Attendance', 'check'),
+                        ('exams', 'Exams', 'paper'),
+                        ('assessments', 'Assessments', 'pen'),
+                        ('results', 'Results', 'grid'),
+                        ('people', 'People', 'users'),
+                    ]" t-as="tab">
+                        <a t-att-href="'/portal/student/classroom/%s/%s' % (classroom.get('id', ''), tab[0])"
+                           t-att-class="'active' if active_tab == tab[0] else ''">
+                            <t t-call="edu_portal.icon"><t t-set="ico" t-value="tab[2]"/><t t-set="sz" t-value="12"/></t>
+                            <t t-esc="tab[1]"/>
+                        </a>
                     </t>
-                </t>
+                </div>
+
+                <!-- Tab content -->
+                <t t-out="0"/>
             </div>
         </t>
     </template>
 
-    <!-- ─── Exams (read-only marksheets) ─── -->
-    <template id="student_classroom_exams_page" name="Student Classroom Exams">
-        <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <t t-if="marksheets">
-                    <table class="marks-table">
-                        <thead>
-                            <tr>
-                                <th>Exam</th>
-                                <th>Marks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="marksheets" t-as="ms">
-                                <tr>
-                                    <td><t t-esc="ms.exam_paper_id.display_name"/></td>
-                                    <td>
-                                        <t t-esc="ms.marks_obtained"/> / <t t-esc="ms.max_marks"/>
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📝'"/>
-                        <t t-set="title" t-value="'No exam results yet'"/>
-                        <t t-set="message" t-value="'Your marks for this subject will appear here once published.'"/>
-                    </t>
-                </t>
-            </div>
-        </t>
-    </template>
-
-    <!-- ─── Assessments (read-only) ─── -->
-    <template id="student_classroom_assessments_page" name="Student Classroom Assessments">
-        <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <t t-if="records">
-                    <table class="assessment-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Marks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="records" t-as="rec">
-                                <tr>
-                                    <td><t t-esc="rec.assessment_date"/></td>
-                                    <td><t t-esc="rec.category_id.name"/></td>
-                                    <td><t t-esc="rec.marks_obtained"/> / <t t-esc="rec.max_marks"/></td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📋'"/>
-                        <t t-set="title" t-value="'No assessment records yet'"/>
-                        <t t-set="message" t-value="'Continuous assessments will appear here as your teacher records them.'"/>
-                    </t>
-                </t>
-            </div>
-        </t>
-    </template>
-
-    <!-- ─── Results (own card) ─── -->
-    <template id="student_classroom_results_page" name="Student Classroom Results">
-        <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <t t-if="results">
-                    <t t-foreach="results" t-as="r">
-                        <div class="result-card">
-                            <h3><t t-esc="r.result_session_id.name or 'Result'"/></h3>
-                            <div class="result-metrics">
-                                <div class="result-metric">
-                                    <span class="metric-label">GPA</span>
-                                    <span class="metric-value"><t t-esc="r.gpa"/></span>
-                                </div>
-                                <div class="result-metric">
-                                    <span class="metric-label">Percentage</span>
-                                    <span class="metric-value"><t t-esc="r.percentage"/>%</span>
-                                </div>
-                                <div class="result-metric">
-                                    <span class="metric-label">Grade</span>
-                                    <span class="metric-value"><t t-esc="r.grade_letter or ''"/></span>
+    <!-- ─── Student Stream Tab ───────────────────────────────────── -->
+    <template id="student_classroom_stream" name="Student Classroom — Stream">
+        <t t-call="edu_portal.student_classroom">
+            <div class="grid" style="grid-template-columns:1.4fr 1fr;gap:16px;">
+                <!-- Posts feed (read-only) -->
+                <div>
+                    <t t-foreach="stream_posts or []" t-as="post">
+                        <div class="card" style="margin-bottom:12px;">
+                            <div style="display:flex;gap:12px;">
+                                <div class="avatar"><t t-esc="post.get('author_initials', '')"/></div>
+                                <div style="flex:1;">
+                                    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                                        <div>
+                                            <div style="font-weight:500;"><t t-esc="post.get('author_name', '')"/></div>
+                                            <div style="font-size:11.5px;color:var(--ink-softer);">
+                                                <t t-esc="post.get('time_ago', '')"/>
+                                            </div>
+                                        </div>
+                                        <t t-if="post.get('pinned')">
+                                            <span class="pill accent">
+                                                <t t-call="edu_portal.icon"><t t-set="ico" t-value="'flag'"/><t t-set="sz" t-value="10"/></t> Pinned
+                                            </span>
+                                        </t>
+                                    </div>
+                                    <t t-if="post.get('title')">
+                                        <div style="font-weight:500;font-size:15px;margin-top:8px;">
+                                            <t t-esc="post.get('title', '')"/>
+                                        </div>
+                                    </t>
+                                    <div style="font-size:13.5px;color:var(--ink-soft);margin-top:4px;line-height:1.55;">
+                                        <t t-esc="post.get('body', '')"/>
+                                    </div>
+                                    <!-- Attachments -->
+                                    <t t-if="post.get('attachments')">
+                                        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+                                            <t t-foreach="post.get('attachments', [])" t-as="att">
+                                                <a t-att-href="att.get('url', '#')" class="btn sm">
+                                                    <t t-call="edu_portal.icon"><t t-set="ico" t-value="'paper'"/><t t-set="sz" t-value="11"/></t>
+                                                    <t t-esc="att.get('name', 'File')"/>
+                                                </a>
+                                            </t>
+                                        </div>
+                                    </t>
                                 </div>
                             </div>
                         </div>
                     </t>
-                </t>
-                <t t-else="">
-                    <t t-call="edu_portal.empty_state_component">
-                        <t t-set="icon" t-value="'📊'"/>
-                        <t t-set="title" t-value="'No results published'"/>
-                        <t t-set="message" t-value="'Your result card will appear here once the session is published.'"/>
+                    <t t-if="not stream_posts">
+                        <div class="empty">No posts from your teacher yet.</div>
                     </t>
-                </t>
-            </div>
-        </t>
-    </template>
+                </div>
 
-    <!-- ─── People ─── -->
-    <template id="student_classroom_people_page" name="Student Classroom People">
-        <t t-call="edu_portal.portal_layout">
-            <t t-call="edu_portal.classroom_tabs_component"/>
-            <div class="classroom-body">
-                <section class="people-section">
-                    <h3 class="people-section-title">Teacher</h3>
-                    <div class="people-grid">
-                        <div class="person-card">
-                            <div class="person-avatar">
-                                <t t-esc="classroom.teacher_id.name[0].upper() if classroom.teacher_id.name else '?'"/>
+                <!-- Course info sidebar -->
+                <div>
+                    <div class="card" style="margin-bottom:16px;">
+                        <h3 class="card-title">Course information</h3>
+                        <div class="card-sub"><t t-esc="classroom.get('code', '')"/></div>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;font-size:13px;">
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:var(--ink-softer);">Teacher</span>
+                                <span><t t-esc="classroom.get('teacher_name', '')"/></span>
                             </div>
-                            <div class="person-info">
-                                <strong><t t-esc="classroom.teacher_id.name"/></strong>
-                                <span><t t-esc="classroom.subject_id.name"/></span>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:var(--ink-softer);">Room</span>
+                                <span><t t-esc="classroom.get('room', '')"/></span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:var(--ink-softer);">Credits</span>
+                                <span><t t-esc="classroom.get('credits', 0)"/></span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:var(--ink-softer);">Schedule</span>
+                                <span><t t-esc="classroom.get('schedule', '—')"/></span>
                             </div>
                         </div>
                     </div>
-                </section>
-                <section class="people-section">
-                    <h3 class="people-section-title">
-                        Classmates
-                        (<t t-esc="len(classmates)"/>)
-                    </h3>
-                    <t t-if="classmates">
-                        <table class="people-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:48px;">#</th>
-                                    <th>Name</th>
-                                    <th>Student ID</th>
-                                </tr>
-                            </thead>
+
+                    <!-- My progress -->
+                    <div class="card">
+                        <h3 class="card-title">My progress</h3>
+                        <div class="card-sub">In this course</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                            <div style="display:flex;justify-content:space-between;font-size:13px;">
+                                <span style="color:var(--ink-softer);">Attendance</span>
+                                <span class="mono"><t t-esc="my_attendance or '—'"/>%</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;">
+                                <span style="color:var(--ink-softer);">CA average</span>
+                                <span class="mono"><t t-esc="my_ca_avg or '—'"/></span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;">
+                                <span style="color:var(--ink-softer);">Latest exam</span>
+                                <span class="mono"><t t-esc="my_latest_exam or '—'"/></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Student Attendance Tab ───────────────────────────────── -->
+    <template id="student_classroom_attendance" name="Student Classroom — Attendance">
+        <t t-call="edu_portal.student_classroom">
+            <!-- My attendance summary -->
+            <div class="grid cols-4" style="margin-bottom:16px;">
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">My attendance</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;"><t t-esc="my_attendance or '—'"/>%</div>
+                    <div style="font-size:11.5px;color:var(--ink-softer);">
+                        <t t-esc="my_attendance_status or ''"/>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">Present</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;color:var(--success);">
+                        <t t-esc="my_present_count or 0"/>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">Absent</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;color:var(--danger);">
+                        <t t-esc="my_absent_count or 0"/>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">Late / Excused</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;">
+                        <t t-esc="my_late_count or 0"/> / <t t-esc="my_excused_count or 0"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance history -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+                    <div style="font-weight:500;">My attendance history</div>
+                    <div class="mono" style="font-size:11px;color:var(--ink-softer);">
+                        <t t-esc="classroom.get('code', '')"/> · edu.attendance.line
+                    </div>
+                </div>
+                <table class="tbl">
+                    <thead><tr><th>Date</th><th>Time</th><th>Status</th><th>Marked by</th></tr></thead>
+                    <tbody>
+                        <t t-foreach="my_attendance_history or []" t-as="ah">
+                            <tr>
+                                <td style="font-weight:500;"><t t-esc="ah.get('date', '')"/></td>
+                                <td class="mono"><t t-esc="ah.get('time', '')"/></td>
+                                <td>
+                                    <span class="pill"
+                                          t-att-class="'success' if ah.get('status') == 'present' else 'danger' if ah.get('status') == 'absent' else 'warn' if ah.get('status') == 'late' else 'info'">
+                                        <t t-esc="ah.get('status_label', '')"/>
+                                    </span>
+                                </td>
+                                <td style="font-size:12px;color:var(--ink-softer);"><t t-esc="ah.get('marked_by', '')"/></td>
+                            </tr>
+                        </t>
+                        <t t-if="not my_attendance_history">
+                            <tr><td colspan="4" class="empty" style="border:0;">No attendance records yet.</td></tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Student Exams Tab ────────────────────────────────────── -->
+    <template id="student_classroom_exams" name="Student Classroom — Exams">
+        <t t-call="edu_portal.student_classroom">
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+                    <div style="font-weight:500;">My exam results</div>
+                    <div class="mono" style="font-size:11px;color:var(--ink-softer);">edu.exam.marksheet</div>
+                </div>
+                <table class="tbl">
+                    <thead><tr><th>Paper</th><th>Session</th><th>Max</th><th>My marks</th><th>%</th><th>Status</th><th>Grade</th></tr></thead>
+                    <tbody>
+                        <t t-foreach="my_exam_results or []" t-as="er">
+                            <tr>
+                                <td style="font-weight:500;"><t t-esc="er.get('title', '')"/></td>
+                                <td style="font-size:12.5px;color:var(--ink-soft);"><t t-esc="er.get('session', '')"/></td>
+                                <td class="mono"><t t-esc="er.get('max_marks', 0)"/></td>
+                                <td class="mono" style="font-weight:600;"><t t-esc="er.get('my_marks', '—')"/></td>
+                                <td class="mono"><t t-esc="er.get('pct', '—')"/></td>
+                                <td>
+                                    <span class="pill"
+                                          t-att-class="'success' if er.get('is_pass') else 'danger' if er.get('is_published') else ''">
+                                        <t t-esc="er.get('status_label', '')"/>
+                                    </span>
+                                </td>
+                                <td>
+                                    <t t-if="er.get('grade')">
+                                        <span class="pill"
+                                              t-att-class="'success' if er.get('grade', '').startswith('A') else 'danger' if er.get('grade') == 'F' else ''">
+                                            <t t-esc="er.get('grade', '')"/>
+                                        </span>
+                                    </t>
+                                    <t t-else=""><span style="color:var(--ink-softer);">—</span></t>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-if="not my_exam_results">
+                            <tr><td colspan="7" class="empty" style="border:0;">No exam results published yet.</td></tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Feedback section -->
+            <t t-if="my_exam_feedback">
+                <div style="margin-top:16px;">
+                    <h3 class="display" style="font-size:20px;margin:0 0 12px;">Teacher feedback</h3>
+                    <t t-foreach="my_exam_feedback" t-as="fb">
+                        <div class="card" style="margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                                <div style="font-weight:500;"><t t-esc="fb.get('paper_title', '')"/></div>
+                                <span class="mono" style="font-size:11px;color:var(--ink-softer);">
+                                    <t t-esc="fb.get('marks', '')"/>/<t t-esc="fb.get('max', '')"/>
+                                </span>
+                            </div>
+                            <div style="padding:12px;background:var(--bg-sunk);border-radius:8px;font-size:13px;color:var(--ink-soft);line-height:1.6;">
+                                <t t-esc="fb.get('comment', 'No feedback provided.')"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ─── Student Assessments Tab ──────────────────────────────── -->
+    <template id="student_classroom_assessments" name="Student Classroom — Assessments">
+        <t t-call="edu_portal.student_classroom">
+            <!-- My CA summary -->
+            <div class="grid cols-3" style="margin-bottom:16px;">
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">My CA average</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;"><t t-esc="my_ca_avg or '—'"/></div>
+                </div>
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">Assessments completed</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;"><t t-esc="my_ca_completed or 0"/></div>
+                </div>
+                <div class="card">
+                    <div class="card-sub" style="margin:0;">Pending</div>
+                    <div class="display" style="font-size:30px;margin-top:4px;"><t t-esc="my_ca_pending or 0"/></div>
+                </div>
+            </div>
+
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+                    <div style="font-weight:500;">My assessment records</div>
+                    <div class="mono" style="font-size:11px;color:var(--ink-softer);">edu.continuous.assessment.record</div>
+                </div>
+                <table class="tbl">
+                    <thead><tr><th>Date</th><th>Category</th><th>Title</th><th>Max</th><th>My marks</th><th>%</th></tr></thead>
+                    <tbody>
+                        <t t-foreach="my_assessment_records or []" t-as="ar">
+                            <tr>
+                                <td class="mono"><t t-esc="ar.get('date', '')"/></td>
+                                <td><span class="pill"><t t-esc="ar.get('category', '')"/></span></td>
+                                <td style="font-weight:500;"><t t-esc="ar.get('title', '')"/></td>
+                                <td class="mono"><t t-esc="ar.get('max', 0)"/></td>
+                                <td class="mono" style="font-weight:600;">
+                                    <t t-esc="ar.get('my_marks', '—')"/>
+                                </td>
+                                <td class="mono"
+                                    t-att-style="'color:var(--success);' if ar.get('pct', 0) >= 70 else 'color:var(--danger);' if ar.get('pct', 0) &lt; 50 else ''">
+                                    <t t-esc="ar.get('pct', '—')"/>%
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-if="not my_assessment_records">
+                            <tr><td colspan="6" class="empty" style="border:0;">No assessment records yet.</td></tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <!-- ─── Student Results Tab ──────────────────────────────────── -->
+    <template id="student_classroom_results" name="Student Classroom — Results">
+        <t t-call="edu_portal.student_classroom">
+            <t t-if="my_result">
+                <!-- Report card style view -->
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <!-- Dark gradient header -->
+                    <div style="background:linear-gradient(135deg,var(--ink) 0%,oklch(from var(--ink) calc(l + 0.12) c h) 100%);color:var(--ink-inverse);padding:24px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div class="mono" style="font-size:11px;opacity:0.7;letter-spacing:0.06em;text-transform:uppercase;">
+                                    <t t-esc="classroom.get('code', '')"/> · <t t-esc="classroom.get('title', '')"/>
+                                </div>
+                                <div style="font-family:var(--font-display);font-size:28px;margin-top:6px;">
+                                    <t t-esc="my_result.get('session_label', 'Result')"/>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="display" style="font-size:48px;line-height:1;">
+                                    <t t-esc="my_result.get('grade', '—')"/>
+                                </div>
+                                <div class="mono" style="font-size:12px;opacity:0.7;">
+                                    <t t-esc="my_result.get('total', 0)"/>/<t t-esc="my_result.get('max_total', 0)"/> ·
+                                    <t t-esc="my_result.get('pct', 0)"/>%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown -->
+                    <div style="padding:24px;">
+                        <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+                            Result breakdown
+                        </div>
+                        <table class="tbl">
+                            <thead><tr><th>Component</th><th>Max</th><th>Marks</th><th>%</th></tr></thead>
                             <tbody>
-                                <t t-foreach="classmates" t-as="cm">
-                                    <tr>
-                                        <td><t t-esc="cm_index + 1"/></td>
-                                        <td><t t-esc="cm.partner_id.name or ''"/></td>
-                                        <td><t t-esc="cm.student_no or ''"/></td>
+                                <t t-foreach="my_result.get('breakdown', [])" t-as="rb">
+                                    <tr t-att-style="'background:var(--bg-sunk);font-weight:550;' if rb.get('is_total') else ''">
+                                        <td><t t-esc="rb.get('component', '')"/></td>
+                                        <td class="mono"><t t-esc="rb.get('max', 0)"/></td>
+                                        <td class="mono"><t t-esc="rb.get('marks', 0)"/></td>
+                                        <td class="mono"><t t-esc="rb.get('pct', 0)"/>%</td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
-                    </t>
-                    <t t-else="">
-                        <t t-call="edu_portal.empty_state_component">
-                            <t t-set="title" t-value="'No classmates yet'"/>
-                            <t t-set="message" t-value="'Your classmates will appear here.'"/>
+
+                        <t t-if="my_result.get('comments')">
+                            <div style="font-size:11px;color:var(--ink-softer);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;">
+                                Teacher comments
+                            </div>
+                            <div style="padding:12px;background:var(--bg-sunk);border-radius:8px;font-size:13px;color:var(--ink-soft);line-height:1.6;">
+                                <t t-esc="my_result.get('comments', '')"/>
+                            </div>
                         </t>
-                    </t>
-                </section>
+                    </div>
+                </div>
+            </t>
+            <t t-if="not my_result">
+                <div class="empty">No results published for this course yet.</div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ─── Student People Tab ───────────────────────────────────── -->
+    <template id="student_classroom_people" name="Student Classroom — People">
+        <t t-call="edu_portal.student_classroom">
+            <!-- Teacher -->
+            <div class="card" style="margin-bottom:16px;">
+                <h3 class="card-title">Teacher</h3>
+                <div style="display:flex;gap:12px;align-items:center;margin-top:12px;">
+                    <div class="avatar" style="width:44px;height:44px;font-size:14px;">
+                        <t t-esc="classroom.get('teacher_initials', '')"/>
+                    </div>
+                    <div>
+                        <div style="font-weight:500;font-size:15px;"><t t-esc="classroom.get('teacher_name', '')"/></div>
+                        <div style="font-size:12px;color:var(--ink-softer);">
+                            <t t-esc="classroom.get('teacher_title', '')"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classmates -->
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+                    <div style="font-weight:500;">Classmates</div>
+                    <div style="font-size:12px;color:var(--ink-softer);">
+                        <t t-esc="len(people_rows or [])"/> enrolled students
+                    </div>
+                </div>
+                <table class="tbl">
+                    <thead><tr><th/><th>Student</th><th>ID</th></tr></thead>
+                    <tbody>
+                        <t t-foreach="people_rows or []" t-as="pr">
+                            <tr>
+                                <td style="width:40px;">
+                                    <div class="avatar" style="width:28px;height:28px;font-size:10px;"
+                                         t-att-style="'background:oklch(94% 0.04 ' + str(pr.get('hue', 0)) + ');color:oklch(35% 0.08 ' + str(pr.get('hue', 0)) + ');'">
+                                        <t t-esc="pr.get('initials', '')"/>
+                                    </div>
+                                </td>
+                                <td style="font-weight:500;"><t t-esc="pr.get('name', '')"/></td>
+                                <td class="mono" style="color:var(--ink-softer);"><t t-esc="pr.get('student_id', '')"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
             </div>
         </t>
     </template>
+
 </odoo>
