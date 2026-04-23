@@ -179,7 +179,7 @@ class EduAttendanceSheet(models.Model):
         for rec in self:
             rec.line_count = len(rec.line_ids)
             rec.present_count = sum(
-                1 for l in rec.line_ids if l.status in ('present', 'late')
+                1 for l in rec.line_ids if l.status == 'present'
             )
             rec.absent_count = sum(
                 1 for l in rec.line_ids if l.status == 'absent'
@@ -329,13 +329,6 @@ class EduAttendanceSheet(models.Model):
         if self.state == 'draft':
             self.action_start()
         self.line_ids.write({'status': 'absent'})
-
-    def action_mark_all_late(self):
-        """Mark all students as late."""
-        self.ensure_one()
-        if self.state == 'draft':
-            self.action_start()
-        self.line_ids.write({'status': 'late'})
 
     def action_reset_to_draft(self):
         """Admin only: submitted → draft."""

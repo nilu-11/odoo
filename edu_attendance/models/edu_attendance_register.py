@@ -187,7 +187,7 @@ class EduAttendanceRegister(models.Model):
             if sid not in summary:
                 summary[sid] = {'total': 0, 'present': 0}
             summary[sid]['total'] += count
-            if status in ('present', 'late'):
+            if status == 'present':
                 summary[sid]['present'] += count
         for sid in summary:
             total = summary[sid]['total']

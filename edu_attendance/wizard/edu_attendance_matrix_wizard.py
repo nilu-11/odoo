@@ -18,21 +18,18 @@ _logger = logging.getLogger(__name__)
 STATUS_SYMBOLS = {
     'present': 'P',
     'absent': 'A',
-    'late': 'L',
     'excused': 'E',
 }
 
 STATUS_LABELS = {
     'present': 'Present',
     'absent': 'Absent',
-    'late': 'Late',
     'excused': 'Excused',
 }
 
 STATUS_COLORS = {
     'present': '#d4edda',
     'absent': '#f8d7da',
-    'late': '#fff3cd',
     'excused': '#d1ecf1',
 }
 
@@ -80,7 +77,7 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
     )
     status_display = fields.Selection(
         selection=[
-            ('symbol', 'Symbol (P / A / L / E)'),
+            ('symbol', 'Symbol (P / A / E)'),
             ('full_text', 'Full Text'),
         ],
         string='Status Display',
@@ -266,7 +263,7 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
         parts.append('<th>Roll No</th>')
         for d in dates:
             parts.append('<th>%s</th>' % escape(d.strftime('%d/%m')))
-        for hdr in ('P', 'A', 'L', 'E', '%'):
+        for hdr in ('P', 'A', 'E', '%'):
             parts.append('<th>%s</th>' % hdr)
         parts.append('</tr></thead>')
 
@@ -281,13 +278,12 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
             )
             parts.append('<td>%s</td>' % escape(stu['roll_number']))
 
-            pcnt = acnt = lcnt = ecnt = 0
+            pcnt = acnt = ecnt = 0
             for d in dates:
                 status = matrix[sid].get(d)
                 if status:
                     pcnt += status == 'present'
                     acnt += status == 'absent'
-                    lcnt += status == 'late'
                     ecnt += status == 'excused'
                     label = status_map.get(status, '-')
                     color = STATUS_COLORS.get(status, '#ffffff')
@@ -297,17 +293,14 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
                 else:
                     parts.append('<td style="color:#ccc;">-</td>')
 
-            total = pcnt + acnt + lcnt + ecnt
-            effective = pcnt + lcnt
+            total = pcnt + acnt + ecnt
+            effective = pcnt
             pct = round(effective / total * 100, 1) if total else 0.0
             pct_color = '#28a745' if pct >= 75 else '#dc3545'
 
             parts.append('<td class="fw-bold">%d</td>' % pcnt)
             parts.append(
                 '<td class="fw-bold" style="color:#dc3545;">%d</td>' % acnt
-            )
-            parts.append(
-                '<td class="fw-bold" style="color:#ffc107;">%d</td>' % lcnt
             )
             parts.append(
                 '<td class="fw-bold" style="color:#17a2b8;">%d</td>' % ecnt
@@ -363,10 +356,6 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
             'align': 'center', 'bg_color': '#f8d7da',
             'font_color': '#721c24', 'border': 1,
         })
-        late_fmt = workbook.add_format({
-            'align': 'center', 'bg_color': '#fff3cd',
-            'font_color': '#856404', 'border': 1,
-        })
         excused_fmt = workbook.add_format({
             'align': 'center', 'bg_color': '#d1ecf1',
             'font_color': '#0c5460', 'border': 1,
@@ -384,7 +373,6 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
         status_formats = {
             'present': present_fmt,
             'absent': absent_fmt,
-            'late': late_fmt,
             'excused': excused_fmt,
         }
 
@@ -415,7 +403,7 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
             ws.set_column(col, col, 7)
             col += 1
         summary_col = col
-        for hdr in ('P', 'A', 'L', 'E'):
+        for hdr in ('P', 'A', 'E'):
             ws.write(row, col, hdr, header_fmt)
             ws.set_column(col, col, 5)
             col += 1
@@ -432,13 +420,12 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
             ws.write(row, col, stu['roll_number'], center_fmt)
             col += 1
 
-            pcnt = acnt = lcnt = ecnt = 0
+            pcnt = acnt = ecnt = 0
             for d in dates:
                 status = matrix[sid].get(d)
                 if status:
                     pcnt += status == 'present'
                     acnt += status == 'absent'
-                    lcnt += status == 'late'
                     ecnt += status == 'excused'
                     label = status_map.get(status, '-')
                     fmt = status_formats.get(status, center_fmt)
@@ -447,15 +434,13 @@ class EduAttendanceMatrixReportWizard(models.TransientModel):
                     ws.write(row, col, '-', empty_fmt)
                 col += 1
 
-            total = pcnt + acnt + lcnt + ecnt
-            effective = pcnt + lcnt
+            total = pcnt + acnt + ecnt
+            effective = pcnt
             pct = effective / total if total else 0.0
 
             ws.write(row, col, pcnt, summary_fmt)
             col += 1
             ws.write(row, col, acnt, summary_fmt)
-            col += 1
-            ws.write(row, col, lcnt, summary_fmt)
             col += 1
             ws.write(row, col, ecnt, summary_fmt)
             col += 1

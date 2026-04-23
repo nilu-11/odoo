@@ -111,11 +111,6 @@
                             type="object"
                             class="btn-warning"
                             invisible="state == 'submitted'"/>
-                    <button name="action_mark_all_late"
-                            string="All Late"
-                            type="object"
-                            class="btn-info"
-                            invisible="state == 'submitted'"/>
                     <button name="action_reset_to_draft"
                             string="Reset to Draft"
                             type="object"
@@ -170,12 +165,11 @@
                         <list editable="bottom" default_order="roll_number"
                               decoration-success="status == 'present'"
                               decoration-danger="status == 'absent'"
-                              decoration-warning="status == 'late'"
                               decoration-info="status == 'excused'">
                             <field name="roll_number" readonly="1" optional="show"/>
                             <field name="student_id" readonly="1"/>
                             <field name="status" widget="radio"
-                                   options="{'horizontal': true}"/>
+                                options="{'horizontal': true}"/>
                             <field name="note" optional="show"/>
                             <field name="student_progression_history_id"
                                    optional="hide" readonly="1"/>

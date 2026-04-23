@@ -100,7 +100,6 @@ class EduAttendanceSheetLine(models.Model):
         selection=[
             ('present', 'Present'),
             ('absent', 'Absent'),
-            ('late', 'Late'),
             ('excused', 'Excused'),
         ],
         string='Status',
