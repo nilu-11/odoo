@@ -184,8 +184,9 @@
                                     <field name="relationship_type_id"
                                            options="{'no_create': False}"/>
                                     <field name="is_primary"/>
-                                    <field name="is_financial_contact"/>
-                                    <field name="is_emergency_contact"/>
+                                    <field name="guardian_is_legal_guardian" optional="show"/>
+                                     <field name="is_financial_contact"/>
+                                     <field name="is_emergency_contact"/>
                                     <field name="lives_with_applicant" optional="hide"/>
                                     <field name="guardian_occupation" optional="show"/>
                                     <field name="guardian_organization" optional="show"/>

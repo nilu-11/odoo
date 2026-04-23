@@ -331,7 +331,7 @@ class EduAttendanceSheet(models.Model):
         self.line_ids.write({'status': 'absent'})
 
     def action_reset_to_draft(self):
-        """Admin only: submitted → draft."""
+        """Admin only: submitted draft."""
         for rec in self:
             if rec.state != 'submitted':
                 raise UserError(_('Only submitted sheets can be reset to draft.'))

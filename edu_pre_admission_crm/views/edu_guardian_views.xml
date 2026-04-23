@@ -40,7 +40,7 @@
         <field name="name">edu.guardian.list</field>
         <field name="model">edu.guardian</field>
         <field name="arch" type="xml">
-            <list string="Guardians">
+            <list string="Guardians" create="0">
                 <field name="full_name" string="Name"/>
                 <field name="phone" widget="phone" optional="show"/>
                 <field name="email" widget="email" optional="show"/>
@@ -62,7 +62,7 @@
         <field name="name">edu.guardian.kanban</field>
         <field name="model">edu.guardian</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban sample="1" create="0">
                 <field name="full_name"/>
                 <field name="phone"/>
                 <field name="email"/>
@@ -208,6 +208,7 @@
          Guardian — Action
     ══════════════════════════════════════════════════════ -->
     <record id="action_edu_guardian" model="ir.actions.act_window">
+        <field name="context">{'create': 0}</field>
         <field name="name">Guardians</field>
         <field name="res_model">edu.guardian</field>
         <field name="view_mode">kanban,list,form</field>

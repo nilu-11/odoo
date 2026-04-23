@@ -64,8 +64,8 @@
         <field name="arch" type="xml">
             <list string="Attendance Sheets" default_order="session_date desc">
                 <field name="session_date"/>
-                <field name="time_from" widget="float_time" string="From"/>
-                <field name="time_to" widget="float_time" string="To"/>
+                <field name="time_from" widget="float_time" string="From" invisible="1"/>
+                <field name="time_to" widget="float_time" string="To" invisible="1"/>
                 <field name="register_id"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
@@ -134,10 +134,12 @@
                                    readonly="state == 'submitted'"/>
                             <field name="time_from"
                                    widget="float_time"
-                                   readonly="state == 'submitted'"/>
+                                   readonly="state == 'submitted'"
+                                   invisible="1"/>
                             <field name="time_to"
                                    widget="float_time"
-                                   readonly="state == 'submitted'"/>
+                                   readonly="state == 'submitted'"
+                                   invisible="1"/>
                             <field name="taken_by"
                                    readonly="state == 'submitted'"/>
                         </group>

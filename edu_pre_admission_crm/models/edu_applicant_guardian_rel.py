@@ -43,7 +43,7 @@ class EduApplicantGuardianRel(models.Model):
         ondelete='restrict',
     )
 
-    # ── Role flags (per applicant, may differ from guardian defaults) ─────────
+    # ── Role flags ────────────────────────────────────────────────────────────
     is_primary = fields.Boolean(
         string='Primary Guardian',
         default=False,
@@ -51,12 +51,16 @@ class EduApplicantGuardianRel(models.Model):
     )
     is_emergency_contact = fields.Boolean(
         string='Emergency Contact',
-        default=False,
+        related='guardian_id.is_emergency_contact',
+        store=False,
+        readonly=True,
     )
     is_financial_contact = fields.Boolean(
         string='Financial Contact',
-        default=False,
-        help='Responsible for fee payments for this applicant.',
+        related='guardian_id.is_financial_contact',
+        store=False,
+        readonly=True,
+        help='Inherited from guardian contact defaults.',
     )
     lives_with_applicant = fields.Boolean(
         string='Lives With Applicant',
@@ -80,6 +84,12 @@ class EduApplicantGuardianRel(models.Model):
         related='guardian_id.organization',
         string='Organization',
         store=False,
+    )
+    guardian_is_legal_guardian = fields.Boolean(
+        related='guardian_id.is_legal_guardian',
+        string='Legal Guardian',
+        store=False,
+        readonly=True,
     )
 
     # ── SQL constraints ───────────────────────────────────────────────────────

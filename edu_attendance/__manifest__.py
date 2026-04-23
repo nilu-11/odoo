@@ -5,6 +5,7 @@
     'author': 'Innovax Solutions',
     'category': 'Education',
     'license': 'LGPL-3',
+    'sequence': 1,
     'depends': [
         'mail',
         'edu_academic_structure',
